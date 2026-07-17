@@ -56,7 +56,7 @@ task-defaults:
         product: thunderbird
         channel: "esr-localtest-next"
         include-version: esr153-next
-        last-watershed: "140.12.0"
+        last-watershed: "140.12.1"
 
 tasks:
     thunderbird-next-linux64:
