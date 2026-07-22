@@ -101,18 +101,6 @@ config = {
                 "win64",
             ],
         },
-        "pkg": {
-            "product-name": "Thunderbird-%(version)s-pkg-SSL",
-            "platforms": ["osx"],
-        },
-        "pkg-latest": {
-            "product-name": "Thunderbird-esr-pkg-latest-SSL",
-            "platforms": ["osx"],
-        },
-        "pkg-next-latest": {
-            "product-name": "Thunderbird-esr-next-pkg-latest-SSL",
-            "platforms": ["osx"],
-        },
         "complete-mar": {
             "product-name": "Thunderbird-%(version)s-Complete",
             "platforms": [
