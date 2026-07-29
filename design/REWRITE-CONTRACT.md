@@ -1,7 +1,19 @@
 # 3-Pane rewrite — feature parity contract
 
-**Mandate:** full ground-up rewrite of the 3-pane UI to the "Material Mail" design. No stock
-Thunderbird markup carried over. **Every feature below must survive.**
+**Status: 33 / 38 boxes ticked** (2026-07-29, after two adversarial refutation waves). Every
+unticked box carries its own honest reason inline. Nothing on this branch has been built or launched.
+
+**Mandate:** re-skin the 3-pane UI to the "Material Mail" design as a **CSS layer over upstream's
+existing markup and behaviour**. **Every feature below must survive.**
+
+> [!NOTE]
+> **Corrected 2026-07-29.** This line used to read "full ground-up rewrite … No stock Thunderbird
+> markup carried over", which `design/README.md` and `AGENTS.md` §6 both contradict and which the
+> diff refutes outright: `git diff --stat upstream/main...HEAD -- mail/` is **10 files, zero
+> deletions**, `mail/base/content/about3Pane.js` has never been modified, and the two upstream XHTML
+> files gained nothing but `<link rel="stylesheet">` elements and comments. That untouched-behaviour
+> fact is what every tick below actually rests on, so the mandate must not describe a rewrite that
+> did not happen.
 
 **Platform: Windows only.** Per the user's scope override, this targets the Windows desktop app
 exclusively. That is a deliberate simplification, not a licence to delete:
@@ -1097,6 +1109,135 @@ Two (`folder colors`, `Theming`) name live unguarded rules that a themed user wo
 
 And the standing caveat is unchanged, twelve waves in: **nothing on this branch has been built or
 launched.** A contract that went *down* under audit is worth more than one that stayed at 38.
+
+### 2026-07-29 — repair wave, then a second adversarial refutation. **32 / 38 → 33 / 38.**
+
+The six revoked boxes were each re-proved by a dedicated agent working from primary sources, then
+each proof was attacked by its own dedicated refuter. **Five refuters returned REFUTED. One returned
+UPHELD.** One box is ticked. That ratio is the honest yield of a wave that landed 404 insertions of
+repairs (`a6abec8`) plus a gecko pin bump (`37499c1`) — the repairs were real, the *proofs* of them
+mostly were not yet.
+
+**Ratification rule applied, stricter than last wave's:** a box is re-ticked only if its proof
+carried worked specificity arithmetic for **both sides** of every cascade claim **and** its refuter
+returned UPHELD. A REFUTED verdict un-ticks, even when the audit's originally-named defect is fixed.
+Four of the five refusals below are of exactly that shape: the named defect **is** repaired, and a
+*different* defect or a miscount was found in the proof of the repair.
+
+#### One tick restored
+
+| Box | What earned it |
+|---|---|
+| **Session/state persistence** | `m3-layout.css:86-88` respelt **272px / 864px / 576px** as **17em / 54em / 36em**, so the never-dragged defaults track `mail.uifontsize` again. UPHELD after attack, and *strengthened*: `activeModes` round-trips through DOM child membership (`about3Pane.js:2134-2136` / `:2224`) rather than attributes, `table-layout: fixed` (`tree-listbox.css:320`) means our header typography cannot drift a stored column width, and no JS anywhere in the path calls `getComputedStyle`. The refuter also closed the column-picker box the very first parity pass **refused**: `& > :is(menu, menuitem)` really is (1,0,1) against the rejected flat form's (0,1,1). |
+
+#### Five refusals, and the ground each one died on
+
+| Box | The refuter's ground |
+|---|---|
+| Folder pane — badges / new-mail / folder colors / account indicator | Named defect fixed (the selected-row `--icon-color` is guarded, (1,6,1) vs (1,1,0)/(1,2,2)/(1,3,3)). **New defect**: our `prefers-contrast` fallback handed the `.new-messages` badge the plain-unread token, out-ranking upstream's `ButtonShadow` arm (1,5,1) vs (0,3,0) and (1,9,2) vs (0,7,1) — new mail looked exactly like old unread mail in Windows High Contrast. **Fixed in this commit**; unticked because that fix has had no adversarial pass. |
+| All 167 `cmd_*` commands | Cascade half **survived every attack** and was independently reproduced (the (1,0,1) menuitem rule out-ranks `contextMenu.css`'s (0,1,2) disabled arm but declares a *disjoint* set; `widgets.css:58-60`'s `pointer-events: none` is uncontested by any M3 sheet). Killed on arithmetic: the tables it said it enumerated are **30 / 12 / 8 = 50**, not 31 / 13 / 8 = 52, and "52" propagates four times. A box revoked for a miscount cannot be re-ticked on evidence that miscounts. |
+| Keyboard navigation | Named defect fixed — all 13 restated forced-colors arms verbatim-tie their bases. **New defect**: **four focus rings ARE theme-conditional** (`m3-chrome.css:151`, `:244`, `:331`, `:479`), invisible to a line-grep because the guard sits on the nesting ancestor. `AGENTS.md` §3 asserts the opposite as *verified* and must be corrected. Plus the group under review has **15** selectors, not 14, and `m3-chrome.css` has no `forced-colors` block at all. |
+| Accessibility | A real test now exists and is registered — but **has never been run**, and a tick on a written test is a tick on nothing. The static half also turned out non-exhaustive: `text-transform: uppercase` on `.mode-name` (1,2,1), unguarded and uncontested, **changes the accessible text** of a `role="treeitem"` (`test_gettext.html:69-76` proves Gecko exposes the transform). |
+| Theming | Named defect fixed and re-derived (the card border shorthand is colourless at (2,3,2); the colour moved to the guarded (2,4,0); the `prefers-contrast` restore at (2,4,2) still wins). Killed on a **false cascade rule**: "inline outranks every selector-matched rule regardless of specificity" ignores that origin/importance sorts *before* element-attached styles — so the two `--icon-color` `!important` declarations it listed but never inspected do beat the user's folder colour, and one of them paints an M3 red where its own guarded sibling stands down. |
+
+#### Regressions found and fixed by this pass
+
+1. **The new-mail badge handed back the wrong token under high contrast** (`m3-folder-pane.css`).
+   `about3Pane.css` defines two tokens in the same `@media (prefers-contrast)` block —
+   `--folderpane-unread-count-background` and `--folderpane-unread-new-count-background: ButtonShadow`
+   (`:56`) — and applies them separately at `:600` and `:611-614`. Our fallback gave both arms the
+   first one and out-ranked upstream on both: **(1,5,1) vs (0,3,0)** filled, **(1,9,2) vs (0,7,1)**
+   collapsed/outlined. In Windows High Contrast with no theme installed — the exact configuration the
+   guarded block exists to serve — a folder with **new** mail was indistinguishable from one with
+   merely **unread** mail, even though our own base rules distinguish them
+   (`--m3-primary-container` vs `--m3-primary`). Fixed by restating the two `.new-messages` arms at
+   matching weight, ordered after their competitors and still below the `.selected` arms at
+   (1,9,2)/(1,10,2). Zero declarations changed on any existing rule; guard counts unmoved.
+2. **Three false in-file comments corrected** (comment-only, no declaration touched). The
+   `.menupopup-column-picker` comment claimed `--m3-font-size` "resolves to an absolute
+   `calc(14px * 100 / 100)`" citing `material-tokens.css:41-42`; the real definition is
+   `material-tokens.css:60`, `calc(1rem * var(--m3-font-scale) / 100)` — root-relative, already
+   tracking the pref, and lines 41-42 are prose. And three comments in `m3-thread-pane.css` described
+   the decorative row buttons as `aria-hidden`; upstream spells it `aria-hidden="hidden"` in all **11**
+   places (`about3Pane.xhtml:241-360`) and `ARIAMap.cpp:1637-1643` compares against `true`
+   case-sensitively, so those buttons are **not** hidden from AT. Upstream's markup, not ours to fix —
+   but ours to stop repeating.
+3. Earlier in the wave, and verified by the refuters rather than taken on report: the
+   `m3-folder-pane.css` forced-colors ring comment replaced "already out-ranks" with the six-arm
+   **tie table** that is actually true, and the `m3-thread-pane.css` specificity table corrected
+   `.button-flat` from (2,4,2) to **(2,4,1)** (the element column is `tbody` alone).
+
+#### Prescribed fixes deliberately NOT applied, with the arithmetic, awaiting direction
+
+Each is a design or scope decision, not a ratifier's edit, and each is a one- or few-line change:
+
+1. **`m3-folder-pane.css:546`** — `--icon-color: var(--m3-error) !important` at (1,4,1), unguarded,
+   beating upstream's (1,3,1) `!important` under a theme, while its guarded sibling `:527` stands
+   down. Two different reds on one row (`#b3261e` icon / `#dc2626` name). Prefixing reaches
+   (1,6,1) and still wins with no theme. **Decides M3's red versus the theme's.**
+2. **`m3-folder-pane.css:928`** — `--icon-color: currentColor !important`, broader than upstream's
+   `:focus-within`-scoped `about3Pane.css:419-422`, on a premise that is false in the themed,
+   unfocused case. **Decides whether we overwrite a user's folder colour with no fill behind it.**
+3. **The four guarded chrome focus rings** (`m3-chrome.css:151`, `:244`, `:331`, `:479`) — split the
+   `outline` shorthand (geometry unguarded, colour guarded) or lift the rings out of the guard, so a
+   lightweight-theme user stops falling back to `ua.css:189`'s 1px `auto` ring. **The highest-value
+   accessibility fix on the board**, and it also requires correcting `AGENTS.md` §3, which states as
+   *verified* that zero focus rings carry the guard.
+4. **The five `cmd_*` figures** (31→30, 13→12, line 116→114, 52→50 in four places, and the
+   `--button-*` / opacity-census / `cmd_createAddressBook` corrections). Pure arithmetic; the
+   cascade argument behind that box is already reproduced twice.
+
+#### Mechanically verified by this ratify pass, not taken on report
+
+- Guard counts, **comments stripped** (`perl -0777 -pe 's{/\*.*?\*/}{}gs'` then `grep -c`), working
+  tree at commit time: `m3-layout` **11** · `m3-folder-pane` **57** · `m3-thread-pane` **31** ·
+  `m3-quick-filter` **21** · `m3-message-pane` **3** · `m3-chrome` **9** · `material-tokens` **0** —
+  total **132**. The 148 still printed in `AGENTS.md` and earlier in this file is a raw `grep -c`
+  that counted doctrine prose as guards. `material-tokens.css` stays at zero: definitions are not
+  paint. The badge fix added no guard string — both new rules sit inside an existing guard block.
+- `git status --porcelain -- mail/base/content/about3Pane.js` → **empty**, and
+  `git diff --stat upstream/main...HEAD -- mail/base/content/about3Pane.js` → **empty**. The
+  behaviour layer is still untouched, which is still the entire safety argument.
+- `git diff --shortstat upstream/main...HEAD -- mail/` → **10 files, zero deletions**.
+- Braces balanced comment-stripped in `m3-folder-pane.css` (105/105) after the edit.
+- Prettier 3.8.1 (`vendor/gecko/.prettierrc.js`, CSS `printWidth: 160`) `--check` clean over all six
+  `m3-*.css`, `material-tokens.css` **and** the new `browser_m3Accessibility.js`, which needed
+  `--write` before it was.
+- Upstream drift, after a real `git fetch upstream`: **33 ahead / 1 behind**; the one incoming commit
+  is `dce3a592428` "Bumping Thunderbird l10n changesets", and
+  `git log --oneline --name-status HEAD..upstream/main -- mail/base/content/ mail/themes/` is
+  **empty** — harmless per the triage rule, merged in this wave.
+- `gh issue list --repo Ding-Ding-Projects/agent-global-memory --state open` → **zero open issues**,
+  scanned at the start and again before finishing.
+
+#### Test and CI infrastructure landed
+
+- `mail/base/test/browser/browser_m3Accessibility.js` — 998 lines, 12 tasks, registered at
+  `mail/base/test/browser/browser2.toml:38`. Anti-vacuity guard first (it fails if the six M3 sheets
+  are not actually in `document.styleSheets` in the right cascade order), then container roles,
+  threading semantics in both row modes, `aria-live="off"` verbatim across selection churn,
+  virtualization spacers, three focus rings by **computed** style, and a hard assert of zero axe
+  `color-contrast` violations over the live 3-pane. `aria-valid-attr-value` and the full ruleset are
+  `todo`, not asserted, because they would be permanently red for upstream's
+  `aria-hidden="hidden"` — a test that enshrines a bug is worse than no test.
+- `.github/workflows/browser-tests-m3.yml` — 1198 lines, `windows-latest`, artifact build with
+  `--enable-tests`, six test groups covering 58 files, four independent failure gates including a
+  mozlog result gate self-tested against five synthetic streams and a real end-to-end harness
+  self-test that appends `Assert.ok(false)` to a registered test and fails unless both mochitest and
+  the gate catch it. Its `m3` group discovers `browser_m3*.js` by glob, so the new test is picked up.
+- **Neither has ever executed.** No build exists in this checkout. The standing caveat is unchanged,
+  thirteen waves in: **nothing on this branch has been built or launched.** Writing the test moved
+  the accessibility box's runtime half from *impossible* to *pending*. Pending is not a tick.
+
+#### What 33 / 38 means
+
+One box moved, and it moved because its defect was fixed *and* the fix withstood attack. The other
+five are now unticked for **better** reasons than they were yesterday: four of them have their
+originally-named defect repaired and stand refused over a fresher, smaller thing — a miscount, a
+guarded focus ring, a stale comment, an unrun test. That is what convergence looks like when the
+grader is adversarial. The two boxes with live rules a user would actually see are still
+`folder colors` and `Theming`, and both now have a one-line prescribed fix and named arithmetic
+waiting on one design decision each.
 
 ## Verification
 

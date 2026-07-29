@@ -16,8 +16,13 @@
  * current vs. selected, junk, tagged and forced-colors. Re-skinning the
  * variables keeps every one of those states working instead of re-deriving
  * them, and leaves the accessibility contract (role=treegrid,
- * aria-multiselectable, aria-activedescendant, the aria-hidden decorative row
- * buttons, the reverse tabindex in the header) completely untouched.
+ * aria-multiselectable, aria-activedescendant, the decorative row buttons'
+ * aria-hidden + tabindex=-1 pairing, the reverse tabindex in the header)
+ * completely untouched. On that pairing, see the correction at the row-button
+ * rules below: upstream writes the INVALID value aria-hidden="hidden", so only
+ * the tabindex half of it actually works. Untouched still means untouched -
+ * about3Pane.xhtml is upstream's - but do not repeat the claim that those
+ * buttons are hidden from assistive technology.
  *
  * Three hard constraints this file works around rather than fights:
  *
@@ -533,15 +538,20 @@
 .menupopup-column-picker {
   --m3-menu-item-size: calc(var(--m3-control-size) - 16px);
 
-  /* Restores text scaling to the picker. --m3-font-size resolves to an
-   * absolute `calc(14px * 100 / 100)` (material-tokens.css:41-42;
-   * --m3-font-scale is never rewritten at runtime), whereas upstream's
+  /* Pins the picker's text to the root font-size, which is what upstream's
    * `menupopup { font: menu; font-size: inherit }` (contextMenu.css:25-30)
-   * inherits the root font-size that UIFontSize.sys.mjs:195-199 writes onto
-   * document.documentElement for mail.uifontsize. Left on the token, every
-   * column checkbox, the restore item and the two apply-to submenu labels
-   * would sit at 14px whatever the user sets. 1rem is exactly what upstream
-   * resolved to, so scaling comes back with no change at the default. */
+   * resolves to, and what UIFontSize.sys.mjs:195-199 writes onto
+   * document.documentElement for mail.uifontsize.
+   *
+   * CORRECTED 2026-07-29: this comment used to claim --m3-font-size "resolves to
+   * an absolute calc(14px * 100 / 100)" and cited material-tokens.css:41-42. Both
+   * were false. The definition is at material-tokens.css:60 and reads
+   * `calc(1rem * var(--m3-font-scale) / 100)` - root-relative, so it already
+   * tracks the pref, and lines 41-42 are comment text, not a declaration. The
+   * severed-scaling defect this line was written to fix is therefore already
+   * fixed at the token. `1rem` is kept as belt-and-braces: identical at the
+   * default scale (--m3-font-scale is 100 and nothing writes it), and it keeps
+   * the picker on the pref alone if anything ever does. */
   --m3-menu-item-font-size: 1rem;
 }
 
@@ -729,8 +739,15 @@
     font-size: 0.75rem;
   }
 
-  /* Row buttons. All six stay in the DOM, aria-hidden and tabindex=-1 as
-   * today; they get the design's circular state layer at their existing size.
+  /* Row buttons. All six stay in the DOM with tabindex=-1 as today, and with
+   * upstream's aria-hidden attribute as today - which is spelt
+   * aria-hidden="hidden" (about3Pane.xhtml:241-360, 11 occurrences). "hidden" is
+   * not a valid value: ARIAMap.cpp:1637-1643 compares it against "true"
+   * case-sensitively, so these buttons are NOT hidden from assistive technology.
+   * Upstream markup, upstream's defect, and not ours to edit - recorded here so
+   * no future comment in this file claims otherwise.
+   *
+   * They get the design's circular state layer at their existing size.
    * Colour is left inheriting so the selected-row and tagged-row overrides in
    * threadPane.css continue to apply. */
   & .card-container :is(.button-star, .button-spam, .tree-button-more) {
@@ -992,7 +1009,9 @@
    * and state layer only — no sizing, because the row box is
    * ThreadRow.ROW_HEIGHT and tree-view.mjs routes their clicks by class
    * (`event.target.classList.contains("tree-button-spam")` etc.), so they must
-   * keep their existing hit box. They stay aria-hidden and unfocusable. */
+   * keep their existing hit box. They stay unfocusable (tabindex=-1) and keep
+   * upstream's aria-hidden="hidden" - which, per the correction above, does not
+   * actually hide them from assistive technology. */
   & tbody .button-column .button-flat {
     border-radius: var(--m3-radius-s);
 
