@@ -18,6 +18,20 @@
 #
 # Dependencies install automatically: `mach bootstrap --no-interactive` fetches
 # the Mozilla toolchains, with rustup as belt-and-braces. Nothing prompts.
+#
+# Two non-obvious facts this workflow is built around, both verified against the
+# pinned mozilla-central in vendor/gecko rather than guessed:
+#
+#  1. MOZ_AUTOMATION=1 is NOT a "be quiet, I'm CI" flag. It is the Taskcluster
+#     contract, and outside Taskcluster it actively breaks this build. See the
+#     `env:` block for the four separate ways it fails.
+#
+#  2. On Windows `mach package` DOES produce the NSIS installer. There is no
+#     `mach build installer` target any more. toolkit/mozapps/installer/packager.mk
+#     `make-package` runs `$(MAKE) -C windows ZIP_IN=... installer` whenever
+#     OS_ARCH is WINNT and MOZ_PKG_FORMAT is ZIP, and comm/mail/installer/windows
+#     supplies that target via makensis.mk. What it needs is makensis + 7zz on
+#     hand, which is what `--enable-bootstrap` is for.
 
 name: Windows installer
 
@@ -58,9 +72,54 @@ jobs:
       # Build on D:, not C:. Measured on a real run: C: has ~33 GB free, D: has
       # ~147 GB. The documented "14 GB SSD" figure understates this image badly,
       # and D: is roomy enough for a full build (~45 GB) with room to spare.
+      #
+      # D: on an Azure-backed hosted runner is the temporary/resource disk. It is
+      # persistent for the lifetime of the VM, which is the lifetime of THIS job,
+      # so everything below is safe. It does NOT survive into a second job: if
+      # this workflow ever grows a `needs:` job, that job will not see D:\gecko
+      # and everything it wants must be uploaded as an artifact first.
       MOZBUILD_STATE_PATH: D:\mozbuild
-      MOZ_AUTOMATION: '1'
       GECKO_DIR: D:\gecko
+
+      # MOZ_AUTOMATION is deliberately NOT set. It used to be, and it is the
+      # single biggest reason this pipeline could not have worked. It is the
+      # Taskcluster contract, not a generic "this is CI" switch, and off
+      # Taskcluster it breaks the build in four independent places:
+      #
+      #  1. comm/build/moz.configure/gecko_source.configure - `comm_source_repo`
+      #     and `gecko_source_repo` call die() when MOZ_AUTOMATION is set and
+      #     COMM_HEAD_REPOSITORY / GECKO_HEAD_REPOSITORY are absent. Hard
+      #     configure failure: "Unable to determine COMM source repository."
+      #  2. mozilla build/moz.configure/init.configure - `vcs_checkout_type`
+      #     raises FatalCheckError("unable to resolve VCS type; must run from a
+      #     source checkout when MOZ_AUTOMATION is set").
+      #  3. mozilla build/moz.configure/bootstrap.configure - `bootstrap_default`
+      #     returns False under automation, because Taskcluster is expected to
+      #     supply MOZ_FETCHES_DIR. Nothing supplies it here, so nsis, 7zz and
+      #     upx are never fetched and packaging dies at the installer step.
+      #  4. toolkit/mozapps/installer/windows/nsis/makensis.mk - sets
+      #     USE_UPX := --use-upx on `$(UPX)$(MOZ_AUTOMATION)`, i.e. it forces upx
+      #     on merely because automation is claimed, even when configure found no
+      #     upx at all. exe_7z_archive.py then execs a binary that isn't there.
+      #
+      # The one thing MOZ_AUTOMATION was buying was silencing mach's desktop
+      # notifications and the Defender-exclusion UAC prompt. MOZ_NOSPAM covers
+      # the first (mozbuild/base.py checks both) and `bootstrap
+      # --no-system-changes` covers the second.
+      MOZ_NOSPAM: '1'
+
+      # Keep the mozconfig OFF the default path ($topsrcdir/mozconfig) and point
+      # MOZCONFIG at it instead. This is not cosmetic. `mach bootstrap` ends in
+      # _output_mozconfig(); if a mozconfig exists at the default path it calls
+      # _check_default_mozconfig_mismatch(), sees "browser" != "comm_mail", and
+      # asks "Do you want to overwrite the config?" - and mozboot's prompt_yesno
+      # returns True unconditionally when non-interactive. It would silently
+      # replace our comm/mail artifact mozconfig with an empty one and we would
+      # spend six hours building, and then shipping, Firefox. mozboot's
+      # find_mozconfig() honours $MOZCONFIG first, and the mismatch path is only
+      # reached when the default path exists, so this sidesteps it entirely.
+      # Must be a literal: GitHub does not expand env into env.
+      MOZCONFIG: D:\gecko\mozconfig-ci
 
     steps:
       - name: Enable long paths
@@ -125,7 +184,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: comm-src
-          fetch-depth: 1
+          # NOT fetch-depth: 1. An artifact build of comm/mail resolves its
+          # prebuilt binaries against the *comm* history, not gecko's:
+          # mozbuild/artifact_commands.py does
+          #   topsrcdir = substs.get("commtopsrcdir", topsrcdir)
+          # and artifacts.py then runs `git rev-list --topo-order --max-count=500`
+          # in that directory and asks the Taskcluster index for each revision.
+          # With depth 1 the only revision on offer is this fork's own tip, which
+          # comm-central CI has obviously never built, and `mach artifact install`
+          # aborts with "Could not find any candidate pushheads". 500 gives the
+          # walk enough real comm-central ancestors to land on a nightly that was
+          # actually built, and matches NUM_REVISIONS_TO_QUERY exactly so nothing
+          # is fetched that would not be looked at.
+          fetch-depth: 500
           # Submodules are fetched selectively below: vendor/gecko is multi-GB and
           # vendor/agent-global-memory is irrelevant to building.
           submodules: false
@@ -141,6 +212,7 @@ jobs:
           # local clone landing first.
           $pinned = $false
           $rev = ""
+          $geckoUrl = "https://github.com/mozilla-firefox/firefox.git"
           if ((Test-Path .gitmodules) -and (Select-String -Path .gitmodules -Pattern 'vendor/gecko' -Quiet)) {
             Write-Host "vendor/gecko submodule found - using pinned revision."
             git submodule update --init --depth 1 vendor/gecko
@@ -148,23 +220,65 @@ jobs:
             else { Write-Host "::warning::vendor/gecko registered but did not populate; falling back to tip." }
           }
           if ($pinned) {
-            # Read the revision BEFORE moving. A submodule's .git is a *file* whose
-            # `gitdir:` pointer is RELATIVE to the parent repo, so the moment the
-            # directory moves it resolves to nothing and every git command in it
-            # dies with "fatal: not a git repository: (NULL)".
-            $rev = (git -C "vendor\gecko" rev-parse HEAD).Trim()
+            # Read the revision AND the real gitdir BEFORE moving. A submodule's
+            # .git is a *file* whose `gitdir:` pointer is RELATIVE to the parent
+            # repo, so the moment the directory moves it resolves to nothing and
+            # every git command in it dies with "fatal: not a git repository: (NULL)".
+            $rev       = (git -C "vendor\gecko" rev-parse HEAD).Trim()
+            $moduleDir = (git -C "vendor\gecko" rev-parse --absolute-git-dir).Trim()
+
             Move-Item -Path "vendor\gecko" -Destination "$env:GECKO_DIR"
-            # Drop the now-dangling pointer. A broken .git confuses tooling more
-            # than no .git at all, and the build only needs the source tree.
-            $stale = Join-Path $env:GECKO_DIR ".git"
-            if (Test-Path $stale) { Remove-Item -Force -Recurse $stale }
+
+            # This step used to simply delete the dangling .git and move on. That
+            # is what breaks everything downstream: gecko MUST remain a real git
+            # checkout, because
+            #   * init.configure's vcs_checkout_type() is a plain
+            #     os.path.exists(topsrcdir/.git) test. No .git means
+            #     VCS_CHECKOUT_TYPE and GIT never reach substs.
+            #   * with GIT missing, mozbuild/base.py falls back to SrcRepository,
+            #     artifact_commands.py sets git=None and hg=None, and
+            #     artifacts.py::_get_recent_public_revisions() then calls
+            #     run_hg() with self._hg = None -> TypeError, mid-build.
+            #   * bootstrap.configure's toolchain fetching shells out to
+            #     `mach taskgraph tasks`, which needs repo parameters. No repo,
+            #     no taskgraph, no nsis/7zz/upx, no installer.
+            # So instead of deleting it, relocate the submodule's real gitdir and
+            # promote it to a standalone repository.
+            $dotGit = Join-Path $env:GECKO_DIR ".git"
+            if (Test-Path $dotGit) { Remove-Item -Force -Recurse $dotGit }
+            if ($moduleDir -and (Test-Path $moduleDir)) {
+              Move-Item -Path $moduleDir -Destination $dotGit
+              # The relocated gitdir still aims core.worktree at the old submodule
+              # path. Drop it and the parent directory becomes the worktree.
+              # `config --unset` exits 5 when the key was already absent, which is
+              # a success for us; swallow it either way so it cannot fail the step
+              # under $PSNativeCommandUseErrorActionPreference.
+              try { git -C "$env:GECKO_DIR" config --unset core.worktree | Out-Null } catch {}
+              try { git -C "$env:GECKO_DIR" config core.bare false | Out-Null } catch {}
+              $global:LASTEXITCODE = 0
+            } else {
+              Write-Host "::warning::could not locate the vendor/gecko gitdir at '$moduleDir'."
+            }
+            $check = ""
+            try { $check = (git -C "$env:GECKO_DIR" rev-parse HEAD 2>$null).Trim() } catch {}
+            if ($check -ne $rev) {
+              throw "gecko at $env:GECKO_DIR is not a usable git checkout (rev-parse gave '$check', expected '$rev'). Artifact builds and toolchain bootstrap both require it."
+            }
           } else {
             Write-Host "::notice::Cloning mozilla-central tip (unpinned). Register vendor/gecko for reproducible builds."
-            git clone --depth 1 https://github.com/mozilla-firefox/firefox.git "$env:GECKO_DIR"
+            git clone --depth 1 $geckoUrl "$env:GECKO_DIR"
             $rev = (git -C "$env:GECKO_DIR" rev-parse HEAD).Trim()
           }
           if (-not $rev) { throw "could not determine gecko revision" }
           Write-Host "gecko rev: $rev (pinned: $pinned)"
+
+          # comm/build/moz.configure/gecko_source.configure reads these for MPL
+          # source-provenance. Without them a non-automation build just records
+          # "unknown" in about:buildconfig, and an automation build die()s. They
+          # cost nothing and make the shipped build honest about its origin.
+          "GECKO_HEAD_REPOSITORY=$geckoUrl" >> $env:GITHUB_ENV
+          "GECKO_HEAD_REV=$rev"             >> $env:GITHUB_ENV
+
           "### Gecko: ``$rev`` (pinned submodule: $pinned)" >> $env:GITHUB_STEP_SUMMARY
 
       - name: Assemble gecko/comm tree
@@ -178,6 +292,15 @@ jobs:
           if (-not (Test-Path "$env:GECKO_DIR\mach")) {
             throw "gecko/ missing mach - checkout did not populate"
           }
+          # The comm checkout must keep its own .git: it is what `mach artifact
+          # install` walks to find a comm-central revision with a published
+          # win64-opt build. actions/checkout gives us a real .git directory
+          # here (not a submodule pointer), so nothing to repair - just assert.
+          if (-not (Test-Path "$env:GECKO_DIR\comm\.git")) {
+            throw "comm/.git is missing - artifact builds cannot resolve a candidate revision without it"
+          }
+          "COMM_HEAD_REPOSITORY=${{ github.server_url }}/${{ github.repository }}" >> $env:GITHUB_ENV
+          "COMM_HEAD_REV=${{ github.sha }}" >> $env:GITHUB_ENV
           Write-Host "Thunderbird version: $(Get-Content "$env:GECKO_DIR\comm\mail\config\version.txt")"
 
       - name: Choose build mode from measured free space
@@ -245,55 +368,205 @@ jobs:
         env:
           MODE: ${{ steps.mode.outputs.mode }}
         run: |
+          # Written to $MOZCONFIG (D:\gecko\mozconfig-ci), NOT $topsrcdir/mozconfig.
+          # See the note in the job `env:` block - bootstrap will silently
+          # overwrite the default path.
           $lines = @(
+            # This is the line that makes it a Thunderbird build rather than a
+            # Firefox one, and it has to be present at *configure* time, not at
+            # bootstrap time. It is what puts MOZ_BUILD_APP=comm/mail into substs,
+            # which is the sole trigger for artifacts.py picking
+            # ThunderbirdJobConfiguration over the Gecko one.
             'ac_add_options --enable-project=comm/mail',
             'ac_add_options --enable-optimize',
             'ac_add_options --disable-debug',
             'ac_add_options --disable-tests',
+            # Fetch Mozilla's own nsis, 7zz and upx into MOZBUILD_STATE_PATH.
+            # `mach package` on Windows runs the NSIS installer target, and
+            # moz.configure declares those three as check_prog(..., bootstrap=...,
+            # allow_missing=True). Without bootstrap they resolve to nothing, the
+            # makensis.mk recipe execs `installer.nsi` as if it were a program,
+            # and packaging dies after the build has already been paid for.
+            # Note 7Z is looked up as `7zz`, not `7z`, so the 7-Zip that ships on
+            # the runner image does not satisfy it.
+            # This is on by default off-automation for a nightly VCS checkout, but
+            # only because both of those conditions hold; state it explicitly so
+            # it cannot regress silently.
+            'ac_add_options --enable-bootstrap',
+            # @TOPSRCDIR@ is D:\gecko, so this resolves to D:\gecko\obj-tb.
+            # Every later step uses $env:GECKO_DIR\obj-tb; keep the two in step.
             'mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-tb',
             'mk_add_options AUTOCLOBBER=1'
           )
           if ($env:MODE -eq 'artifact') {
+            # Implies --disable-compile-environment (mozilla moz.configure
+            # imply_disable_compile_environment), so no MSVC toolchain checks run.
             $lines += 'ac_add_options --enable-artifact-builds'
           }
-          $lines -join "`n" | Set-Content -Encoding ascii "$env:GECKO_DIR\mozconfig"
-          Write-Host "--- mozconfig (mode: $env:MODE) ---"
-          Get-Content "$env:GECKO_DIR\mozconfig"
+          New-Item -ItemType Directory -Force -Path (Split-Path -Parent $env:MOZCONFIG) | Out-Null
+          $lines -join "`n" | Set-Content -Encoding ascii $env:MOZCONFIG
+          Write-Host "--- $env:MOZCONFIG (mode: $env:MODE) ---"
+          Get-Content $env:MOZCONFIG
+          if (Test-Path "$env:GECKO_DIR\mozconfig") {
+            throw "a mozconfig exists at the default path; bootstrap would overwrite it. Remove it."
+          }
 
       - name: Bootstrap build environment (auto-install deps)
         shell: pwsh
         working-directory: ${{ env.GECKO_DIR }}
         run: |
-          # --no-interactive installs every Mozilla-managed toolchain without prompting.
-          python mach --no-interactive bootstrap --application-choice=browser
+          # MOZILLABUILD is already exported (see the install step above), and
+          # that matters for two reasons beyond mach's own assertion:
+          #   * build/mach_initialize.py::_maybe_activate_mozillabuild_environment
+          #     prepends MozillaBuild's msys2 tools and bin/ to PATH, which is
+          #     what gives the build a usable `make`, `sh`, etc.
+          #   * mozboot/bootstrap.py dispatches on it - with MOZILLABUILD set it
+          #     picks MozillaBuildBootstrapper, without it WindowsBootstrapper.
+          # So there is no need to re-enter start-shell.bat; running mach from
+          # pwsh with MOZILLABUILD set is the supported path.
+          #
+          # --application-choice=browser is correct for comm/mail. mozboot's
+          # APPLICATIONS map has no Thunderbird entry at all, and bootstrap does
+          # not read our mozconfig: auto_bootstrap() builds its own argv with
+          # `--enable-project=browser` and MOZCONFIG=/dev/null. It is fetching
+          # host toolchains, which comm shares with Firefox. Picking
+          # browser_artifact_mode instead would only skip clang-tidy and sccache
+          # while adding a mozconfig-mismatch code path, so it buys nothing.
+          #
+          # --no-system-changes stops mozboot calling ShellExecuteW(..., "runas")
+          # to add Microsoft Defender exclusions. That fires a UAC consent dialog
+          # no one on a hosted runner can answer. It was previously suppressed by
+          # MOZ_AUTOMATION, which we have removed. It does not reduce what gets
+          # installed: maybe_install_private_packages_or_exit() -> auto_bootstrap()
+          # still runs first, and that is the part that downloads the toolchains.
+          python mach --no-interactive bootstrap --application-choice=browser --no-system-changes
+          if ($LASTEXITCODE -ne 0) { throw "mach bootstrap failed ($LASTEXITCODE)" }
+
+      - name: Configure
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          # Split out from `mach build` so a configure failure is legible, and so
+          # the packaging tools can be inspected before hours are spent building.
+          python mach configure
+          if ($LASTEXITCODE -ne 0) { throw "mach configure failed ($LASTEXITCODE)" }
+
+          $cs = Join-Path $env:GECKO_DIR "obj-tb\config.status"
+          if (-not (Test-Path $cs)) { throw "configure produced no config.status at $cs" }
+          # Early warning for the packaging step. `mach package` shells out to
+          # makensis and 7zz to build the installer; if configure resolved
+          # neither, the failure would otherwise arrive at the very end.
+          # config.status is a pprint'ed python dict, so entries read
+          #   'MAKENSISU': 'D:\\mozbuild\\nsis\\bin\\makensis.exe',
+          # An absent key or an empty value both mean the tool was not found,
+          # because these are declared allow_missing=True in moz.configure.
+          foreach ($tool in 'MAKENSISU','7Z','UPX') {
+            $hit = Select-String -Path $cs -Pattern "'$tool'" -SimpleMatch -EA SilentlyContinue | Select-Object -First 1
+            if ($hit -and $hit.Line -notmatch "'$tool':\s*''") {
+              Write-Host ("{0}: {1}" -f $tool, $hit.Line.Trim())
+            } else {
+              Write-Host "::warning::configure did not resolve $tool. mach package builds the Windows installer with makensis and 7zz, so packaging will very likely fail. Check that --enable-bootstrap took effect and that mach taskgraph could run."
+            }
+          }
+          Select-String -Path $cs -Pattern "MOZ_BUILD_APP|MOZ_ARTIFACT_BUILDS|MOZ_APP_NAME" -EA SilentlyContinue |
+            ForEach-Object { Write-Host $_.Line.Trim() }
+
+      # ---------------------------------------------------------------------
+      # UNRESOLVED RISKS - read before debugging the next red run.
+      #
+      # Everything above is a fix I could verify against the pinned tree in
+      # vendor/gecko. The following I could not verify without a live run, so
+      # they are documented rather than guessed at.
+      #
+      # RISK 1 - artifact lookup may be keyed on Mercurial changesets, not git.
+      #   mozbuild/artifacts.py::TaskCache.artifacts builds the index namespace
+      #     comm.v2.comm-central.shippable.revision.<REV>.thunderbird.win64-opt
+      #   For a git checkout with no git-cinnabar metadata (ours), <REV> is fed
+      #   raw git SHAs straight out of `git rev-list`. That is only correct if
+      #   comm-central's Taskcluster index is populated with git SHAs. If comm
+      #   is still hg-primary for indexing, every lookup 404s and the failure
+      #   reads "Could not find any candidate pushheads in the last 50
+      #   revisions" - which looks like a fetch-depth problem and is not one.
+      #   Increasing fetch-depth will not help. The escape hatches, all read by
+      #   artifacts.py::install_from and all settable as job env, are:
+      #     MOZ_ARTIFACT_TASK_WIN64_OPT=<taskId>   pin an exact TC task
+      #     MOZ_ARTIFACT_URL=<url>                 point at a target.zip
+      #     MOZ_ARTIFACT_REVISION=<rev>            force one revision
+      #   Prefer MOZ_ARTIFACT_TASK_WIN64_OPT: it needs no revision mapping.
+      #
+      # RISK 2 - this fork's commit SHAs must actually match comm-central's.
+      #   The walk only succeeds if recent ancestors of HEAD are byte-identical
+      #   commits to ones comm-central CI built. If this repo was re-created
+      #   (squashed, re-authored, imported) rather than forked, the SHAs differ
+      #   and no depth will ever find a match. Same escape hatches as RISK 1.
+      #
+      # RISK 3 - toolchain bootstrap depends on taskgraph generation succeeding.
+      #   bootstrap.configure::bootstrap_toolchain_tasks shells out to
+      #   `mach taskgraph tasks -k fetch -k toolchain`. gecko here is a depth-1
+      #   detached-HEAD clone; if taskgraph cannot derive its parameters from
+      #   that, it raises, the exception is swallowed into a log warning, and
+      #   nsis/7zz/upx are quietly not fetched. The Configure step above turns
+      #   that silence into an explicit ::warning:: - if you see it, this is the
+      #   cause, and the fix is a deeper gecko clone, not more mozconfig flags.
+      #
+      # RISK 4 - artifact/source skew between comm and gecko.
+      #   A comm/mail artifact build layers this checkout's frontend over
+      #   binaries built by comm-central against whatever mozilla-central
+      #   revision comm-central had pinned at that time. vendor/gecko pins its
+      #   own, possibly different, mozilla-central revision. For a pure
+      #   frontend change this is normally fine, but a mismatch shows up as
+      #   missing chrome or XPT/interface errors at runtime rather than as a
+      #   build failure. If that happens, move vendor/gecko to the revision in
+      #   comm's .gecko_rev.yml.
+      # ---------------------------------------------------------------------
 
       - name: Build
         shell: pwsh
         working-directory: ${{ env.GECKO_DIR }}
-        run: python mach build
+        run: |
+          # In artifact mode this is where the prebuilt binaries arrive: gecko's
+          # Makefile.in has a `recurse_artifact` rule that runs
+          # `mach artifact install --no-tests`. Because MOZ_BUILD_APP is
+          # comm/mail, that resolves against trust domain `comm`, product
+          # `thunderbird` and the comm-central index - NOT mozilla-central. A
+          # mozilla-central artifact would be the wrong product entirely.
+          python mach build
+          if ($LASTEXITCODE -ne 0) { throw "mach build failed ($LASTEXITCODE)" }
 
       - name: Package installer
         shell: pwsh
         working-directory: ${{ env.GECKO_DIR }}
-        run: python mach package
+        run: |
+          # There is no `mach build installer` target in current mozilla-central;
+          # grep the top-level Makefile.in and it does not exist. On Windows the
+          # NSIS installer is a side effect of `make package`: packager.mk's
+          # make-package rule runs `$(MAKE) -C windows ZIP_IN=$(PACKAGE) installer`
+          # when OS_ARCH=WINNT and MOZ_PKG_FORMAT=ZIP, and comm/mail/installer/
+          # windows/Makefile.in provides that target through makensis.mk. Output
+          # lands in dist/install/sea/*.installer.exe alongside the plain .zip.
+          python mach package
+          if ($LASTEXITCODE -ne 0) { throw "mach package failed ($LASTEXITCODE)" }
 
       - name: Locate installer
         id: find
         shell: pwsh
         working-directory: ${{ env.GECKO_DIR }}
         run: |
-          $exe = Get-ChildItem -Path "obj-tb\dist\install" -Recurse -Filter "*.exe" -EA SilentlyContinue |
+          # dist/install/sea/<app>-<version>.<locale>.win64.installer.exe, per
+          # toolkit/mozapps/installer/package-name.mk (PKG_INST_PATH/PKG_INST_BASENAME).
+          $dist = Join-Path $env:GECKO_DIR "obj-tb\dist"
+          $exe = Get-ChildItem -Path (Join-Path $dist "install") -Recurse -Filter "*.exe" -EA SilentlyContinue |
                  Where-Object { $_.Name -match 'installer|setup' } |
                  Sort-Object Length -Descending | Select-Object -First 1
           if (-not $exe) {
-            Write-Host "No installer found. obj-tb\dist contents:"
-            Get-ChildItem -Path "obj-tb\dist" -Recurse -Depth 3 -EA SilentlyContinue |
+            Write-Host "No installer found. $dist contents:"
+            Get-ChildItem -Path $dist -Recurse -Depth 3 -EA SilentlyContinue |
               Select-Object FullName | Format-Table -AutoSize
-            throw "mach package produced no installer .exe"
+            throw "mach package produced no installer .exe. On Windows the installer is built by the make-package rule (packager.mk), which needs MAKENSISU and 7Z from configure - check the Configure step's warnings and obj-tb\config.log."
           }
           Write-Host ("Installer: {0} ({1:N1} MB)" -f $exe.FullName, ($exe.Length/1MB))
           "installer=$($exe.FullName)" >> $env:GITHUB_OUTPUT
-          "version=$(Get-Content comm\mail\config\version_display.txt)" >> $env:GITHUB_OUTPUT
+          "version=$(Get-Content "$env:GECKO_DIR\comm\mail\config\version_display.txt")" >> $env:GITHUB_OUTPUT
 
       - name: Publish release
         shell: pwsh
@@ -367,9 +640,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-logs
+          # These pointed at C:\gecko, which has not been the build location
+          # since the move to D:. Every failed run uploaded an empty artifact.
           path: |
-            C:\gecko\obj-tb\config.log
-            C:\gecko\obj-tb\.mozconfig.json
+            ${{ env.GECKO_DIR }}\obj-tb\config.log
+            ${{ env.GECKO_DIR }}\obj-tb\config.status
+            ${{ env.GECKO_DIR }}\obj-tb\.mozconfig.json
+            ${{ env.GECKO_DIR }}\mozconfig-ci
           if-no-files-found: ignore
 
       - name: Disk space (after)
