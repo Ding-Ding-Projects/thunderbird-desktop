@@ -32,8 +32,7 @@
    * render as tofu.
    */
   --m3-font-roboto: Roboto, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  --m3-font-notohk: "Noto Sans HK", "Microsoft JhengHei UI", "Microsoft JhengHei",
-    "PingFang HK", Roboto, system-ui, sans-serif;
+  --m3-font-notohk: "Noto Sans HK", "Microsoft JhengHei UI", "Microsoft JhengHei", "PingFang HK", Roboto, system-ui, sans-serif;
   --m3-font-system: system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif;
   --m3-font-serif: Georgia, "Times New Roman", serif;
 
@@ -113,9 +112,15 @@
 }
 
 /* Font family variants, selected by the appearance surface. */
-:root[data-m3-font="notohk"] { --m3-font: var(--m3-font-notohk); }
-:root[data-m3-font="system"] { --m3-font: var(--m3-font-system); }
-:root[data-m3-font="serif"] { --m3-font: var(--m3-font-serif); }
+:root[data-m3-font="notohk"] {
+  --m3-font: var(--m3-font-notohk);
+}
+:root[data-m3-font="system"] {
+  --m3-font: var(--m3-font-system);
+}
+:root[data-m3-font="serif"] {
+  --m3-font: var(--m3-font-serif);
+}
 
 /* ==========================================================================
  * Neutrals — surface/outline/error. Independent of the accent seed.
@@ -360,8 +365,12 @@
 }
 
 @keyframes m3-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

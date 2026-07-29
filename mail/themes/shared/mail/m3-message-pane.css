@@ -111,16 +111,7 @@ body:is(.layout-classic, .layout-wide) #messagePane {
  *
  * NOTE for whoever adds a real placeholder element later: extend this list,
  * or the glyph will double up behind it. */
-#messagePane:not(
-    :has(
-      > :is(
-          #webBrowser,
-          #messageBrowser,
-          #multiMessageBrowser,
-          conversation-view
-        ):not([hidden])
-    )
-  )::before {
+#messagePane:not(:has(> :is(#webBrowser, #messageBrowser, #multiMessageBrowser, conversation-view):not([hidden])))::before {
   content: "";
   /* #messagePane is a column flexbox and, in this state, has no other laid-out
    * children — every browser is [hidden] and <lazy-findbar> is display:contents
@@ -225,15 +216,7 @@ body:is(.layout-classic, .layout-wide) #messagePane {
  * any M3 chrome added to this pane later inherits the ring for free.
  * ======================================================================== */
 
-#messagePane
-  :is(
-    a[href],
-    button,
-    input,
-    select,
-    textarea,
-    [tabindex]:not([tabindex="-1"])
-  ):focus-visible {
+#messagePane :is(a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])):focus-visible {
   outline: 2px solid var(--m3-primary);
   outline-offset: 2px;
 }
@@ -243,16 +226,7 @@ body:is(.layout-classic, .layout-wide) #messagePane {
  * ======================================================================== */
 
 @media (prefers-contrast) {
-  #messagePane:not(
-      :has(
-        > :is(
-            #webBrowser,
-            #messageBrowser,
-            #multiMessageBrowser,
-            conversation-view
-          ):not([hidden])
-      )
-    )::before {
+  #messagePane:not(:has(> :is(#webBrowser, #messageBrowser, #multiMessageBrowser, conversation-view):not([hidden])))::before {
     /* A 35% wash of --m3-outline-variant is not reliably perceivable in high
      * contrast, so the placeholder glyph is drawn at full strength. */
     fill: color-mix(in srgb, var(--m3-outline) 60%, transparent);
