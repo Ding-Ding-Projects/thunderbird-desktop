@@ -5,11 +5,16 @@
 # README.md it must sit at comm/ inside a mozilla-central checkout, so this
 # workflow clones mozilla-firefox/firefox and drops this repo in at comm/.
 #
-# Build mode defaults to FULL: everything compiled from source, so the installer
-# is self-contained and does not depend on upstream prebuilt binaries lining up
-# with this fork. That costs hours, which is accepted. `artifact` mode remains
-# selectable via workflow_dispatch as a fast fallback for frontend-only changes
-# (and is the escape hatch if a full build runs out of disk on a hosted runner).
+# Build mode defaults to ARTIFACT. The 3-pane rewrite only touches frontend files
+# (.js/.xhtml/.css/.mjs), which is exactly what artifact builds are for: prebuilt
+# C++/Rust binaries are downloaded and only the frontend is compiled and packaged.
+# It finishes in minutes and needs ~10 GB.
+#
+# `full` is selectable via workflow_dispatch and is REQUIRED if a change ever
+# touches C++ or Rust. Be warned: a full build needs ~45 GB, and a hosted runner
+# has ~14 GB before cleanup. Public repos get unlimited minutes, but that buys
+# time, not disk - the SSD size and the 6h job cap are platform limits, not
+# billing ones. Full builds want a self-hosted or larger runner.
 #
 # Dependencies install automatically: `mach bootstrap --no-interactive` fetches
 # the Mozilla toolchains, with rustup as belt-and-braces. Nothing prompts.
@@ -24,10 +29,10 @@ on:
   workflow_dispatch:
     inputs:
       build_mode:
-        description: 'full = compile everything (hours). artifact = frontend only (minutes).'
+        description: 'artifact = frontend only (minutes, fits a hosted runner). full = compile everything (hours, needs ~45 GB).'
         type: choice
-        default: full
-        options: [full, artifact]
+        default: artifact
+        options: [artifact, full]
 
 permissions:
   contents: write
@@ -46,9 +51,19 @@ jobs:
       MOZBUILD_STATE_PATH: C:\mozbuild
       MOZ_AUTOMATION: '1'
       GECKO_DIR: C:\gecko
-      BUILD_MODE: ${{ github.event.inputs.build_mode || 'full' }}
 
     steps:
+      - name: Enable long paths
+        shell: pwsh
+        run: |
+          # mozilla-central contains web-platform test paths well over Windows'
+          # 260-char MAX_PATH. Without this the gecko clone dies partway through
+          # with a wall of "Filename too long" and leaves a half-checked-out tree.
+          git config --system core.longpaths true
+          New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+            -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force | Out-Null
+          Write-Host "core.longpaths = $(git config --system --get core.longpaths)"
+
       - name: Disk space (before)
         shell: pwsh
         run: Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}} | Format-Table
@@ -94,22 +109,68 @@ jobs:
         with:
           path: comm-src
           fetch-depth: 1
+          # Submodules are fetched selectively below: vendor/gecko is multi-GB and
+          # vendor/agent-global-memory is irrelevant to building.
+          submodules: false
 
-      - name: Clone mozilla-central (gecko)
+      - name: Obtain gecko
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\comm-src
+        run: |
+          # Prefer the vendor/gecko submodule: it pins an exact mozilla-central
+          # commit, so builds are reproducible and upstream tip moving cannot
+          # break one mid-flight. Fall back to cloning tip when the submodule is
+          # not registered yet, so the pipeline is not hostage to a multi-GB
+          # local clone landing first.
+          $pinned = $false
+          if ((Test-Path .gitmodules) -and (Select-String -Path .gitmodules -Pattern 'vendor/gecko' -Quiet)) {
+            Write-Host "vendor/gecko submodule found - using pinned revision."
+            git submodule update --init --depth 1 vendor/gecko
+            if (Test-Path "vendor\gecko\mach") { $pinned = $true }
+            else { Write-Host "::warning::vendor/gecko registered but did not populate; falling back to tip." }
+          }
+          if ($pinned) {
+            Move-Item -Path "vendor\gecko" -Destination "$env:GECKO_DIR"
+          } else {
+            Write-Host "::notice::Cloning mozilla-central tip (unpinned). Register vendor/gecko for reproducible builds."
+            git clone --depth 1 https://github.com/mozilla-firefox/firefox.git "$env:GECKO_DIR"
+          }
+          $rev = git -C "$env:GECKO_DIR" rev-parse HEAD
+          Write-Host "gecko rev: $rev (pinned: $pinned)"
+          "### Gecko: ``$rev`` (pinned submodule: $pinned)" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Assemble gecko/comm tree
         shell: pwsh
         run: |
-          # Shallow clone: we build tip, matching .gecko_rev.yml (GECKO_HEAD_REF: default).
-          git clone --depth 1 https://github.com/mozilla-firefox/firefox.git "$env:GECKO_DIR"
-          Write-Host "gecko rev: $(git -C $env:GECKO_DIR rev-parse HEAD)"
-
-      - name: Place comm inside gecko
-        shell: pwsh
-        run: |
+          # Build layout is gecko/comm; gecko has already been lifted to $GECKO_DIR.
           Move-Item -Path "${{ github.workspace }}\comm-src" -Destination "$env:GECKO_DIR\comm"
           if (-not (Test-Path "$env:GECKO_DIR\comm\mail\config\version.txt")) {
             throw "comm/ not placed correctly - mail/config/version.txt missing"
           }
+          if (-not (Test-Path "$env:GECKO_DIR\mach")) {
+            throw "gecko/ missing mach - checkout did not populate"
+          }
           Write-Host "Thunderbird version: $(Get-Content "$env:GECKO_DIR\comm\mail\config\version.txt")"
+
+      - name: Choose build mode from measured free space
+        id: mode
+        shell: pwsh
+        run: |
+          # A full mozilla-central build needs ~40-50 GB (source ~5, objdir ~30-40,
+          # toolchains ~5). A hosted runner rarely has that even after cleanup, so
+          # measure rather than assume — a 3-hour build that dies on disk at the end
+          # is the worst outcome available. An explicit workflow_dispatch choice wins.
+          $free = [math]::Round((Get-PSDrive C).Free / 1GB, 1)
+          $requested = "${{ github.event.inputs.build_mode }}"
+          $FULL_NEEDS_GB = 45
+          $mode = if ($requested) { $requested } else { 'artifact' }
+
+          if ($mode -eq 'full' -and $free -lt $FULL_NEEDS_GB) {
+            Write-Host "::warning::Full build requested but only $free GB free (needs ~$FULL_NEEDS_GB GB). Proceeding as asked - expect an out-of-disk failure. A self-hosted or larger runner is the fix."
+          }
+          Write-Host "Build mode: $mode (free: $free GB)"
+          "mode=$mode" >> $env:GITHUB_OUTPUT
+          "### Build mode: ``$mode`` (free disk: $free GB)" >> $env:GITHUB_STEP_SUMMARY
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -128,6 +189,8 @@ jobs:
 
       - name: Write mozconfig
         shell: pwsh
+        env:
+          MODE: ${{ steps.mode.outputs.mode }}
         run: |
           $lines = @(
             'ac_add_options --enable-project=comm/mail',
@@ -137,11 +200,11 @@ jobs:
             'mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-tb',
             'mk_add_options AUTOCLOBBER=1'
           )
-          if ($env:BUILD_MODE -eq 'artifact') {
+          if ($env:MODE -eq 'artifact') {
             $lines += 'ac_add_options --enable-artifact-builds'
           }
           $lines -join "`n" | Set-Content -Encoding ascii "$env:GECKO_DIR\mozconfig"
-          Write-Host "--- mozconfig (mode: $env:BUILD_MODE) ---"
+          Write-Host "--- mozconfig (mode: $env:MODE) ---"
           Get-Content "$env:GECKO_DIR\mozconfig"
 
       - name: Bootstrap build environment (auto-install deps)
@@ -186,25 +249,65 @@ jobs:
           # ephemeral workflow token as last fallback.
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
+          # Dim sum code names, cycled by run_number so every build gets one and
+          # the sequence is deterministic rather than random.
+          $dimsum = @(
+            @{ slug='har-gow';       en='Har Gow';       zh='蝦餃';   emoji='🥟' },
+            @{ slug='siu-mai';       en='Siu Mai';       zh='燒賣';   emoji='🥟' },
+            @{ slug='char-siu-bao';  en='Char Siu Bao';  zh='叉燒包'; emoji='🍞' },
+            @{ slug='cheung-fun';    en='Cheung Fun';    zh='腸粉';   emoji='🍥' },
+            @{ slug='dan-tat';       en='Dan Tat';       zh='蛋撻';   emoji='🥧' },
+            @{ slug='lo-mai-gai';    en='Lo Mai Gai';    zh='糯米雞'; emoji='🍚' },
+            @{ slug='wu-gok';        en='Wu Gok';        zh='芋角';   emoji='🥔' },
+            @{ slug='fung-zaau';     en='Fung Zaau';     zh='鳳爪';   emoji='🍗' },
+            @{ slug='pai-gwat';      en='Pai Gwat';      zh='豉汁排骨'; emoji='🍖' },
+            @{ slug='ham-sui-gok';   en='Ham Sui Gok';   zh='鹹水角'; emoji='🥟' },
+            @{ slug='ma-lai-go';     en='Ma Lai Go';     zh='馬拉糕'; emoji='🍰' },
+            @{ slug='lin-yung-bao';  en='Lin Yung Bao';  zh='蓮蓉包'; emoji='🥮' },
+            @{ slug='pei-daan-sou';  en='Pei Daan Sou';  zh='皮蛋酥'; emoji='🥠' },
+            @{ slug='zaa-leung';     en='Zaa Leung';     zh='炸兩';   emoji='🌯' },
+            @{ slug='dau-fu-fa';     en='Dau Fu Fa';     zh='豆腐花'; emoji='🍮' },
+            @{ slug='no-mai-chi';    en='No Mai Chi';    zh='糯米糍'; emoji='🍡' }
+          )
+          $dish = $dimsum[[int]"${{ github.run_number }}" % $dimsum.Count]
+
           $sha = "${{ github.sha }}".Substring(0,7)
-          # run_number is monotonic per workflow, so tags never collide or recycle.
-          $tag = "tb-${{ steps.find.outputs.version }}-b${{ github.run_number }}-$sha"
-          $title = "Thunderbird ${{ steps.find.outputs.version }} (unofficial fork build ${{ github.run_number }})"
+          $ver = "${{ steps.find.outputs.version }}"
+          $run = "${{ github.run_number }}"
+          # run_number is monotonic, so tags never collide or recycle.
+          $tag   = "tb-$ver-b$run-$($dish.slug)"
+          $title = "$($dish.emoji) $($dish.en) · $($dish.zh) — Thunderbird $ver (build $run)"
+
           $notes = @"
+          ## $($dish.emoji) ``$($dish.slug)`` · $($dish.en) · $($dish.zh)
+
           Unofficial Windows build from ``${{ github.ref_name }}`` @ ``${{ github.sha }}``.
 
-          **Not an official Mozilla Thunderbird release.** Built from a fork for the
-          Material Mail 3-pane rewrite. Do not treat it as an upstream Thunderbird build.
+          > [!WARNING]
+          > **Not an official Mozilla Thunderbird release.** Built from a fork for the
+          > Material Mail 3-pane rewrite. Do not treat it as an upstream Thunderbird build.
 
-          - Build mode: ``$env:BUILD_MODE``
-          - Gecko: mozilla-central tip
-          - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          | | |
+          |---|---|
+          | Code name | $($dish.emoji) $($dish.en) · $($dish.zh) |
+          | Version | ``$ver`` |
+          | Build | ``$run`` |
+          | Commit | ``${{ github.sha }}`` |
+          | Build mode | ``${{ steps.mode.outputs.mode }}`` |
+          | Run | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |
+
+          **粵** — 呢個係 fork 嘅非官方 Windows build,唔係官方 Thunderbird,唔好搞錯。今次個代號叫「$($dish.zh)」。
           "@
+
+          # Deliberately NOT --draft and NOT --prerelease: every push ships a real,
+          # immediately-visible release.
           gh release create "$tag" "${{ steps.find.outputs.installer }}" `
             --repo "${{ github.repository }}" `
             --title "$title" `
-            --notes "$notes"
-          Write-Host "Published $tag"
+            --notes "$notes" `
+            --latest
+          Write-Host "Published $tag ($($dish.en) / $($dish.zh))"
+          "### $($dish.emoji) Released ``$tag`` — $($dish.en) · $($dish.zh)" >> $env:GITHUB_STEP_SUMMARY
 
       - name: Upload build log on failure
         if: failure()
