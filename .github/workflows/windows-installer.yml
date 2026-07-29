@@ -37,12 +37,16 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: windows-installer-${{ github.ref }}
-  # MUST stay false. Every push has to ship its own release, and builds take long
-  # enough that a follow-up push would otherwise cancel the one in flight and
-  # silently skip its release. Queue them instead.
-  cancel-in-progress: false
+# NO concurrency group, deliberately.
+#
+# `cancel-in-progress: false` is not enough: it only protects the run that is
+# already executing. A run sitting QUEUED in a group is superseded whenever a
+# newer run joins that group, so with builds this long and pushes this frequent,
+# intermediate commits silently lost their release. Observed twice.
+#
+# The requirement is a release for every push, so every push gets its own
+# independent run. Public repos have generous concurrency limits; let them queue
+# naturally instead of eating each other.
 
 jobs:
   build:
