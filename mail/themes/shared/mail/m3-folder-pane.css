@@ -51,7 +51,15 @@
  * ======================================================================== */
 
 #folderPane {
-  --m3-fp-control: var(--m3-control-size); /* 48px comfortable */
+  --m3-fp-control: var(
+    --m3-control-size
+  ); /* 48px comfortable - CONTROLS only */
+  /* Row height is a separate token from control size. See the long note at
+   * material-tokens.css --m3-list-row: deriving a folder row's height from
+   * --m3-control-size gave a 52px pitch, 2.00x upstream's 26px, and pushed low
+   * folder rows outside the scrollport on a 768px desktop until synthesized
+   * clicks stopped landing. 36px comfortable / 28px compact / 48px touch. */
+  --m3-fp-row: var(--m3-list-row);
   --m3-fp-header-button: calc(var(--m3-fp-control) - 8px);
   --m3-fp-icon: var(--folder-pane-icon-size); /* see [data-is-busy] below */
   --m3-fp-twisty: 16px;
@@ -126,14 +134,21 @@
   background-color: var(--m3-surface);
 }
 
+/* These additive block metrics are part of the same vertical budget as the row
+ * height, and they were the other half of the overflow that broke folder-row
+ * clicking (see material-tokens.css --m3-list-row). Halved: with five mode
+ * sections the old values spent 16 + 5x8 + 4x(12+16) = 168px on nothing but
+ * air, before a single row was drawn. Now 8 + 5x4 + 4x(6+8) = 84px. Upstream's
+ * own value for the mode gap is 3px (about3Pane.css:245); 4px keeps a little
+ * more room for the pills without doubling the budget. */
 #folderTree {
-  padding-block-end: 16px;
+  padding-block-end: 8px;
 }
 
-/* The design's drawer separates mode groups generously; 3px is not enough once
- * rows are pills. */
+/* The design's drawer separates mode groups generously; 3px is not quite enough
+ * once rows are pills, but 8px was paying twice for it. */
 #folderTree li[data-mode] {
-  margin-block-end: 8px;
+  margin-block-end: 4px;
 }
 
 /* ==========================================================================
@@ -230,7 +245,11 @@
 }
 
 :root:not([lwtheme]) #folderPaneWriteMessage:enabled:hover:active {
-  background-color: color-mix(in srgb, var(--m3-on-primary-container) 12%, var(--m3-primary-container));
+  background-color: color-mix(
+    in srgb,
+    var(--m3-on-primary-container) 12%,
+    var(--m3-primary-container)
+  );
 }
 
 /* .button:disabled only drops opacity; keep it that way. The button is disabled
@@ -269,8 +288,9 @@
 #folderTree > li:not(:first-of-type) > .mode-container {
   border-block-start-width: 1px;
   border-block-start-style: solid;
-  margin-block-start: 12px;
-  padding-block-start: 16px;
+  /* Halved with the rest of the vertical budget; see #folderTree above. */
+  margin-block-start: 6px;
+  padding-block-start: 8px;
 }
 
 :root:not([lwtheme]) #folderTree > li:not(:first-of-type) > .mode-container {
@@ -307,12 +327,20 @@
   color: var(--m3-on-surface-variant);
 }
 
-:root:not([lwtheme]) #folderTree > li > .mode-container > .mode-button:enabled:hover {
+:root:not([lwtheme])
+  #folderTree
+  > li
+  > .mode-container
+  > .mode-button:enabled:hover {
   background-color: var(--m3-s4);
   border-color: transparent;
 }
 
-:root:not([lwtheme]) #folderTree > li > .mode-container > .mode-button:enabled:hover:active {
+:root:not([lwtheme])
+  #folderTree
+  > li
+  > .mode-container
+  > .mode-button:enabled:hover:active {
   background-color: var(--m3-s5);
 }
 
@@ -330,7 +358,7 @@
   /* .container has `contain: strict`, so its intrinsic height is zero and the
    * height comes from min-block-size alone. Setting block-size instead would
    * fight the min-block-size that tree-listbox.css applies to every `li > div`. */
-  min-block-size: var(--m3-fp-control);
+  min-block-size: var(--m3-fp-row);
   margin-inline: 8px;
   margin-block: var(--m3-gap);
   /* NEVER a padding-inline shorthand: padding-inline-start carries --indent,
@@ -419,7 +447,11 @@
  * (`#folderTree li.selected > .container > .icon { --icon-color: currentColor
  * !important }`) is unaffected either way: it is !important, so it outranks
  * this rule guarded or not. No rule-2 fallback regression is possible here. */
-:root:not([lwtheme]) #folderTree li.selected:not([data-folder-type], [data-server-type], [data-tag-key]) > .container > .icon {
+:root:not([lwtheme])
+  #folderTree
+  li.selected:not([data-folder-type], [data-server-type], [data-tag-key])
+  > .container
+  > .icon {
   --icon-color: var(--m3-on-secondary-container);
 }
 
@@ -542,7 +574,10 @@
  * !important rule needs no specificity help and because a broken-TLS warning is
  * a safety affordance, which per rule 3 must not depend on whether someone
  * installed a theme. */
-#folderTree li.tls-error:not([data-is-busy="true"], [data-has-error="true"]) > .container > .icon {
+#folderTree
+  li.tls-error:not([data-is-busy="true"], [data-has-error="true"])
+  > .container
+  > .icon {
   --icon-color: var(--m3-error) !important;
 }
 
@@ -591,8 +626,14 @@
 
 /* Collapsed parents whose unread lives in hidden children keep the outlined
  * variant — that distinction is the only cue that the count is not local. */
-#folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
-#folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+#folderTree
+  li.unread.children.collapsed:has(ul > .unread)
+  > .container
+  > .unread-count,
+#folderTree
+  li.new-messages.unread.children.collapsed:has(ul > .new-messages)
+  > .container
+  > .unread-count {
   padding-block: 1px;
 }
 
@@ -617,12 +658,23 @@
  * No geometry risk: .container has `contain: strict`, the badge carries
  * `min-inline-size` and `font-variant-numeric: tabular-nums`, and tabular digits
  * do not change advance width with weight. */
-#folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+#folderTree
+  li.new-messages.unread.children.collapsed:has(ul > .new-messages)
+  > .container
+  > .unread-count {
   font-weight: 700;
 }
 
-:root:not([lwtheme]) #folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
-:root:not([lwtheme]) #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+:root:not([lwtheme])
+  #folderTree
+  li.unread.children.collapsed:has(ul > .unread)
+  > .container
+  > .unread-count,
+:root:not([lwtheme])
+  #folderTree
+  li.new-messages.unread.children.collapsed:has(ul > .new-messages)
+  > .container
+  > .unread-count {
   background-color: transparent;
   color: var(--m3-on-surface-variant);
   border: 1px solid var(--m3-on-surface-variant);
@@ -670,7 +722,11 @@
  * the last word under high contrast. The outlined shape is
  * untouched: transparent fill and the 1px border are inherited from the rule
  * above, so the "this count is not local" cue survives for both states. */
-:root:not([lwtheme]) #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+:root:not([lwtheme])
+  #folderTree
+  li.new-messages.unread.children.collapsed:has(ul > .new-messages)
+  > .container
+  > .unread-count {
   color: var(--m3-primary);
   border-color: var(--m3-primary);
 }
@@ -751,7 +807,10 @@
  * ======================================================================== */
 
 :root:not([lwtheme]) #folderTree li[role="treeitem"].drop-target > .container,
-:root:not([lwtheme]) #folderTree:focus-within li[role="treeitem"].drop-target > .container {
+:root:not([lwtheme])
+  #folderTree:focus-within
+  li[role="treeitem"].drop-target
+  > .container {
   background-color: var(--m3-primary-container);
   color: var(--m3-on-primary-container);
   outline: 2px solid var(--m3-primary);
@@ -767,8 +826,14 @@
   border-color: var(--m3-outline);
 }
 
-:root:not([lwtheme]) #folderTree li.context-menu-target:not(.selected) > .container,
-:root:not([lwtheme]) #folderTree li.context-menu-target:not(.selected) > .container:hover {
+:root:not([lwtheme])
+  #folderTree
+  li.context-menu-target:not(.selected)
+  > .container,
+:root:not([lwtheme])
+  #folderTree
+  li.context-menu-target:not(.selected)
+  > .container:hover {
   background-color: color-mix(in srgb, var(--m3-primary) 10%, transparent);
   outline: 1px dashed var(--m3-primary);
   outline-offset: -1px;
@@ -1004,8 +1069,14 @@
      * high-contrast selection fill, the one combination this block exists to
      * prevent. Re-stated at matching specificity; only the palette hands back,
      * the outlined shape that distinguishes a non-local count is preserved. */
-    #folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
-    #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+    #folderTree
+      li.unread.children.collapsed:has(ul > .unread)
+      > .container
+      > .unread-count,
+    #folderTree
+      li.new-messages.unread.children.collapsed:has(ul > .new-messages)
+      > .container
+      > .unread-count {
       background-color: transparent;
       color: var(--folderpane-unread-count-background);
       border-color: var(--folderpane-unread-count-background);
@@ -1023,13 +1094,22 @@
      * Restated at the same (1,9,2) so source order carries it, and still below
      * the `.selected` arms at (1,9,2) / (1,10,2). The outlined shape is
      * untouched; only the palette hands back. */
-    #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+    #folderTree
+      li.new-messages.unread.children.collapsed:has(ul > .new-messages)
+      > .container
+      > .unread-count {
       color: var(--folderpane-unread-new-count-background);
       border-color: var(--folderpane-unread-new-count-background);
     }
 
-    #folderTree li.selected.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
-    #folderTree li.selected.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+    #folderTree
+      li.selected.unread.children.collapsed:has(ul > .unread)
+      > .container
+      > .unread-count,
+    #folderTree
+      li.selected.new-messages.unread.children.collapsed:has(ul > .new-messages)
+      > .container
+      > .unread-count {
       background-color: var(--folderpane-unread-count-text);
       color: var(--treeitem-background-active);
       border-color: var(--treeitem-background-active);

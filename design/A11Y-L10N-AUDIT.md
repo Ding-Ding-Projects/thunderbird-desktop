@@ -232,7 +232,7 @@ Two things here are easy to miss and expensive to lose:
 
 - **`aria-level` / `aria-setsize` / `aria-posinset`** are what make a *threaded* message list
   navigable ("level 3, 2 of 7"). Without them a threaded view is an undifferentiated flat list. Note
-  the computation is skipped entirely unless `Services.appinfo.accessibilityEnabled` — i.e. **you
+  the computation is skipped only when `Services.appinfo.accessibilityEnabled` AND `Cu.isInAutomation` are both false (`tree-view.mjs:1110`) — i.e. **you
   will not notice it is broken unless you test with a screen reader actually running.**
 - **Virtualization spacers must stay `aria-hidden="true"`.** They are the empty `<tbody>` elements
   that reserve scroll height for the ~50,000 rows not currently in the DOM. Un-hidden, they appear to

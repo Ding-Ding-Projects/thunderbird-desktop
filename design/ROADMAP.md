@@ -120,7 +120,7 @@ running the application.
 `A11Y-L10N-AUDIT.md` §F6 lists eight verification gates. **None of them are
 checked**, and the first one is structurally unclosable by static analysis:
 
-> `_setRowAriaAttributes` **short-circuits unless `Services.appinfo.accessibilityEnabled`**,
+> `_setRowAriaAttributes` **short-circuits only when `Services.appinfo.accessibilityEnabled` **and** `Cu.isInAutomation` are BOTH false (`tree-view.mjs:1110`)**,
 > so `aria-level` / `aria-setsize` / `aria-posinset` are *literally absent* from the
 > DOM until an assistive technology is actually running.
 

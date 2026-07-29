@@ -31,8 +31,11 @@
    * Cantonese strings in app-data.js; without a CJK-capable fallback those
    * render as tofu.
    */
-  --m3-font-roboto: Roboto, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  --m3-font-notohk: "Noto Sans HK", "Microsoft JhengHei UI", "Microsoft JhengHei", "PingFang HK", Roboto, system-ui, sans-serif;
+  --m3-font-roboto:
+    Roboto, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --m3-font-notohk:
+    "Noto Sans HK", "Microsoft JhengHei UI", "Microsoft JhengHei",
+    "PingFang HK", Roboto, system-ui, sans-serif;
   --m3-font-system: system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif;
   --m3-font-serif: Georgia, "Times New Roman", serif;
 
@@ -68,6 +71,31 @@
   --m3-control-size: 48px;
   --m3-avatar-size: 40px;
 
+  /* Tree/list ROW height, deliberately NOT --m3-control-size.
+   *
+   * These are two different jobs and conflating them caused a real, measured
+   * functional bug. --m3-control-size is a POINTER TARGET for buttons and must
+   * stay at 48px; a list row is a strip of text that merely has to be readable
+   * and clickable. Browser-test run 30495583685 caught the difference:
+   * m3-folder-pane.css set a folder row's min-block-size from
+   * --m3-control-size (48px) plus 2px margin either side, giving a 52px pitch
+   * against upstream's 26px (--list-item-min-height, tree-listbox.css:8). At
+   * exactly 2.00x upstream's vertical budget, a 12-row two-mode folder tree
+   * overflowed a 768px-tall desktop, so synthesizeMouseAtCenter on a low row
+   * landed outside #folderTree's scrollport, _onClick never fired and
+   * `testUnreadFoldersAutoRemovalWithSelection` timed out after 50 tries -
+   * taking 47 of that suite's 53 unexpected failures with it.
+   *
+   * 36px comfortable is still ~1.4x upstream and clears the 24px minimum
+   * target size in WCAG 2.2 SC 2.5.8 for this pointer-driven Windows build,
+   * while --m3-control-size keeps the 48px touch target where a touch target
+   * actually belongs. The three steps are stated together on purpose: compact
+   * MUST stay below comfortable, and when row height was derived from
+   * --m3-control-size the compact step (40px) was larger than this comfortable
+   * value, which is the sort of thing that only shows up when you write the
+   * numbers next to each other. */
+  --m3-list-row: 36px;
+
   /* ---- Shape / motion ---------------------------------------------------- */
   --m3-radius-xs: 4px;
   --m3-radius-s: 8px;
@@ -101,6 +129,8 @@
   --m3-gap: 1px;
   --m3-control-size: 40px;
   --m3-avatar-size: 32px;
+  /* 28px: above upstream's 26px, below the 36px comfortable step. */
+  --m3-list-row: 28px;
 }
 
 :root[data-m3-density="relaxed"],
@@ -109,6 +139,8 @@
   --m3-gap: 4px;
   --m3-control-size: 56px;
   --m3-avatar-size: 44px;
+  /* 48px: the touch step is where a full touch target on the ROW is correct. */
+  --m3-list-row: 48px;
 }
 
 /* Font family variants, selected by the appearance surface. */

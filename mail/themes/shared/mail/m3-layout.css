@@ -181,8 +181,24 @@ body#paneLayout {
    *
    * occupy-size is the space taken in the grid track; content-size is the
    * draggable hit area. Keeping them equal makes --splitter-margin-size
-   * compute to 0, so the full 8px is both gutter and hit target (up from the
-   * current 5px — an improvement, not a regression). */
+   * compute to 0, so the full 8px is both gutter and hit target.
+   *
+   * CORRECTED 2026-07-29 — the previous wording here said "up from the current
+   * 5px — an improvement, not a regression", and that compared the wrong pair.
+   * 5px is upstream's --splitter-content-size, the HIT AREA, which occupies no
+   * track space at all because upstream's --splitter-margin-size is -4px. The
+   * number that matters for layout is --splitter-occupy-size, and upstream sets
+   * it to 1px (splitter.css:23). So each splitter here occupies 8px where
+   * upstream occupies 1px: +7px each, +14px across the two.
+   *
+   * That is a real cost against a finite horizontal budget, and it is not
+   * hypothetical: browser-test run 30495583685 hit grid clamping in
+   * browser_folderPaneVisibility.js and browser_messagePaneVisibility.js on a
+   * 1024px-wide runner. The clamping itself is an ENVIRONMENT failure — the same
+   * restore code returned 640px to the pixel at 1537px in the same file — but
+   * our 14px makes a marginal restore clamp here where it would not upstream.
+   * The hit target is still worth having; the honest accounting is that it costs
+   * 14px, not that it costs nothing. */
   --splitter-occupy-size: var(--m3-radius-s);
   --splitter-content-size: var(--m3-radius-s);
 
@@ -265,8 +281,14 @@ body#paneLayout {
     opacity var(--m3-motion-duration, 150ms) ease;
 }
 
-#folderPaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after,
-#messagePaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after {
+#folderPaneSplitter:not([disabled], .splitter-collapsed):is(
+    :hover,
+    .splitter-resizing
+  )::after,
+#messagePaneSplitter:not([disabled], .splitter-collapsed):is(
+    :hover,
+    .splitter-resizing
+  )::after {
   /* New affordance: an expanded (not collapsed) splitter now shows a tinted
    * bar on hover/drag, which it previously did not. `transform: none` beats
    * both the scaleY(0) and the [resize-direction="horizontal"] scaleX(0)
@@ -322,8 +344,14 @@ body#paneLayout {
     border-color: var(--m3-outline);
   }
 
-  #folderPaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after,
-  #messagePaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after {
+  #folderPaneSplitter:not([disabled], .splitter-collapsed):is(
+      :hover,
+      .splitter-resizing
+    )::after,
+  #messagePaneSplitter:not([disabled], .splitter-collapsed):is(
+      :hover,
+      .splitter-resizing
+    )::after {
     /* 32% of --m3-primary is not distinguishable in high contrast. */
     opacity: 1;
   }

@@ -619,7 +619,7 @@ it has no fix SHA, and it is listed here because it is diagnosed, not because it
     the installer it produces no artefact anyone needs."* That is wrong here, and the reason is
     specific: the **accessibility** box in `design/REWRITE-CONTRACT.md` cannot close on static
     proof — `aria-level` does not exist until a screen reader runs, because
-    `_setRowAriaAttributes` short-circuits unless `Services.appinfo.accessibilityEnabled` — so a
+    `_setRowAriaAttributes` short-circuits only when `Services.appinfo.accessibilityEnabled` **and** `Cu.isInAutomation` are BOTH false (`tree-view.mjs:1110`) — so a
     green browser-test run is the *only* thing that can ever tick it. This run's artefact **is**
     the evidence. A hours-long test job does not belong on a push trigger in a repository whose
     own rules demand frequent pushes; it belongs on `workflow_dispatch` plus a `schedule`.
@@ -829,7 +829,8 @@ the contract is void until re-derived.
   selector, specificity, cascade and source reading against the JS that consumes it. Nothing
   on this branch has been built and launched. Some gates *cannot* close statically — the
   audit's F6 screen-reader gate is one, because `_setRowAriaAttributes` short-circuits unless
-  `Services.appinfo.accessibilityEnabled`. Say so; do not launder it into a pass.
+  `Services.appinfo.accessibilityEnabled` **or** `Cu.isInAutomation` (`tree-view.mjs:1110` — see
+the correction below). Say so; do not launder it into a pass.
 - The same honesty rule applies to issue and Discussion comments: rich formatting decorates
   the facts, it never softens a failure or implies an unproven success.
 

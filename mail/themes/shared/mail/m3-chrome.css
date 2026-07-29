@@ -218,7 +218,10 @@
   /* A background tab whose title changed is signalled only by [titlechanged] in
    * the stock chrome. The design has no equivalent, so it is carried over as a
    * weight bump rather than dropped. */
-  .tabmail-tab:not([selected]) .tab-background[titlechanged] ~ .tab-content .tab-text {
+  .tabmail-tab:not([selected])
+    .tab-background[titlechanged]
+    ~ .tab-content
+    .tab-text {
     font-weight: 600;
     color: var(--m3-on-surface);
   }
@@ -238,7 +241,11 @@
     }
 
     &:hover:active {
-      background-color: color-mix(in srgb, var(--m3-on-surface) 16%, var(--m3-s5));
+      background-color: color-mix(
+        in srgb,
+        var(--m3-on-surface) 16%,
+        var(--m3-s5)
+      );
     }
 
     &:focus-visible {
@@ -257,7 +264,8 @@
    * to out-specify this compound selector and would drift the first time either
    * side is edited. */
   @media (hover: hover) and (pointer: fine) and (not (prefers-contrast)) {
-    .tabmail-tab:not(:hover, [selected]):not(:focus-within) button.tab-close-button {
+    .tabmail-tab:not(:hover, [selected]):not(:focus-within)
+      button.tab-close-button {
       opacity: 0;
       transition: opacity var(--m3-chrome-transition);
     }
@@ -626,7 +634,8 @@
      * reached it. Restated at (0,6,1) it ties and wins on source order.
      * #alltabs-button above needs no such help: its base is
      * `:root:not([lwtheme]) #alltabs-button`, (1,2,0) against (1,2,0). */
-    .tabmail-tab:not(:hover, [selected]):not(:focus-within) button.tab-close-button {
+    .tabmail-tab:not(:hover, [selected]):not(:focus-within)
+      button.tab-close-button {
       transition: none;
     }
   }

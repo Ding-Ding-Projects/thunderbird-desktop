@@ -54,7 +54,11 @@
  * for the --m3-* tokens themselves. */
 #threadPane {
   --m3-tp-state-hover: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
-  --m3-tp-state-press: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
+  --m3-tp-state-press: color-mix(
+    in srgb,
+    var(--m3-on-surface) 12%,
+    transparent
+  );
   --m3-tp-focus-ring: 3px solid var(--m3-primary);
   --m3-tp-duration: var(--m3-motion-duration, 150ms);
 
@@ -119,17 +123,41 @@
     --tree-card-background-selected: var(--m3-secondary-container);
     --tree-card-background-selected-current: var(--m3-secondary-container);
     --tree-card-background-current-unfocused: var(--m3-tp-state-hover);
-    --tree-card-background-selected-unfocused: color-mix(in srgb, var(--m3-secondary-container) 55%, transparent);
-    --tree-card-background-selected-current-unfocused: color-mix(in srgb, var(--m3-secondary-container) 70%, transparent);
-    --tree-card-background-selected-current-unfocused-hover: color-mix(in srgb, var(--m3-secondary-container) 40%, transparent);
+    --tree-card-background-selected-unfocused: color-mix(
+      in srgb,
+      var(--m3-secondary-container) 55%,
+      transparent
+    );
+    --tree-card-background-selected-current-unfocused: color-mix(
+      in srgb,
+      var(--m3-secondary-container) 70%,
+      transparent
+    );
+    --tree-card-background-selected-current-unfocused-hover: color-mix(
+      in srgb,
+      var(--m3-secondary-container) 40%,
+      transparent
+    );
     --tree-focus-outline: var(--m3-primary);
     --thread-line-color: var(--m3-outline-variant);
 
     /* Junk cards keep their own louder ramp, moved onto the error role. */
-    --tree-card-border-hover-spam: color-mix(in srgb, var(--m3-error) 60%, transparent);
+    --tree-card-border-hover-spam: color-mix(
+      in srgb,
+      var(--m3-error) 60%,
+      transparent
+    );
     --tree-card-border-selected-spam: var(--m3-error);
-    --tree-card-background-current-spam: color-mix(in srgb, var(--m3-error-container) 35%, transparent);
-    --tree-card-background-selected-spam: color-mix(in srgb, var(--m3-error-container) 65%, transparent);
+    --tree-card-background-current-spam: color-mix(
+      in srgb,
+      var(--m3-error-container) 35%,
+      transparent
+    );
+    --tree-card-background-selected-spam: color-mix(
+      in srgb,
+      var(--m3-error-container) 65%,
+      transparent
+    );
     --tree-card-background-selected-current-spam: var(--m3-error-container);
     --thread-card-focus-spam: var(--m3-error);
     --focus-outline-spam: var(--m3-error);
@@ -137,7 +165,11 @@
     /* Table rows */
     --listbox-hover: var(--m3-tp-state-hover);
     --listbox-focused-selected-bg: var(--m3-secondary-container);
-    --listbox-selected-bg: color-mix(in srgb, var(--m3-secondary-container) 55%, transparent);
+    --listbox-selected-bg: color-mix(
+      in srgb,
+      var(--m3-secondary-container) 55%,
+      transparent
+    );
     --listbox-selected-color: var(--m3-on-secondary-container);
     --listbox-focused-selected-color: var(--m3-on-secondary-container);
     --tree-view-header-hover-bg: var(--m3-s4);
@@ -154,9 +186,17 @@
    * flag/spam ramp from threadPane.css; only the normal path is re-skinned. */
   @media not (prefers-contrast) {
     :root:not([lwtheme]) #threadPane {
-      --thread-pane-unread-fill: color-mix(in srgb, var(--m3-primary) 55%, transparent);
+      --thread-pane-unread-fill: color-mix(
+        in srgb,
+        var(--m3-primary) 55%,
+        transparent
+      );
       --thread-pane-unread-stroke: var(--m3-primary);
-      --thread-pane-spam-fill: color-mix(in srgb, var(--m3-error) 35%, transparent);
+      --thread-pane-spam-fill: color-mix(
+        in srgb,
+        var(--m3-error) 35%,
+        transparent
+      );
       --thread-pane-spam-stroke: var(--m3-error);
       /* --thread-pane-flag-fill / --thread-pane-flag-stroke are deliberately
        * NOT re-pointed. There is no amber/warning role in the M3 token set, so
@@ -230,7 +270,9 @@
  * (empty or freshly loaded folder) that leaves keyboard focus invisible, so
  * the design's list ring is drawn instead. Unguarded on purpose: a keyboard
  * user must not lose the focus indicator by installing a theme. */
-#threadPane #threadTree [is="tree-view-table-body"]:focus-visible:not(:has(> tr.current)) {
+#threadPane
+  #threadTree
+  [is="tree-view-table-body"]:focus-visible:not(:has(> tr.current)) {
   outline: var(--m3-tp-focus-ring);
   outline-offset: -3px;
 }
@@ -411,7 +453,11 @@
     box-shadow: none;
 
     &:hover {
-      background-color: color-mix(in srgb, var(--m3-on-secondary-container) 8%, var(--m3-secondary-container));
+      background-color: color-mix(
+        in srgb,
+        var(--m3-on-secondary-container) 8%,
+        var(--m3-secondary-container)
+      );
     }
   }
 
@@ -513,8 +559,16 @@
     --panel-text-color: var(--m3-on-surface);
     --panel-border-color: var(--m3-outline-variant);
     --panel-background-color-dimmed: var(--m3-s5);
-    --panel-background-color-dimmed-further: color-mix(in srgb, var(--m3-on-surface) 12%, var(--m3-s5));
-    --menuitem-icon-fill: color-mix(in srgb, var(--m3-primary) 30%, transparent);
+    --panel-background-color-dimmed-further: color-mix(
+      in srgb,
+      var(--m3-on-surface) 12%,
+      var(--m3-s5)
+    );
+    --menuitem-icon-fill: color-mix(
+      in srgb,
+      var(--m3-primary) 30%,
+      transparent
+    );
 
     & > menuseparator {
       border-color: var(--m3-outline-variant);
@@ -656,8 +710,16 @@
   /* The current row. Selection is a flat fill, so the keyboard cursor needs
    * its own ring; borders are transparent in this layer. Unguarded: it is the
    * keyboard cursor, and a theme must not be able to remove it. */
-  & [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.card-layout.current > td > .card-container,
-  & [is="tree-view-table-body"] > tr.card-layout.current:focus-within > td > .card-container {
+  &
+    [is="tree-view-table-body"]:is(:focus, :focus-within)
+    > tr.card-layout.current
+    > td
+    > .card-container,
+  &
+    [is="tree-view-table-body"]
+    > tr.card-layout.current:focus-within
+    > td
+    > .card-container {
     outline: var(--m3-tp-focus-ring);
     outline-offset: -3px;
   }
@@ -789,8 +851,19 @@
    * i.e. no visible difference at all — signal is carried by the dot and the
    * bold weights. That loses too much, so a real primary tint is used, guarded
    * so the hover/current/selected fills from tree-listbox.css still win. */
-  & tr.card-layout[data-properties~="unread"]:not(:hover, :focus, :focus-within, .current, .selected) {
-    --tree-card-background: color-mix(in srgb, var(--m3-primary) 7%, transparent);
+  &
+    tr.card-layout[data-properties~="unread"]:not(
+      :hover,
+      :focus,
+      :focus-within,
+      .current,
+      .selected
+    ) {
+    --tree-card-background: color-mix(
+      in srgb,
+      var(--m3-primary) 7%,
+      transparent
+    );
   }
 
   & .card-container {
@@ -859,7 +932,9 @@
     color: var(--m3-on-surface-variant);
   }
 
-  & tr.card-layout[data-properties~="hasUnread"] :is(.replies-icon, .thread-replies) {
+  &
+    tr.card-layout[data-properties~="hasUnread"]
+    :is(.replies-icon, .thread-replies) {
     color: var(--m3-primary);
   }
 
@@ -879,7 +954,11 @@
    * it. Under a theme the host reverts to threadCard.css's own treatment and
    * the per-tag --tag-color keeps driving the icons either way. */
   & thread-card-tags[tags]:not([tags=""]) {
-    background-color: color-mix(in srgb, var(--m3-tertiary-container) 55%, transparent);
+    background-color: color-mix(
+      in srgb,
+      var(--m3-tertiary-container) 55%,
+      transparent
+    );
     color: var(--m3-on-tertiary-container);
   }
 
@@ -932,7 +1011,10 @@
   }
 }
 
-:root:not([lwtheme]) #threadPane #threadTree thead[is="tree-view-table-header"] {
+:root:not([lwtheme])
+  #threadPane
+  #threadTree
+  thead[is="tree-view-table-header"] {
   &::after {
     border-block-end-color: var(--m3-outline-variant);
   }
@@ -994,7 +1076,9 @@
   /* Keyboard cursor. 2px rather than the design's 3px: a table row is roughly
    * one line tall and a 3px inset ring would cover the text. Unguarded, like
    * every other focus indicator in this file. */
-  & [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.table-layout.current,
+  &
+    [is="tree-view-table-body"]:is(:focus, :focus-within)
+    > tr.table-layout.current,
   & [is="tree-view-table-body"] > tr.table-layout.current:focus-within {
     outline: 2px solid var(--m3-primary);
     outline-offset: -2px;
@@ -1177,11 +1261,18 @@
  * ======================================================================== */
 
 @media (prefers-contrast) {
-  #threadPane #threadTree[rows="thread-card"] tr.card-layout.selected > td > .card-container {
+  #threadPane
+    #threadTree[rows="thread-card"]
+    tr.card-layout.selected
+    > td
+    > .card-container {
     border-color: currentColor;
   }
 
-  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"] > tr.table-layout.selected {
+  #threadPane
+    #threadTree[rows="thread-row"]
+    [is="tree-view-table-body"]
+    > tr.table-layout.selected {
     outline: 1px solid currentColor;
     outline-offset: -1px;
   }
@@ -1242,7 +1333,11 @@
    * there too and there is nothing to restore. */
   :root:not([lwtheme]) #threadPane #threadPaneFolderName.list-header-title,
   :root:not([lwtheme]) #threadPane .thread-pane-count-info,
-  :root:not([lwtheme]) #threadPane #threadTree[rows="thread-card"] .card-container :is(.sender, .subject, .date, .thread-replies) {
+  :root:not([lwtheme])
+    #threadPane
+    #threadTree[rows="thread-card"]
+    .card-container
+    :is(.sender, .subject, .date, .thread-replies) {
     color: inherit;
   }
 
@@ -1266,11 +1361,20 @@
     color: SelectedItemText;
   }
 
-  :root:not([lwtheme]) #threadPane #threadTree thead[is="tree-view-table-header"] th[is="tree-view-table-header-cell"] {
+  :root:not([lwtheme])
+    #threadPane
+    #threadTree
+    thead[is="tree-view-table-header"]
+    th[is="tree-view-table-header-cell"] {
     background-color: Canvas;
   }
 
-  :root:not([lwtheme]) #threadPane #threadTree thead[is="tree-view-table-header"] .tree-table-cell-container button {
+  :root:not([lwtheme])
+    #threadPane
+    #threadTree
+    thead[is="tree-view-table-header"]
+    .tree-table-cell-container
+    button {
     color: CanvasText;
   }
 
@@ -1278,12 +1382,19 @@
     color: CanvasText;
   }
 
-  :root:not([lwtheme]) #threadPane #threadTree slot[name="placeholders"] div::before {
+  :root:not([lwtheme])
+    #threadPane
+    #threadTree
+    slot[name="placeholders"]
+    div::before {
     fill: CanvasText;
     stroke: CanvasText;
   }
 
-  :root:not([lwtheme]) #threadPane #threadTree[rows="thread-card"] thread-card-tags[tags]:not([tags=""]) {
+  :root:not([lwtheme])
+    #threadPane
+    #threadTree[rows="thread-card"]
+    thread-card-tags[tags]:not([tags=""]) {
     background-color: transparent;
     color: CanvasText;
   }
@@ -1352,18 +1463,50 @@
    * Fix it there, with its own correction, or not at all. */
   #threadPane :is(button, [is="tree-view-table-body"]):focus-visible,
   #threadPane #threadTree tr.current > td > .card-container,
-  #threadPane #threadTree [is="tree-view-table-body"]:focus-visible:not(:has(> tr.current)),
+  #threadPane
+    #threadTree
+    [is="tree-view-table-body"]:focus-visible:not(:has(> tr.current)),
   #threadPane #threadPaneDisplayButton.button:focus-visible,
   #threadPane #threadPaneQuickFilterButton.button:focus-visible,
   #threadPane #threadTree[rows="thread-card"] td button.twisty:focus-visible,
-  #threadPane #threadTree[rows="thread-card"] .card-container :is(.button-star, .button-spam, .tree-button-more):focus-visible,
-  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.card-layout.current > td > .card-container,
-  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"] > tr.card-layout.current:focus-within > td > .card-container,
-  #threadPane #threadTree thead[is="tree-view-table-header"] .tree-table-cell-container button:focus-visible,
-  #threadPane #threadTree thead[is="tree-view-table-header"] .button-column-picker:focus-visible,
-  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.table-layout.current,
-  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"] > tr.table-layout.current:focus-within,
-  #threadPane #threadTree[rows="thread-row"] tbody .button-column .button-flat:focus-visible,
+  #threadPane
+    #threadTree[rows="thread-card"]
+    .card-container
+    :is(.button-star, .button-spam, .tree-button-more):focus-visible,
+  #threadPane
+    #threadTree[rows="thread-card"]
+    [is="tree-view-table-body"]:is(:focus, :focus-within)
+    > tr.card-layout.current
+    > td
+    > .card-container,
+  #threadPane
+    #threadTree[rows="thread-card"]
+    [is="tree-view-table-body"]
+    > tr.card-layout.current:focus-within
+    > td
+    > .card-container,
+  #threadPane
+    #threadTree
+    thead[is="tree-view-table-header"]
+    .tree-table-cell-container
+    button:focus-visible,
+  #threadPane
+    #threadTree
+    thead[is="tree-view-table-header"]
+    .button-column-picker:focus-visible,
+  #threadPane
+    #threadTree[rows="thread-row"]
+    [is="tree-view-table-body"]:is(:focus, :focus-within)
+    > tr.table-layout.current,
+  #threadPane
+    #threadTree[rows="thread-row"]
+    [is="tree-view-table-body"]
+    > tr.table-layout.current:focus-within,
+  #threadPane
+    #threadTree[rows="thread-row"]
+    tbody
+    .button-column
+    .button-flat:focus-visible,
   #threadPane #threadTree tr.table-layout .twisty:focus-visible {
     outline-color: Highlight;
   }
@@ -1416,12 +1559,37 @@
    *
    * Unguarded, like the group it corrects: a high-contrast keyboard cursor must
    * not depend on whether a lightweight theme is installed. */
-  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.card-layout.current.selected > td > .card-container,
-  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"] > tr.card-layout.current.selected:focus-within > td > .card-container,
-  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.card-layout.selected > td button:focus-visible,
-  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.table-layout.current.selected,
-  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"] > tr.table-layout.current.selected:focus-within,
-  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.table-layout.selected button:focus-visible {
+  #threadPane
+    #threadTree[rows="thread-card"]
+    [is="tree-view-table-body"]:is(:focus, :focus-within)
+    > tr.card-layout.current.selected
+    > td
+    > .card-container,
+  #threadPane
+    #threadTree[rows="thread-card"]
+    [is="tree-view-table-body"]
+    > tr.card-layout.current.selected:focus-within
+    > td
+    > .card-container,
+  #threadPane
+    #threadTree[rows="thread-card"]
+    [is="tree-view-table-body"]:is(:focus, :focus-within)
+    > tr.card-layout.selected
+    > td
+    button:focus-visible,
+  #threadPane
+    #threadTree[rows="thread-row"]
+    [is="tree-view-table-body"]:is(:focus, :focus-within)
+    > tr.table-layout.current.selected,
+  #threadPane
+    #threadTree[rows="thread-row"]
+    [is="tree-view-table-body"]
+    > tr.table-layout.current.selected:focus-within,
+  #threadPane
+    #threadTree[rows="thread-row"]
+    [is="tree-view-table-body"]:is(:focus, :focus-within)
+    > tr.table-layout.selected
+    button:focus-visible {
     outline-color: currentColor;
   }
 }

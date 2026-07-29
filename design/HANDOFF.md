@@ -47,17 +47,74 @@ Contract: **33 / 38**. Guards, comments-stripped: **133** total, `material-token
 | `widgets` — tree-view, pane-splitter, thread-card tags | ❌ failure |
 | `folder pane`, folder modes, quick filter | ❌ failure |
 
-**128 real failures** across **25 distinct sites** once the `changed preference:` noise class is
-excluded. That noise is genuinely noise: the `chrome` suite logged 7 such entries and still
-passed, so the gate tolerates them.
+**8535 assertions PASSED. 67 unexpected failures, reducing to 8 root causes, of which exactly
+ONE is ours.**
+
+> [!CAUTION]
+> **Corrected 2026-07-29.** An earlier version of this section said "128 real failures across 25
+> distinct sites". That was wrong, and wrong in a way that changes conclusions, so it is corrected
+> rather than footnoted. The right metric is mozlog entries carrying the `expected` key
+> (= TEST-UNEXPECTED-FAIL): **67**, not 128. Three separate noise classes have to come out first:
+> pref-leak `changed preference:` entries (**24**), our own `todo_is`/`todo` (**12**), and — the one
+> that fooled me — **57** `handleEvent() was unable to perform a11y checks on hidden node` entries
+> emitted by mochitest's own `AccessibilityUtils` **without** an `expected` key, i.e. the harness
+> declares them expected itself.
+>
+> So the claim that `browser_paneSplitter.js` "failed 59 times" was false. The widgets suite has
+> **two** unexpected entries, and the 57-count must never be quoted as failures again.
+
+| suite | PASS | unexpected | gate |
+|---|--:|--:|---|
+| 3pane | 2468 | **53** | FAIL |
+| widgets | 4967 | **2** | FAIL |
+| folder | 909 | **12** | FAIL |
+| chrome | 806 | 0 | PASS |
+| m3 (ours) | 98 | **0** | PASS |
+| static | 1 | 0 | PASS |
+
+`browser_parsable_css.js` reported *All the styles (478) loaded without errors* — no CSS parse
+error anywhere in the tree.
+
+**Real coverage loss to know about:** after a TIMEOUT the runner abandons the rest of that
+process's queue, so **six files never started at all** — `browser_threadTreeSelection.js`,
+`browser_threadTreeSorting.js`, `browser_threads.js`, `browser_threadCardTags.js`,
+`browser_treeListbox.js`, `browser_treeView.js`. Zero assertions from any of them, and they are
+exactly the thread-pane/tree-view files. Fixing R1 should recover them.
 
 **The failures are deterministic, not flaky.** Runs `30495583685` (`4bc02b0`) and `30498533920`
 (`6548235`, after merging 4 upstream commits) produced **byte-identical** failure sets: 128 and
 128, zero fixed, zero new. Do not spend time on a flakiness theory.
 
-### The two open questions, and the experiment already running for one of them
+### Both questions are now ANSWERED — and one of them against me
 
-**1. Are those failures ours?** Unresolved, and it decides five contract boxes. Evidence both ways:
+**1. Are those failures ours?** **Exactly one root cause is: R1, and it is confirmed.**
+
+**R1 — our folder-row pitch makes low folder rows unclickable.** `m3-folder-pane.css` set a row's
+`min-block-size` from `--m3-control-size` (**48px**) plus 2px margin either side = **52px pitch**,
+against upstream's **26px** (`--list-item-min-height`, `tree-listbox.css:8`). At exactly **2.00x**
+upstream's vertical budget a 12-row two-mode folder tree overflows a 768px-tall desktop, so
+`synthesizeMouseAtCenter` on a low row lands outside `#folderTree`'s scrollport, `_onClick` never
+runs, and `testUnreadFoldersAutoRemovalWithSelection` times out after 50 tries. The pitch was
+**measured off the failure screenshot** (rows at y = 153, 205, 257 … exactly 52px apart, with a
+scrollbar thumb already present at 11 rows), not assumed. That one cause accounts for **47 of the
+53** unexpected 3pane failures — the other 46 are cleanup that never ran because the task aborted.
+
+**FIXED** in this commit: row height now has its own token, `--m3-list-row`
+(28px compact / **36px** comfortable / 48px touch), decoupled from `--m3-control-size`, which stays
+at 48px because *that* is a pointer target and a list row is not. Additive block metrics halved
+(168px → 84px of fixed air across five mode sections). **Not yet re-verified by a run** — dispatch
+the suite and confirm 47 → 0 before ticking anything.
+
+The remaining seven causes are upstream, environment or undetermined. The two "stored width"
+timeouts are **grid clamping at 976px on a 1024px runner**, not a persistence defect — the same
+restore code returned **640px to the pixel** at 1537px in the same file, and
+`browser_paneSplitterGaps.js` passed 27/27. **The session/state-persistence tick is NOT revoked.**
+Amendment required though: our splitters occupy **8px vs upstream's 1px** (+7px each, +14px total),
+so a marginal restore can clamp on our layer where it would not upstream. The comment at
+`m3-layout.css:184-186` claimed this was "an improvement, not a regression" by comparing against
+the 5px *hit area* instead of the 1px *occupy size* — corrected in this commit.
+
+Older evidence, kept because the reasoning is still useful:
 
 - *Toward upstream's*: incoming upstream commit `fb6114783cc` is **"Bug 2056142 — Fix bct1
   failures part 1 — Handle virtual tree a11y click checks"**, which matches the exact text of
@@ -89,7 +146,11 @@ passed, so the gate tolerates them.
 > `update-ref` against an isolated `GIT_INDEX_FILE`, so this working tree was never checked
 > out — the same discipline `gh-pages` uses, and for the same reason.
 
-**2. Can our own suite's "success" ever be trusted?** `m3.raw.json` records **13** `test_status`
+**2. Can our own suite's "success" ever be trusted?** **Yes — the gate was right and I was wrong.**
+The 13 entries are `todo_is`/`todo`, i.e. **declared expected failures**, so they carry no
+`expected` key and the suite genuinely had **0** unexpected failures. There is one real gate hole,
+but it is a different one: **empty discovery exits 0**, so a suite that discovers no tests passes.
+Close that. Original (incorrect) alarm preserved below for the reasoning trail: `m3.raw.json` records **13** `test_status`
 FAIL entries in `browser_m3Accessibility.js` (subtest `testDecorativeRowButtons`), each of the
 form *`button-flat tree-button-thread should use aria-hidden="true" — "hidden" is not a valid
 ARIA token (audit A4, upstream markup, not ours to change)`* — and the workflow reported that
@@ -104,8 +165,13 @@ scoped to nodes we own.
 
 Also still to verify: **does the test enable accessibility at all?** `aria-level` does not exist
 until a screen reader runs, because `_setRowAriaAttributes` short-circuits unless
-`Services.appinfo.accessibilityEnabled`. If the test asserts `aria-level` without enabling
-accessibility, those assertions are **vacuous** and a green run is worthless.
+`Services.appinfo.accessibilityEnabled` **or** `Cu.isInAutomation`.
+**ANSWERED, and the premise was wrong:** `tree-view.mjs:1110` is
+`if (!Services.appinfo.accessibilityEnabled && !Cu.isInAutomation) return`, so it proceeds when
+**either** holds, and mochitest sets `Cu.isInAutomation`. Run 30495583685 resolved real values —
+`aria-level "1"`/`"2"`, `aria-rowindex`, `aria-setsize`/`aria-posinset`, `aria-expanded`,
+`role="row"` — so **the assertions are not vacuous.** The long-repeated claim that these are
+unobservable without a screen reader is false for automation.
 
 ### Where the logs are
 

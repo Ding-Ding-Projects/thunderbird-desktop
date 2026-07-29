@@ -802,7 +802,7 @@ not moved it: **nothing on this branch has been built or launched.** Every proof
 above is static — selector, specificity, cascade and source reading against the
 JS that consumes it. Open item 1 stands. Specifically still open: the audit's F6
 screen-reader gate cannot be closed statically, because
-`_setRowAriaAttributes` short-circuits unless `Services.appinfo.accessibilityEnabled`;
+`_setRowAriaAttributes` short-circuits only when `Services.appinfo.accessibilityEnabled` **and** `Cu.isInAutomation` are BOTH false (`tree-view.mjs:1110`);
 and `about3Pane.js` was verified **unmodified** by `git status --porcelain`
 throughout, which is what makes "features survive by construction" true rather
 than hopeful.
@@ -989,7 +989,7 @@ no `@import` and no `@font-face`.
 > is green and ships a real 85,207,651-byte artifact, but nobody has run it and
 > clicked through the 3-pane. Open item 1 stands, and the audit's F6 screen-reader
 > gate cannot be closed statically at all, because `_setRowAriaAttributes`
-> short-circuits unless `Services.appinfo.accessibilityEnabled`.
+> short-circuits only when `Services.appinfo.accessibilityEnabled` **and** `Cu.isInAutomation` are BOTH false (`tree-view.mjs:1110`).
 >
 > `mail/base/content/about3Pane.js` was verified **unmodified** by
 > `git status --porcelain` at every ratification. That is what makes "features
@@ -1041,7 +1041,7 @@ this wave.** A surviving, unfixed challenge un-ticks the box. Six did.
 | Folder pane — badges / new-mail / **folder colors** / account indicator | `m3-folder-pane.css:397` paints `--icon-color: var(--m3-on-secondary-container)` on the selected row **unguarded**, over a theme's own selection fill. Its defence — "calibrated against about3Pane.css's own specificity" — is false: (1,4,1) vs (1,1,0). Unfixed; guarding it is a design decision, not an auditor's. |
 | **All `cmd_*` commands** | Box said **137**; the real count is **167**. Its proof, "blast radius exactly 4", is a markup-only `grep` of `about3Pane.xhtml` and misses `#threadTree`'s delegated `dblclick`/`auxclick` → 3 commands, `.tree-button-more` → `#mailContext`'s 45, and ~163 chrome triggers reached by inherited font/colour. A second proof ("zero `position`/`z-index`") is also false. |
 | **Keyboard navigation** | `m3-thread-pane.css:1177-1179`'s forced-colors focus group is **entirely dead** — (1,2,0) against two-ID competitors — while its comment claims it "already out-ranks" them. Its `display:` inventory was 21 (raw) vs **12** (real). No affordance lost today; the tick was simply not earned. |
-| **Accessibility** | Scope, not defect. `_setRowAriaAttributes` short-circuits unless `Services.appinfo.accessibilityEnabled`, so threading semantics are **unobservable statically**. All eight F6 gates in `A11Y-L10N-AUDIT.md:704-717` are still `- [ ]`. Never tick this on static evidence. |
+| **Accessibility** | Scope, not defect. `_setRowAriaAttributes` short-circuits only when `Services.appinfo.accessibilityEnabled` **and** `Cu.isInAutomation` are BOTH false (`tree-view.mjs:1110`), so threading semantics are **unobservable statically** but ARE observable under mochitest, which sets `Cu.isInAutomation` — run 30495583685 resolved real `aria-level` / `aria-rowindex` / `aria-setsize` values. All eight F6 gates in `A11Y-L10N-AUDIT.md:704-717` are still `- [ ]`. Never tick this on static evidence. |
 | **Theming** | `m3-thread-pane.css:547`'s unguarded `border: 1px solid transparent` at (2,3,2) out-ranks `tree-listbox.css:307` (0,3,1), so a theme can never paint thread-card border colours. Unfixed on purpose: the obvious fix reaches (2,5,2) and defeats the `prefers-contrast` rule at (2,4,2). |
 | **Session/state persistence** | `m3-layout.css:67-69` pins splitter defaults to 272/864/576 **px**, replacing upstream's 18/54/36 **em**. `UIFontSize.sys.mjs:194-198` writes an inline px `font-size` on `documentElement`, so em tracked `mail.uifontsize` and px does not. For a never-dragged pane the setting restores and stops changing appearance — this box's own definition of a real regression. |
 

@@ -165,7 +165,9 @@ permissions:
 # This run's artefact IS the thing someone needs. The accessibility box in
 # design/REWRITE-CONTRACT.md cannot close on static proof - `aria-level` does not
 # exist until a screen reader runs, because `_setRowAriaAttributes` short-circuits
-# unless `Services.appinfo.accessibilityEnabled` - so a green run of this suite is
+# only when `Services.appinfo.accessibilityEnabled` AND `Cu.isInAutomation` are both
+# false (tree-view.mjs:1110) - mochitest sets the second, so the aria assertions in
+# this suite are NOT vacuous, verified in run 30495583685. A green run of this suite is
 # the only evidence that can ever tick it. A group that cancels the run guarantees
 # the box stays open forever.
 #

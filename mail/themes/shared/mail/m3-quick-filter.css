@@ -78,7 +78,10 @@
    * for the padding. Writing the design's flat 44px as a block-size would be
    * overridden by that min-block-size and, at a raised --m3-font-scale, would
    * overflow the host. */
-  --m3-qfb-field-padding: max(6px, calc((var(--m3-qfb-control) - 1.2 * var(--m3-font-size)) / 2));
+  --m3-qfb-field-padding: max(
+    6px,
+    calc((var(--m3-qfb-control) - 1.2 * var(--m3-font-size)) / 2)
+  );
 }
 
 :root[uidensity="compact"] #quick-filter-bar {
@@ -278,7 +281,9 @@
   content: none;
 }
 
-:root:not([lwtheme]) #quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):enabled:hover {
+:root:not([lwtheme])
+  #quick-filter-bar
+  :is(#qfb-sticky, #qfd-dropdown):enabled:hover {
   /* The design hovers with `filter: brightness(0.97)`, which is a light-theme
    * trick: on the dark palette it darkens the control toward the background so
    * the hover reads as "less there". An M3 state layer keyed to
@@ -288,7 +293,9 @@
   border-color: transparent;
 }
 
-:root:not([lwtheme]) #quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):enabled:hover:active {
+:root:not([lwtheme])
+  #quick-filter-bar
+  :is(#qfb-sticky, #qfd-dropdown):enabled:hover:active {
   background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
 }
 
@@ -301,8 +308,14 @@
   box-shadow: none;
 }
 
-:root:not([lwtheme]) #quick-filter-bar #qfb-sticky[aria-pressed="true"]:enabled:hover {
-  background-color: color-mix(in srgb, var(--m3-on-secondary-container) 8%, var(--m3-secondary-container));
+:root:not([lwtheme])
+  #quick-filter-bar
+  #qfb-sticky[aria-pressed="true"]:enabled:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--m3-on-secondary-container) 8%,
+    var(--m3-secondary-container)
+  );
   color: var(--m3-on-secondary-container);
 }
 
@@ -386,14 +399,20 @@
   border-color: var(--m3-outline);
 }
 
-:root:not([lwtheme]) #quick-filter-bar .button-group > .button:enabled:hover:active {
+:root:not([lwtheme])
+  #quick-filter-bar
+  .button-group
+  > .button:enabled:hover:active {
   background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
 }
 
 /* Again: the [aria-pressed] hook stays exactly as it was. Guarded for paint
  * only, so a themed chip still reads as pressed via widgets.css's own
  * selected styling. */
-:root:not([lwtheme]) #quick-filter-bar .button-group > .button[aria-pressed="true"] {
+:root:not([lwtheme])
+  #quick-filter-bar
+  .button-group
+  > .button[aria-pressed="true"] {
   border-color: transparent;
   background-color: var(--m3-secondary-container);
   color: var(--m3-on-secondary-container);
@@ -402,8 +421,15 @@
   box-shadow: none;
 }
 
-:root:not([lwtheme]) #quick-filter-bar .button-group > .button[aria-pressed="true"]:enabled:hover {
-  background-color: color-mix(in srgb, var(--m3-on-secondary-container) 8%, var(--m3-secondary-container));
+:root:not([lwtheme])
+  #quick-filter-bar
+  .button-group
+  > .button[aria-pressed="true"]:enabled:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--m3-on-secondary-container) 8%,
+    var(--m3-secondary-container)
+  );
   color: var(--m3-on-secondary-container);
   border-color: transparent;
 }
@@ -491,7 +517,10 @@
   padding-inline: 16px;
 }
 
-#quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button[aria-pressed="true"] {
+#quick-filter-bar
+  #quick-filter-bar-filter-text-bar
+  .button-group
+  > .button[aria-pressed="true"] {
   padding-inline: 12px;
 }
 
@@ -501,7 +530,10 @@
  * mask: the compact icon set paints with fill="context-fill" /
  * "context-stroke", which resolve to nothing outside a context-properties
  * consumer, so a mask built from them would come out empty. */
-#quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button::before {
+#quick-filter-bar
+  #quick-filter-bar-filter-text-bar
+  .button-group
+  > .button::before {
   content: "";
   position: static;
   display: inline-block;
@@ -525,12 +557,19 @@
   }
 }
 
-:root:not([lwtheme]) #quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button::before {
+:root:not([lwtheme])
+  #quick-filter-bar
+  #quick-filter-bar-filter-text-bar
+  .button-group
+  > .button::before {
   background-color: transparent;
   box-shadow: none;
 }
 
-#quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button[aria-pressed="true"]::before {
+#quick-filter-bar
+  #quick-filter-bar-filter-text-bar
+  .button-group
+  > .button[aria-pressed="true"]::before {
   inline-size: 16px;
   margin-inline-end: 6px;
   background-image: var(--icon-check);
@@ -638,7 +677,9 @@
   color: var(--m3-on-surface-variant);
 }
 
-:root:not([lwtheme]) #quick-filter-bar #qfb-tag-filter-mode:not([disabled], [open="true"]):hover {
+:root:not([lwtheme])
+  #quick-filter-bar
+  #qfb-tag-filter-mode:not([disabled], [open="true"]):hover {
   background-color: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
   border-color: var(--m3-outline);
   color: var(--m3-on-surface);
@@ -713,7 +754,9 @@
  * Guarded like every other colour here. Stock Thunderbird tints this label not
  * at all, so under a theme it simply falls back to the themed text colour and
  * the Fluent string still says there are no results — no information is lost. */
-:root:not([lwtheme]) #quick-filter-bar #qfb-results-label[data-l10n-id="quick-filter-bar-no-results"] {
+:root:not([lwtheme])
+  #quick-filter-bar
+  #qfb-results-label[data-l10n-id="quick-filter-bar-no-results"] {
   color: var(--m3-error);
 }
 
@@ -826,7 +869,10 @@
  * ======================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  #quick-filter-bar :is(#quick-filter-bar-filter-text-bar, #quickFilterBarTagsContainer):not([hidden]) {
+  #quick-filter-bar
+    :is(#quick-filter-bar-filter-text-bar, #quickFilterBarTagsContainer):not(
+      [hidden]
+    ) {
     animation: none;
   }
 
