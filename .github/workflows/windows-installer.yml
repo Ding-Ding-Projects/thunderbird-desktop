@@ -140,6 +140,7 @@ jobs:
           # not registered yet, so the pipeline is not hostage to a multi-GB
           # local clone landing first.
           $pinned = $false
+          $rev = ""
           if ((Test-Path .gitmodules) -and (Select-String -Path .gitmodules -Pattern 'vendor/gecko' -Quiet)) {
             Write-Host "vendor/gecko submodule found - using pinned revision."
             git submodule update --init --depth 1 vendor/gecko
@@ -147,12 +148,22 @@ jobs:
             else { Write-Host "::warning::vendor/gecko registered but did not populate; falling back to tip." }
           }
           if ($pinned) {
+            # Read the revision BEFORE moving. A submodule's .git is a *file* whose
+            # `gitdir:` pointer is RELATIVE to the parent repo, so the moment the
+            # directory moves it resolves to nothing and every git command in it
+            # dies with "fatal: not a git repository: (NULL)".
+            $rev = (git -C "vendor\gecko" rev-parse HEAD).Trim()
             Move-Item -Path "vendor\gecko" -Destination "$env:GECKO_DIR"
+            # Drop the now-dangling pointer. A broken .git confuses tooling more
+            # than no .git at all, and the build only needs the source tree.
+            $stale = Join-Path $env:GECKO_DIR ".git"
+            if (Test-Path $stale) { Remove-Item -Force -Recurse $stale }
           } else {
             Write-Host "::notice::Cloning mozilla-central tip (unpinned). Register vendor/gecko for reproducible builds."
             git clone --depth 1 https://github.com/mozilla-firefox/firefox.git "$env:GECKO_DIR"
+            $rev = (git -C "$env:GECKO_DIR" rev-parse HEAD).Trim()
           }
-          $rev = git -C "$env:GECKO_DIR" rev-parse HEAD
+          if (-not $rev) { throw "could not determine gecko revision" }
           Write-Host "gecko rev: $rev (pinned: $pinned)"
           "### Gecko: ``$rev`` (pinned submodule: $pinned)" >> $env:GITHUB_STEP_SUMMARY
 
