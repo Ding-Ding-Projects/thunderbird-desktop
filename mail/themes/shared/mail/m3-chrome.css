@@ -1,0 +1,542 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/**
+ * Material Mail app chrome: tab strip, overflow surfaces, search.
+ *
+ * Ports the top chrome bar from design/Material Mail.dc.html (lines 29-68, the
+ * `role="tablist"` shell) onto Thunderbird's existing chrome DOM. This is a
+ * restyle layer, not a replacement: every selector below already exists in
+ * mail/base/content/messenger.xhtml. Nothing here invents markup, removes a
+ * control, or changes behaviour.
+ *
+ * HARD DEPENDENCY, and the reason this file can look inert: the whole surface
+ * lives in messenger.xhtml, NOT about:3pane. Those are separate documents and
+ * custom properties do not cross the <browser> boundary, so material-tokens.css
+ * — today linked only from about3Pane.xhtml — must ALSO be linked into
+ * messenger.xhtml, before this file. Without that link every var() below is
+ * invalid at computed-value time and the rules silently drop.
+ *
+ * Deliberately NOT touched, and each for a concrete reason:
+ *   - .titlebar-buttonbox / .titlebar-button. The Windows minimise/maximise/
+ *     close buttons live inside the unified toolbar template. They keep their
+ *     native metrics; restyling them is how you ship a window nobody can close.
+ *   - The spaces toolbar DOM and #spacesToolbarAddonsContainer. browser.spaces
+ *     and browser.spacesToolbar read that structure. Only its colour variables
+ *     are re-pointed at tokens, below.
+ *   - Tab close/undo-close, the throbber, drag-and-drop, the arrowscrollbox
+ *     overflow model and the real menupopups. All kept and styled in place.
+ *
+ * Everything colour-bearing is guarded by :root:not([lwtheme]) so an installed
+ * lightweight theme still wins, which the rewrite contract requires.
+ */
+
+/* ==========================================================================
+ * Local metrics.
+ *
+ * These are new names, not overrides of any --m3-* token. They are derived from
+ * the density and type ramp rather than hardcoded, so the chrome tracks the
+ * appearance surface: the design's literal 44px tab / 40px button / 14px label
+ * fall out of the "comfortable" density and the default 14px ramp exactly.
+ * ======================================================================== */
+
+:root {
+  --m3-chrome-tab-height: calc(var(--m3-control-size) - 4px);
+  --m3-chrome-button-size: calc(var(--m3-control-size) - 8px);
+  --m3-chrome-tab-gap: 4px;
+
+  /* The design measures overflow in hardcoded per-tab pixels. That breaks under
+   * font scaling and under long locales, so the bounds scale with the ramp
+   * instead: ~112px and ~210px at the default 14px. */
+  --m3-chrome-tab-min: calc(var(--m3-font-size) * 8);
+  --m3-chrome-tab-max: calc(var(--m3-font-size) * 15);
+
+  /* 12px against the design's 14px base, kept proportional so the appearance
+   * surface's font scale moves captions too. */
+  --m3-chrome-font-caption: calc(var(--m3-font-size) * 6 / 7);
+
+  --m3-chrome-transition: 150ms ease;
+}
+
+/* ==========================================================================
+ * Chrome bar shell
+ *
+ * The design has one continuous bar on --m3-s3 with no bottom border. In
+ * Thunderbird that band is three stacked elements (unified toolbar, menubar,
+ * tab strip) inside #titlebar; painting all three the same surface and dropping
+ * the separators between them reproduces the single bar without reordering DOM.
+ * ======================================================================== */
+
+:root:not([lwtheme]) {
+  #navigation-toolbox {
+    /* Set the type ramp once, at the top of the chrome, so tab labels, menu
+     * items and the search field all inherit it. --m3-font resolves to a local
+     * stack; nothing is fetched. */
+    font-family: var(--m3-font);
+    font-size: var(--m3-font-size);
+    font-weight: var(--m3-font-weight);
+    background-color: var(--m3-s3);
+  }
+
+  #titlebar {
+    background-color: var(--m3-s3);
+  }
+
+  unified-toolbar {
+    /* The design's chrome is one uninterrupted surface; with the toolbar and
+     * the tab strip both on --m3-s3 this hairline only reads as a seam. */
+    border-block-end: none;
+  }
+
+  #unifiedToolbarContainer {
+    background-color: var(--m3-s3);
+  }
+
+  #toolbar-menubar {
+    background-color: transparent;
+    color: var(--m3-on-surface-variant);
+  }
+
+  #tabs-toolbar {
+    /* Replaces the inset highlight gradient and box-shadow, which assume a
+     * darker chrome than M3's --m3-s3. */
+    background-image: none;
+    background-color: var(--m3-s3);
+    box-shadow: none;
+    /* Design: padding 8px 12px 0, tabs bottom-aligned so they meet the content
+     * surface with no gap. */
+    padding-block: 8px 0;
+    padding-inline: 12px;
+    align-items: flex-end;
+    gap: var(--m3-chrome-tab-gap);
+  }
+}
+
+/* ==========================================================================
+ * Tab strip
+ * ======================================================================== */
+
+:root:not([lwtheme]) {
+  #tabmail-tabs {
+    align-items: flex-end;
+  }
+
+  .tabmail-tab {
+    /* Design: 44px, 12px top corners, content-sized up to --m3-chrome-tab-max.
+     * flex-grow is dropped (the stock rule is `flex: 100 100`) because the
+     * design sizes tabs to their label rather than sharing the strip; the
+     * arrowscrollbox still handles overflow once they stop fitting. */
+    flex: 0 1 auto;
+    inline-size: auto;
+    min-inline-size: var(--m3-chrome-tab-min);
+    max-inline-size: var(--m3-chrome-tab-max);
+    block-size: var(--m3-chrome-tab-height);
+    margin-inline-end: var(--m3-chrome-tab-gap);
+    border-radius: var(--m3-radius-m) var(--m3-radius-m) 0 0;
+
+    &:not([selected]) {
+      /* Beats tabmail.css's own :root:not([lwtheme]) rule, which resets this to
+       * `inherit`. Drives the label AND the -moz-context-properties icon fill. */
+      color: var(--m3-on-surface-variant);
+    }
+
+    &[selected] {
+      color: var(--m3-on-surface);
+      /* The design's selection affordance is the tab merging into the content
+       * surface, not a drop shadow lifting off the strip. */
+      box-shadow: none;
+    }
+
+    &:focus-visible {
+      /* :focus-visible rather than the design's plain :focus, so clicking a tab
+       * with the mouse does not leave a ring. Inset offset keeps the 3px ring
+       * inside the tab's own rounded box. */
+      outline: 3px solid var(--m3-primary);
+      outline-offset: -3px;
+    }
+  }
+
+  /* .tab-background is the stack layer that actually paints; the tab element
+   * itself is transparent by design in tabmail.css. */
+  .tabmail-tab .tab-background {
+    border-radius: var(--m3-radius-m) var(--m3-radius-m) 0 0;
+    background-color: transparent;
+  }
+
+  .tabmail-tab[selected] .tab-background {
+    /* Merging into --m3-surface is what makes the active tab read as part of
+     * the content card below it. */
+    background-color: var(--m3-surface);
+    background-image: none;
+  }
+
+  .tabmail-tab:hover .tab-background:not([selected]) {
+    /* color-mix off --m3-on-surface instead of the stock light-dark() literals,
+     * so the wash follows whichever theme and seed is active. */
+    background-color: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
+  }
+
+  /* The merge replaces the underline. The line is restored under prefers-contrast
+   * further down, where a background-only cue is not enough. */
+  .tabmail-tab .tab-line {
+    display: none;
+  }
+
+  .tabmail-tab .tab-content {
+    /* Design: 16px inline padding, 8px gap between icon, label and close. */
+    padding-inline: 16px;
+    gap: 8px;
+  }
+
+  .tabmail-tab .tab-icon-image {
+    inline-size: 18px;
+    block-size: 18px;
+    /* Superseded by the flex gap above. */
+    margin-inline-end: 0;
+    margin-block: 0;
+  }
+
+  /* The throbber stays 16px on purpose: its busy state is a 30-frame 480px
+   * sprite stepped 16px at a time, so widening the box would bleed the next
+   * frame into view. Losing the loading state is worse than 2px of misalignment. */
+  .tabmail-tab .tab-throbber {
+    margin-inline-end: 0;
+    margin-block: 0;
+  }
+
+  .tabmail-tab .tab-text {
+    font-size: var(--m3-font-size);
+    letter-spacing: 0.1px;
+    font-weight: 400;
+  }
+
+  .tabmail-tab[selected] .tab-text {
+    font-weight: 600;
+  }
+
+  /* A background tab whose title changed is signalled only by [titlechanged] in
+   * the stock chrome. The design has no equivalent, so it is carried over as a
+   * weight bump rather than dropped. */
+  .tabmail-tab:not([selected]) .tab-background[titlechanged] ~ .tab-content .tab-text {
+    font-weight: 600;
+    color: var(--m3-on-surface);
+  }
+
+  button.tab-close-button {
+    inline-size: 24px;
+    block-size: 24px;
+    padding: 4px;
+    margin-inline: 0 -4px;
+    margin-block: 0;
+    border-radius: var(--m3-radius-full);
+    color: var(--m3-on-surface-variant);
+    background-color: transparent;
+
+    &:hover {
+      background-color: var(--m3-s5);
+    }
+
+    &:hover:active {
+      background-color: color-mix(in srgb, var(--m3-on-surface) 16%, var(--m3-s5));
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--m3-primary);
+      outline-offset: -2px;
+    }
+  }
+
+  /* The design's tab has no close affordance at all. Rather than delete a
+   * working control, it is revealed on hover/selection so the resting strip
+   * matches the design.
+   *
+   * Gated on a fine pointer: on touch there is no hover, so the button must stay
+   * put or the tab becomes uncloseable by touch. Gated on prefers-contrast in
+   * the same query rather than overridden later, because an override would have
+   * to out-specify this compound selector and would drift the first time either
+   * side is edited. */
+  @media (hover: hover) and (pointer: fine) and (not (prefers-contrast)) {
+    .tabmail-tab:not(:hover, [selected]):not(:focus-within) button.tab-close-button {
+      opacity: 0;
+      transition: opacity var(--m3-chrome-transition);
+    }
+  }
+}
+
+/* ==========================================================================
+ * Overflow: scroll buttons and the all-tabs button
+ *
+ * The design drops surplus tabs into a panel and does not scroll. That is a
+ * regression under font scaling and long locales, so the arrowscrollbox and its
+ * scroll buttons are kept and restyled; the all-tabs popup below plays the part
+ * of the design's searchable tab-list panel.
+ * ======================================================================== */
+
+:root:not([lwtheme]) {
+  #tabmail-arrowscrollbox {
+    min-block-size: var(--m3-chrome-tab-height);
+
+    &::part(scrollbutton-up),
+    &::part(scrollbutton-down) {
+      border-radius: var(--m3-radius-full);
+      color: var(--m3-on-surface-variant);
+      fill: currentColor;
+    }
+
+    /* The stock overflow indicator is a raster PNG plus a white border-image,
+     * both authored for a light chrome. A gradient off the live surface token
+     * fades correctly in either theme and at any seed.
+     *
+     * One physical direction on purpose: tabmail.css already scaleX(-1)s
+     * whichever of the two indicators faces the end of the strip, so giving the
+     * pair a second logical flip here would cancel that out and point both
+     * gradients the same way. */
+    &:not([scrolledtostart])::part(overflow-start-indicator),
+    &:not([scrolledtoend])::part(overflow-end-indicator) {
+      background-image: linear-gradient(to right, var(--m3-s3), transparent);
+      /* The stock 17px background-size is sized to the PNG; a gradient needs to
+       * fill the box instead. */
+      background-size: auto;
+      border-image: none;
+      border-inline-start: none;
+    }
+  }
+
+  /* The design's 40px circular chrome icon button. */
+  #alltabs-button {
+    inline-size: var(--m3-chrome-button-size);
+    block-size: var(--m3-chrome-button-size);
+    margin-block-end: 4px;
+    padding: 0;
+    border: none;
+    border-radius: var(--m3-radius-full);
+    background-color: transparent;
+    color: var(--m3-on-surface-variant);
+    /* Explicit centring: padding is zeroed above, so the 20px icon has nothing
+     * else holding it in the middle of the 40px circle. */
+    align-items: center;
+    justify-content: center;
+    transition: background-color var(--m3-chrome-transition);
+
+    &:hover {
+      background-color: var(--m3-s4);
+    }
+
+    &[open],
+    &:hover:active {
+      background-color: var(--m3-s5);
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--m3-primary);
+      outline-offset: -3px;
+    }
+
+    & .toolbarbutton-icon {
+      inline-size: 20px;
+      block-size: 20px;
+    }
+  }
+}
+
+/* ==========================================================================
+ * Tab list panel and tab context menu
+ *
+ * These are the design's overflow panel (lines 586-609) and tab menu (611-622).
+ * The design builds both as position:fixed <div>s, which cannot flip at a screen
+ * edge and lose native menu keyboard navigation and accesskeys. The real XUL
+ * menupopups are restyled instead.
+ * ======================================================================== */
+
+:root:not([lwtheme]) {
+  /* `not (-moz-windows-mica-popups)`: where Mica is in effect the platform owns
+   * the popup backdrop and contextMenu.css already forces it with !important.
+   * Overriding the surface there would fight the OS, so only the rows are
+   * themed in that case. */
+  @media not (-moz-windows-mica-popups) {
+    #alltabs-popup,
+    #tabContextMenu {
+      --panel-background-color: var(--m3-s4);
+      --panel-text-color: var(--m3-on-surface);
+      --panel-background-color-dimmed: var(--m3-s5);
+      --panel-border-color: var(--m3-outline-variant);
+    }
+  }
+
+  #alltabs-popup,
+  #tabContextMenu {
+    --panel-border-radius: var(--m3-radius-s);
+    --panel-padding: 8px 0;
+
+    & > :is(menu, menuitem) {
+      min-block-size: var(--m3-control-size);
+      padding-inline: 12px;
+      border-radius: var(--m3-radius-m);
+      font-size: var(--m3-font-size);
+
+      &:not([disabled], :active)[_moz-menuactive] {
+        background-color: var(--m3-s5);
+        color: var(--m3-on-surface);
+      }
+    }
+  }
+
+  /* The design marks the current tab's row with --m3-secondary-container rather
+   * than bolding it, which reads at a glance and survives a bold UI font. */
+  #alltabs-popup .alltabs-item[selected] {
+    font-weight: 500;
+    background-color: var(--m3-secondary-container);
+    color: var(--m3-on-secondary-container);
+  }
+}
+
+/* ==========================================================================
+ * Search
+ *
+ * The design puts search in the mail header and a Ctrl+K palette pill in the
+ * chrome. Thunderbird's global search is a unified-toolbar item, available in
+ * every space and the anchor for #PopupGlodaAutocomplete; moving it would break
+ * both. It stays where it is and takes on the design's pill shape.
+ *
+ * <global-search-bar> renders into a shadow root with its own stylesheet, so
+ * the only way in is the custom properties that stylesheet consumes. Document
+ * rules on the host outrank the shadow tree's own :host rules, so these win.
+ * ======================================================================== */
+
+:root:not([lwtheme]) {
+  global-search-bar {
+    --search-bar-color: var(--m3-on-surface);
+    --search-bar-background: var(--m3-s4);
+    --search-bar-focus-background: var(--m3-s4);
+    --search-bar-border-color: var(--m3-outline-variant);
+    --focus-outline-color: var(--m3-primary);
+    /* The design's palette trigger is a full-radius pill. */
+    --button-border-radius: var(--m3-radius-full);
+    --search-padding: 12px;
+    font-size: var(--m3-font-size);
+  }
+
+  /* Gloda results are the closest existing analogue to the design's palette
+   * result list (icon + label + group caption, 12px-radius rows). */
+  #PopupGlodaAutocomplete {
+    --panel-border-radius: var(--m3-radius-l);
+
+    & .autocomplete-richlistbox {
+      padding: 8px;
+      background-color: var(--m3-s4);
+      color: var(--m3-on-surface);
+    }
+
+    & .autocomplete-richlistitem {
+      border-radius: var(--m3-radius-m);
+      padding-inline: 12px;
+
+      &:hover {
+        background-color: var(--m3-s5);
+      }
+
+      &[selected] {
+        background-color: var(--m3-secondary-container);
+        color: var(--m3-on-secondary-container);
+      }
+    }
+
+    & .explanation,
+    & .ac-url-text {
+      font-size: var(--m3-chrome-font-caption);
+      color: var(--m3-on-surface-variant);
+    }
+  }
+}
+
+/* ==========================================================================
+ * Spaces toolbar
+ *
+ * The design has no spaces concept, folding spaces and tabs into one strip.
+ * Deleting this toolbar would break browser.spaces, browser.spacesToolbar and
+ * their tests, so only its colour variables are re-pointed at tokens. The DOM,
+ * the badge, the reveal button and the add-on container are untouched.
+ * ======================================================================== */
+
+:root:not([lwtheme]) {
+  --spaces-bg-color: var(--m3-s3);
+  /* The stock overlay gradient assumes a flat neutral behind it and muddies the
+   * M3 surfaces. */
+  --spaces-bg-image: none;
+  --spaces-button-text-color: var(--m3-on-surface-variant);
+  --spaces-button-active-bg-color: var(--m3-primary);
+  --spaces-button-active-text-color: var(--m3-on-primary);
+  --spaces-button-badge-bg-color: var(--m3-error);
+
+  #spacesToolbar {
+    border-inline-end-color: var(--m3-outline-variant);
+  }
+
+  .spaces-toolbar-button {
+    border-radius: var(--m3-radius-s);
+
+    &:focus-visible:not(:hover) {
+      outline: 2px solid var(--m3-primary);
+    }
+  }
+
+  .spaces-badge-container {
+    border-radius: var(--m3-radius-full);
+  }
+}
+
+/* ==========================================================================
+ * In-app notifications
+ *
+ * The design's snackbar (lines 654-670) sits bottom-start on --m3-inverse-surface
+ * and Thunderbird's in-app notification occupies the same corner. It is a shadow
+ * component with a hardcoded radius, so only its inherited colour variables can
+ * be reached; this is a clash-avoidance bridge, not the full snackbar port.
+ * ======================================================================== */
+
+:root:not([lwtheme]) in-app-notification-container {
+  --active-background-color: var(--m3-inverse-surface);
+  --active-color: var(--m3-inverse-on-surface);
+  --container-border: var(--m3-outline-variant);
+}
+
+/* ==========================================================================
+ * prefers-contrast
+ *
+ * Surface-only cues are the first thing to fail in a high contrast setting, so
+ * the selected tab gets its underline and a visible edge back.
+ * ======================================================================== */
+
+@media (prefers-contrast) {
+  :root:not([lwtheme]) {
+    .tabmail-tab .tab-line {
+      display: flex;
+    }
+
+    .tabmail-tab .tab-line[selected] {
+      background-color: var(--m3-primary);
+    }
+
+    .tabmail-tab[selected] .tab-background {
+      outline: 1px solid var(--m3-outline);
+      outline-offset: -1px;
+    }
+  }
+}
+
+/* ==========================================================================
+ * prefers-reduced-motion
+ *
+ * material-tokens.css only exposes --m3-motion-duration under this query; the
+ * transitions introduced above are this file's own and must be stood down here.
+ * ======================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([lwtheme]) {
+    #alltabs-button,
+    button.tab-close-button {
+      transition: none;
+    }
+  }
+}

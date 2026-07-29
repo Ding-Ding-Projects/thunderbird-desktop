@@ -1,0 +1,245 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/**
+ * Material Design 3 skin for the about3Pane message (reading) pane.
+ *
+ * SCOPE / PROVENANCE
+ * The "Material Mail" design (design/Material Mail.dc.html lines 187-304,
+ * state bindings at 1159-1215) draws this surface as a reading pane with
+ * exactly two states: a single selected message, and a centred "pick a
+ * message" placeholder. Thunderbird's #messagePane has to serve five:
+ * single message, multi-message summary, web browser (start page / feeds),
+ * account central, and conversation view. Four of those five have no visual
+ * spec at all, so this file deliberately does not invent one for them — it
+ * skins the container plus the states that are actually reachable from a
+ * stylesheet loaded into about3Pane.xhtml.
+ *
+ * THE DOCUMENT BOUNDARY — read this before adding anything
+ * Everything the design draws *inside* the reading body (subject, avatar,
+ * sender/date block, tag chip, message text, attachment card, action bar) is
+ * rendered by about:message inside #messageBrowser, and the multi-message
+ * summary by chrome://messenger/content/multimessageview.xhtml inside
+ * #multiMessageBrowser. Those are separate DOCUMENTS, not shadow roots.
+ * Custom properties do not cross a document boundary and neither do
+ * selectors, so any rule here targeting that content would be dead CSS.
+ * Restyling it needs its own stylesheet plus a <link> in aboutMessage.xhtml /
+ * multimessageview.xhtml, which is outside this section.
+ *
+ * <conversation-view> IS reachable, but only through variables: it uses an
+ * open shadow root that links conversation-view.css internally. Custom
+ * properties *do* inherit through a shadow boundary, so the bridge below is
+ * the whole available surface area. See the conversation view section.
+ *
+ * OWNED ELSEWHERE — do not restate here, it will only drift:
+ *   - #messagePane's background-color, its border-start-start-radius and
+ *     #accountCentralBrowser's surface: m3-layout.css.
+ *   - #messagePaneSplitter in its entirety (the 8px M3 gutter lives inside
+ *     the splitter's own box, which is why this file adds no margin to the
+ *     pane — that would double the gutter): m3-layout.css.
+ *   - body#paneLayout's --m3-s3 backdrop, which is what shows through the
+ *     rounded corners below: m3-layout.css.
+ *   - contain/overflow/display/flex-direction and the min-block-size:100px /
+ *     min-inline-size:300px pair on #messagePane: about3Pane.css. Those two
+ *     numbers must stay matched to the splitter's collapse-height="100" /
+ *     collapse-width="300" or collapse-at-threshold silently stops working.
+ *   - .collapsed-by-splitter's `display: none`: about3Pane.css, where there
+ *     is an explicit comment about why `visibility: collapse` regresses the
+ *     grid track. Nothing here may weaken it — #isCollapsed() in
+ *     about3Pane.js reads that class to early-return out of message loading.
+ *
+ * Loaded AFTER material-tokens.css, about3Pane.css, messenger.css and
+ * m3-layout.css so it wins the cascade on equal specificity without
+ * !important.
+ */
+
+/* ==========================================================================
+ * Container
+ * ======================================================================== */
+
+#messagePane {
+  /* Repainting the pane when the seed or light/dark theme flips is the only
+   * animation this surface has. --m3-motion-duration is defined solely under
+   * prefers-reduced-motion: reduce (where it is 1ms), so the fallback here
+   * supplies the normal duration and reduced motion is honoured with no media
+   * query — the same pattern m3-layout.css uses. Colour only: a transition on
+   * the pane's inline-size/block-size desyncs the splitter's
+   * resize-with-window measurement loop. */
+  transition: background-color var(--m3-motion-duration, 150ms) ease;
+}
+
+/* m3-layout.css rounds the start-start corner on every layout, which is
+ * correct for `vertical`, where the pane is the trailing full-height column
+ * and only its leading edge faces another pane. In `classic` and `wide` the
+ * pane sits *below* the splitter and spans to the window's trailing edge, so
+ * a single rounded corner reads as a stray notch. Round the top-end corner
+ * too, but only there — logical properties so RTL mirrors for free. */
+body:is(.layout-classic, .layout-wide) #messagePane {
+  border-start-end-radius: var(--m3-radius-l);
+}
+
+/* ==========================================================================
+ * Empty state
+ *
+ * The design's `noSelection` branch: a 56px mail glyph in --m3-outline-variant
+ * over the pane's own surface. Thunderbird has no placeholder element in the
+ * message pane (unlike the thread pane's #placeholderNoMessages), and this
+ * file may not add markup, so it is drawn as generated content.
+ *
+ * The design also puts the localized string `t.pickMessage` under the icon.
+ * That is deliberately NOT reproduced: CSS generated content cannot carry a
+ * data-l10n-id, and hard-coding the text would break the "every user-visible
+ * string goes through Fluent" rule outright. The icon alone is decorative and
+ * needs no accessible name; the string needs real markup and a new
+ * about3Pane.ftl id. See the notes returned with this file.
+ * ======================================================================== */
+
+/* The :has() gate is the CSS spelling of messagePane.browserPaneVisible().
+ * Without it the glyph would paint underneath the start page and behind a
+ * loaded message during the browsers' transparent about:blank moment. Listing
+ * conversation-view too keeps it suppressed for the conversation surface,
+ * which is a sibling of the browsers rather than one of them. `> ` matters:
+ * all four are direct children of <message-pane> (three from
+ * messagePaneTemplate, conversation-view appended by message-pane.mjs), and a
+ * descendant match could be fooled by the browsers' own content.
+ *
+ * NOTE for whoever adds a real placeholder element later: extend this list,
+ * or the glyph will double up behind it. */
+#messagePane:not(
+    :has(
+      > :is(
+          #webBrowser,
+          #messageBrowser,
+          #multiMessageBrowser,
+          conversation-view
+        ):not([hidden])
+    )
+  )::before {
+  content: "";
+  /* #messagePane is a column flexbox and, in this state, has no other laid-out
+   * children — every browser is [hidden] and <lazy-findbar> is display:contents
+   * around a hidden findbar. So an in-flow flex item that grows fills the pane
+   * and centres the glyph, with no positioning and no risk of ever displacing
+   * the findbars out of the end of the column. */
+  flex: 1 1 auto;
+  min-block-size: 0;
+  pointer-events: none;
+
+  background-image: var(--icon-mail-lg);
+  background-repeat: no-repeat;
+  background-position: center;
+  /* The design hardcodes 56px. Deriving it from --m3-avatar-size lands on
+   * exactly 56px at comfortable density and scales to 48/60 for
+   * compact/relaxed, so the placeholder tracks the density pref. */
+  background-size: calc(var(--m3-avatar-size) + 16px);
+
+  /* Thunderbird's icons paint with context-fill / context-stroke, so they are
+   * tinted through -moz-context-properties, NOT through mask-image the way the
+   * design does it — as a mask these SVGs resolve context-fill to `none` and
+   * render nothing. Using --icon-mail-lg rather than shipping design/icons/*
+   * keeps the compact/touch icon variants and theme switching working. */
+  -moz-context-properties: fill, stroke, fill-opacity;
+  fill: color-mix(in srgb, var(--m3-outline-variant) 35%, transparent);
+  stroke: var(--m3-outline-variant);
+  fill-opacity: 1;
+}
+
+/* ==========================================================================
+ * Conversation view
+ *
+ * conversation-view.css is linked *inside* the element's open shadow root, so
+ * header, .info, .counts, .title, #mainConversation and article are all out of
+ * reach from here. These four variables are the complete set that file
+ * consumes, and custom properties inherit through the shadow boundary — so
+ * remapping them is the only non-invasive way to bring the conversation
+ * surface onto the M3 ramp. Anything beyond this needs conversation-view.css
+ * itself.
+ *
+ * A declaration on the element always beats the inherited :root value from
+ * colors.css regardless of that rule's specificity, so no specificity games
+ * are needed here.
+ * ======================================================================== */
+
+conversation-view {
+  --color-surface-lower: var(--m3-s2);
+  --color-surface-border: var(--m3-outline-variant);
+  --color-text-base: var(--m3-on-surface);
+  --color-text-secondary: var(--m3-on-surface-variant);
+}
+
+/* ==========================================================================
+ * Findbars
+ *
+ * #webBrowserFindToolbar and #multiMessageViewFindToolbar are <lazy-findbar>
+ * wrappers (display: contents) around a XUL <findbar>, shown and hidden by
+ * message-pane.mjs and driven by cmd_find / cmd_findAgain / cmd_findPrevious.
+ * Only their colour is touched: no flex, no order, no display — the findbar
+ * must stay a plain, non-growing flex item at the end of the pane's column.
+ * ======================================================================== */
+
+/* messenger.css paints every findbar with --toolbar-background-color, which
+ * resolves to the pre-M3 --layout-background-1 and reads as a foreign slab
+ * against --m3-s1. The ID in this selector is what lets it outrank
+ * messenger.css's `:root[lwtheme] findbar` rule (one ID beats two classes), so
+ * the strip stays on-palette when a lightweight theme is installed; the
+ * background-image reset neutralises the lwt accent/header images that rule
+ * layers on. Scoped to #messagePane so findbars in other windows are
+ * untouched. */
+#messagePane findbar {
+  background-color: var(--m3-s2);
+  background-image: none;
+  color: var(--m3-on-surface);
+  border-block-start-color: var(--m3-outline-variant);
+}
+
+/* ==========================================================================
+ * Focus
+ *
+ * Additive only — nothing here removes or suppresses an existing outline.
+ * Enumerating real controls rather than using a bare `:focus-visible` keeps
+ * the ring off the <browser> elements themselves, which would otherwise draw a
+ * frame around the whole message on keyboard entry. The [tabindex] arm means
+ * any M3 chrome added to this pane later inherits the ring for free.
+ * ======================================================================== */
+
+#messagePane
+  :is(
+    a[href],
+    button,
+    input,
+    select,
+    textarea,
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+ * High contrast
+ * ======================================================================== */
+
+@media (prefers-contrast) {
+  #messagePane:not(
+      :has(
+        > :is(
+            #webBrowser,
+            #messageBrowser,
+            #multiMessageBrowser,
+            conversation-view
+          ):not([hidden])
+      )
+    )::before {
+    /* A 35% wash of --m3-outline-variant is not reliably perceivable in high
+     * contrast, so the placeholder glyph is drawn at full strength. */
+    fill: color-mix(in srgb, var(--m3-outline) 60%, transparent);
+    stroke: var(--m3-on-surface);
+  }
+
+  #messagePane findbar {
+    /* Restore a definite boundary between the findbar and the message body;
+     * the tonal step alone is not one here. */
+    border-block-start-color: var(--m3-outline);
+  }
+}

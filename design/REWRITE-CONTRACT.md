@@ -143,6 +143,121 @@ This is groundwork, not a feature. No checkbox below is ticked by it, and
 `about3Pane.js` / `about3Pane.xhtml` markup are untouched apart from the one
 `<link>`.
 
+---
+
+**M3 section stylesheets — packaged and loaded** (6 files, 124,931 bytes)
+
+Six section sheets written against the tokens above are now registered in
+`mail/themes/shared/jar.inc.mn` and linked from the two documents that actually
+contain the elements they target:
+
+| File | Bytes | Rule blocks | Loaded from |
+|---|---:|---:|---|
+| `m3-layout.css` | 9,614 | 12 | `about3Pane.xhtml` |
+| `m3-folder-pane.css` | 24,256 | 81 | `about3Pane.xhtml` |
+| `m3-thread-pane.css` | 29,113 | 115 | `about3Pane.xhtml` |
+| `m3-quick-filter.css` | 30,675 | 62 | `about3Pane.xhtml` |
+| `m3-message-pane.css` | 11,753 | 9 | `about3Pane.xhtml` |
+| `m3-chrome.css` | 19,520 | 68 | `messenger.xhtml` |
+
+Verified before landing: braces and parens balance in all six; no `@import`, no
+remote font fetch, no inline `style=`, no new user-visible strings. The two
+surviving `!important` declarations (both in `m3-folder-pane.css`) exist only to
+match an `!important` that `about3Pane.css` already sets.
+
+**Load order is load-bearing.** The section sheets are linked *after*
+`about3Pane.css`, not before it. Every one of them was written to match
+`about3Pane.css`'s specificity rather than escalate past it, so they win on
+source order alone and need no `!important`; linking them earlier would silently
+revert most of the skin while leaving the files looking installed.
+Custom-property resolution is unaffected either way — `var()` resolves at
+computed-value time — so `material-tokens.css` remains the single definition
+site and is not duplicated in `about3Pane.xhtml`.
+
+`m3-chrome.css` is linked from `messenger.xhtml`, **not** `about3Pane.xhtml`.
+Its targets (`#tabmail`, `#navigation-toolbox`, `#spacesToolbar`,
+`#PopupGlodaAutocomplete`, `in-app-notification-container`) have zero occurrences
+in `about3Pane.xhtml`; loading it there would be 19,520 bytes of dead CSS.
+`material-tokens.css` is linked a second time in `messenger.xhtml` because custom
+properties do not cross the `<browser>` boundary.
+
+Also fixed here: the comment introduced alongside the `material-tokens.css`
+`<link>` contained the literal token prefix, i.e. two consecutive hyphens inside
+an XML comment. That is a **fatal** well-formedness error, and `about3Pane.xhtml`
+is parsed as XHTML — as committed, about:3pane would not have parsed at all. Both
+that comment and the new one in `messenger.xhtml` are reworded, and both files now
+parse clean.
+
+### Checkboxes ticked by this work: **none.**
+
+This is deliberate and should stay that way until behaviour lands. Every box in
+the checklist above describes a *behaviour*, and CSS wired none of them. Recording
+the near-misses so nobody re-litigates them:
+
+- **Folder pane / thread pane / quick filter** — restyled, not rebuilt. Modes,
+  badges, drag-and-drop, the 25-item context menu, the 20 columns, the column
+  picker, sort, grouping and sticky filter persistence are all still the stock
+  implementation. Styling a surface is not preserving its features.
+- **Message pane** — the design's entire reading body (subject, avatar, sender
+  line, star, tags, attachment card) is rendered by about:message inside
+  `#messageBrowser`, a **separate document**. Nothing in `m3-message-pane.css`
+  reaches it. Multi-message summary and account central are likewise untouched.
+- **Layout** — the design covers exactly one arrangement, matching
+  `layout-vertical`. `layout-classic` and `layout-wide` are styled only by
+  inheritance and have never been looked at.
+- **Theming** — not ticked despite being a styling item. `m3-chrome.css` scopes
+  itself to `:root:not([lwtheme])`, so lightweight themes bypass it entirely, and
+  folder colours, `forced-colors` and the four seeds are unverified.
+- **CSP** — not ticked. Nothing landed violates it, but this is a
+  *must-not-regress* item and the markup rewrite has not happened yet. It can be
+  ticked when there is a finished surface to assert it about.
+
+### Open items that block parity
+
+1. **Nothing here has been visually verified.** No agent built or launched
+   Thunderbird. Every rule is justified by cascade and specificity reasoning
+   against the sheets it overrides, and by static syntax checking. Treat the
+   whole skin as unreviewed until someone runs it in all three layouts, both
+   themes, all four seeds and all three densities.
+2. **The density scale is dead.** `material-tokens.css` keys off
+   `:root[data-m3-density]`, but the live `mail.uidensity` pref writes
+   `:root[uidensity]`. Nothing sets `data-m3-density`, so all three M3 density
+   steps currently do nothing. `m3-folder-pane.css` works around it with private
+   `--m3-fp-*` aliases re-pointed under `[uidensity]`; the other five sheets do
+   not. This wants one decision — mirror the attribute in JS, or add `[uidensity]`
+   selectors to the token sheet — not five more workarounds. Deliberately left
+   alone in this change so the fix lands as one reviewable unit.
+3. **`about3Pane.js#densityChange` still hardcodes its row-height constants**
+   rather than deriving them from `--m3-row-padding` / `--m3-gap`. The M3 density
+   axis and the uidensity axis can now drift.
+4. Several design elements have **no DOM to attach to** and were correctly not
+   invented: the folder filter field and folder-pane empty state, the thread card's
+   avatar and body-preview line, the message-pane empty-state string (CSS generated
+   content cannot carry a `data-l10n-id`), the command palette, the toast stack,
+   and pinned tabs. All need markup plus Fluent ids before any CSS is worth writing.
+5. `--m3-avatar-size` currently has no consumer anywhere.
+
+### Accessibility and localization baseline
+
+`design/A11Y-L10N-AUDIT.md` catalogues what the rewrite must not break: the ARIA
+and tabindex surface of `about3Pane.xhtml` and its five included fragments, plus
+the roughly two-thirds of it applied at **runtime** by `tree-listbox-mixin.mjs`,
+`tree-view.mjs` and the row modules — none of which is visible in the markup. Read
+it before touching markup. Its headline risks: runtime ARIA depends on contracts
+(`data-label-id`, the `.{column}-column` cell selectors, the `<listId>-row<N>` id
+scheme) that a markup rewrite can silently sever with no error; the design turns
+two `aria-activedescendant` containers into per-row buttons, exploding the tab-stop
+count; and `aria-live="off"` on the thread pane header looks like a bug in review
+but prevents one announcement per arrow-key press in a 5,000-message folder.
+
+It also records a genuine latent bug: all 11 `aria-hidden="hidden"` in
+`about3Pane.xhtml` use an invalid token — `aria-hidden` takes `true`/`false`, and
+an invalid value maps to *undefined* — so those decorative buttons are likely
+exposed today, contrary to clear author intent. Flagged as a deliberate fix to
+`"true"` with verbosity re-tested, **not** something to copy forward. Not fixed in
+this change: it is a behaviour change and belongs with an AT test, not a
+packaging commit.
+
 ## Verification
 
 A rewrite is not "done" until every box above is ticked. Minimum gates:

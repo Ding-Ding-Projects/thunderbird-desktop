@@ -33,9 +33,29 @@
   <link rel="stylesheet" href="chrome://messenger/skin/shared/tree-listbox.css" />
   <link rel="stylesheet" href="chrome://messenger/skin/searchBox.css" />
 <!-- Material Design 3 tokens must load before about3Pane.css so the rewritten
-     rules can resolve --m3-* custom properties. -->
+     rules can resolve the M3 custom properties. (Do not write the token prefix
+     literally in this comment: two consecutive hyphens are a fatal XML
+     well-formedness error and this file is parsed as XHTML.) -->
   <link rel="stylesheet" href="chrome://messenger/skin/material-tokens.css" />
   <link rel="stylesheet" href="chrome://messenger/skin/about3Pane.css" />
+<!-- Material Design 3 section sheets. Source order below is LOAD-BEARING and is
+     the reason these sit AFTER about3Pane.css rather than before it: every one of
+     them deliberately matches about3Pane.css's specificity instead of escalating
+     past it (see m3-folder-pane's .icon sizing and [data-is-busy] override,
+     m3-layout's #folderPane / #messagePane / body rules), so they win on source
+     order alone and need no !important. Loading them earlier would silently
+     revert most of the M3 skin. Custom-property resolution is unaffected —
+     var() resolves at computed-value time, so material-tokens.css above is
+     still the sole definition site and must not be duplicated here.
+
+     Order within the block: layout paints the pane containers first, the three
+     pane sheets then own their interiors, and message-pane comes last because
+     it refines a corner radius that m3-layout.css also sets. -->
+  <link rel="stylesheet" href="chrome://messenger/skin/m3-layout.css" />
+  <link rel="stylesheet" href="chrome://messenger/skin/m3-folder-pane.css" />
+  <link rel="stylesheet" href="chrome://messenger/skin/m3-thread-pane.css" />
+  <link rel="stylesheet" href="chrome://messenger/skin/m3-quick-filter.css" />
+  <link rel="stylesheet" href="chrome://messenger/skin/m3-message-pane.css" />
 
   <link rel="localization" href="calendar/calendar.ftl" />
   <link rel="localization" href="messenger/about3Pane.ftl" />

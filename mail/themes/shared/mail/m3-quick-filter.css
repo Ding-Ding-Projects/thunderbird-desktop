@@ -1,0 +1,736 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/**
+ * Material Design 3 skin for the about:3pane quick filter bar.
+ *
+ * Source of truth: design/Material Mail.dc.html lines 141-152 (the two stacked
+ * rows under the message-list header), chipSt() at line 964, checkIcon() at
+ * line 968, and SearchField.dc.html's barStyle/countStyle. This file only
+ * re-skins the DOM that mail/base/content/quickFilterBar.inc.xhtml already
+ * emits — no markup, no script, no string changes — because that is what keeps
+ * feature parity. Every id and class targeted below is resolved by
+ * quickFilterBar.js or mail/modules/QuickFilterManager.sys.mjs at runtime.
+ *
+ * LOAD ORDER: this file is written to be order-independent. Every selector is
+ * scoped under #quick-filter-bar (or the surface's own id), which outranks the
+ * single-id rules in quickFilterBar.css and the class rules in widgets.css no
+ * matter which sheet the integration agent links first. The two deliberate
+ * exceptions are called out in place.
+ *
+ * The design covers roughly 40% of this surface. Everything below the search
+ * field and the five top chips — the address-book filter, the tag row with its
+ * Any/All/None menulist and runtime-coloured tag buttons, the
+ * sender/recipients/subject/body scope row, the searching throbber, the
+ * results count, the narrow-pane overflow dropdown and the gloda upsell —
+ * appears nowhere in the 140KB document. Those are dressed in the design's
+ * chip language rather than invented anew, and each such extrapolation is
+ * commented.
+ *
+ * Deliberate deviations from the design, and why:
+ *  - The chips stay five independent AND-ed toggles. The design's chip row is a
+ *    radio group (line 1150 resets every other chip on click). Thunderbird's
+ *    filters are five booleans, each persisted separately into XULStore, so
+ *    only the design's *visual* language is adopted; the interaction model is
+ *    rejected. Nothing here keys off anything but [aria-pressed], which
+ *    `is="toggle-button"` already writes.
+ *  - No leading filter glyph inside the search field. The design puts a 22px
+ *    filter.svg at the field's leading edge. Reaching it needs either new
+ *    markup in quickFilterBar.inc.xhtml or a --search-leading-padding split in
+ *    the shared search-bar.css; both are outside this file's remit. The
+ *    existing trailing magnifier carries the affordance instead.
+ *  - No `.*` regex toggle and no regex-builder button. SearchField.dc.html
+ *    ships both; MessageTextFilter._parseSearchString only does quoted phrases
+ *    and `|` alternation against nsMsgSearchOp.Contains, so porting them would
+ *    ship two dead controls.
+ *  - The result count stays a sibling of the field, not an overlay inside it.
+ *    QuickFilterManager writes style.visibility on that node directly; floating
+ *    it into the pill would be fine visually but only pays off alongside a JS
+ *    change, and this pass changes no JS.
+ */
+
+/* ==========================================================================
+ * Density bridge and local metrics.
+ *
+ * material-tokens.css keys its density scale off :root[data-m3-density] while
+ * Thunderbird's live mail.uidensity preference writes :root[uidensity].
+ * Nothing sets data-m3-density yet, so the m3 steps would be dead here.
+ * Rather than redefine any --m3-* token (which would leak into every other
+ * surface) the bar derives private --m3-qfb-* aliases and re-points them per
+ * uidensity, matching m3-folder-pane.css. If the integration agent ever
+ * mirrors uidensity onto data-m3-density, only the two forks below need
+ * deleting.
+ * ======================================================================== */
+
+#quick-filter-bar {
+  --m3-qfb-gutter: 16px;
+  --m3-qfb-gap: 8px;
+  --m3-qfb-chip: 32px;
+  --m3-qfb-control: var(--m3-control-size); /* 48px comfortable */
+  /* Secondary text (the results count, the scope-row lead-in) is expressed as
+   * a ratio of the type ramp rather than a hard 12px, so the appearance
+   * surface's font scale — an accessibility control — still reaches it. */
+  --m3-qfb-meta-size: calc(var(--m3-font-size) * 0.85);
+  /* Solved, never literal. search-bar.css computes the field's height inside
+   * its shadow root as max(1.2em, 1.2em + 2 * --search-padding), so the only
+   * way to hit a target height from outside the shadow boundary is to solve
+   * for the padding. Writing the design's flat 44px as a block-size would be
+   * overridden by that min-block-size and, at a raised --m3-font-scale, would
+   * overflow the host. */
+  --m3-qfb-field-padding: max(6px, calc((var(--m3-qfb-control) - 1.2 * var(--m3-font-size)) / 2));
+}
+
+:root[uidensity="compact"] #quick-filter-bar {
+  --m3-qfb-gutter: 12px;
+  --m3-qfb-gap: 6px;
+  --m3-qfb-chip: 28px;
+  --m3-qfb-control: 40px;
+}
+
+:root[uidensity="touch"] #quick-filter-bar {
+  --m3-qfb-gutter: 20px;
+  --m3-qfb-gap: 12px;
+  --m3-qfb-chip: 36px;
+  --m3-qfb-control: 56px;
+}
+
+/* ==========================================================================
+ * Bar shell
+ * ======================================================================== */
+
+/* :not([hidden]) is load-bearing twice over. quickFilterBar._showFilterBar
+ * toggles domNode.hidden and fires `qfbtoggle`; an unconditional display:flex
+ * would defeat that wherever the UA sheet's [hidden] rule is not !important.
+ * It also keeps this rule at (1,1,0), i.e. BELOW the
+ * :root[lwtheme][lwt-tree] override in quickFilterBar.css at (1,3,0), so an
+ * installed lightweight theme still wins the tint — which the rewrite
+ * contract requires. */
+#quick-filter-bar:not([hidden]) {
+  --button-margin: 0;
+  /* Widgets.css draws every focus ring from --focus-outline. Re-pointing the
+   * colour once here is what preserves :focus-visible on the field, the chips,
+   * the tag buttons and both icon buttons without restating it per selector. */
+  --focus-outline-color: var(--m3-primary);
+  --focus-outline-offset: 2px;
+
+  display: flex;
+  flex-direction: column;
+  /* Transparent rather than a tonal step: the bar is a child of #threadPane,
+   * which m3-layout.css paints --m3-s2, and the design draws the filter rows
+   * straight onto the list-pane surface with no seam. Transparency is also
+   * what lets the lightweight-theme rule above show through unmodified. */
+  background-color: transparent;
+  color: var(--m3-on-surface);
+  border-block-end: 1px solid var(--m3-outline-variant);
+  padding-inline: var(--m3-qfb-gutter);
+  padding-block: var(--m3-qfb-gap) calc(var(--m3-qfb-gap) * 1.5);
+  font-family: var(--m3-font);
+  font-size: var(--m3-font-size);
+}
+
+/* ==========================================================================
+ * Row 1 — sticky, search field, overflow dropdown, chips, throbber, count.
+ *
+ * The design stacks the field and the chips as two hard rows. Reproducing that
+ * with a forced line break would push the throbber and the count onto a third
+ * row, so the split is left to natural flex wrapping instead: the chip group's
+ * flex-basis is its ~480px max-content, which cannot share a line with a
+ * 240px-minimum field in any realistic message-list width. The result is the
+ * design's two-row rhythm in the 3-pane layout and a single efficient row only
+ * when the pane is genuinely wide.
+ * ======================================================================== */
+
+#quick-filter-bar #quickFilterBarContainer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--m3-qfb-gap);
+}
+
+/* ==========================================================================
+ * Search field.
+ *
+ * <search-bar> renders into a shadow root loading the shared
+ * chrome://messenger/skin/shared/search-bar.css, which aboutAddressBook and
+ * the unified toolbar's global search also use. The only safe way in is the
+ * custom properties that sheet already consumes; document rules on the host
+ * outrank the shadow tree's own :host rules, so these win without editing a
+ * shared file and without leaking into any other search bar.
+ * ======================================================================== */
+
+#quick-filter-bar #qfb-qs-textbox {
+  --search-bar-background: transparent;
+  --search-bar-focus-background: transparent;
+  --search-bar-border-color: var(--m3-outline);
+  --search-bar-color: var(--m3-on-surface);
+  --search-field-placeholder: var(--m3-on-surface-variant);
+  /* The design's 22px radius on a 44px field is a full pill. */
+  --button-border-radius: var(--m3-radius-full);
+  --search-outline-offset: var(--focus-outline-offset);
+  --search-padding: var(--m3-qfb-field-padding);
+  /* Trailing room for the shadow root's 24px magnifier plus the pill's own
+   * inset. Restated in the gloda-disabled block at the foot of this file, which
+   * must keep winning when the magnifier is suppressed. */
+  --search-buttons-padding: calc(var(--m3-qfb-field-padding) + 26px);
+
+  flex: 1 1 240px;
+  max-inline-size: 450px;
+  margin: 0;
+  font-family: var(--m3-font);
+  font-size: var(--m3-font-size);
+}
+
+/* search-bar.css pins the placeholder box at a hardcoded 1ch while the input's
+ * own text starts at --search-padding. At the stock 6px the two happen to
+ * coincide; at the pill's larger inset they visibly disagree, and the shadow
+ * rule is not reachable from here. Pad the slotted light-DOM span by the
+ * difference instead. max() because padding cannot go negative. */
+#quick-filter-bar #qfb-qs-textbox > [slot="placeholder"] {
+  padding-inline-start: max(0px, calc(var(--search-padding) - 1ch));
+}
+
+#quick-filter-bar .qfb-search-button-icon {
+  content: var(--icon-search);
+  /* The <img> is light DOM slotted into the shadow button, so it inherits from
+   * the host and not from the shadow tree's `.button` rule that would
+   * otherwise supply these. */
+  -moz-context-properties: fill, stroke;
+  fill: color-mix(in srgb, var(--m3-on-surface-variant) 20%, transparent);
+  stroke: var(--m3-on-surface-variant);
+}
+
+/* ==========================================================================
+ * Round icon buttons — #qfb-sticky (pin filters) and #qfd-dropdown (narrow
+ * pane overflow). Neither is in the design; both are M3 icon buttons, which is
+ * the design system's own answer for a labelless toggle.
+ *
+ * `display` is deliberately never declared on #qfd-dropdown: quickFilterBar.css
+ * hides it and the 499px container query reveals it, both at single-id
+ * specificity, and an id-scoped display here would silently outrank the
+ * reveal.
+ * ======================================================================== */
+
+#quick-filter-bar :is(#qfb-sticky, #qfd-dropdown) {
+  box-sizing: border-box;
+  inline-size: var(--m3-qfb-control);
+  block-size: var(--m3-qfb-control);
+  min-inline-size: 0;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--m3-radius-full);
+  background-color: transparent;
+  background-position: center;
+  background-size: 20px;
+  box-shadow: none;
+  color: var(--m3-on-surface-variant);
+  fill: color-mix(in srgb, currentColor 20%, transparent);
+  stroke: currentColor;
+}
+
+/* The 4x12 pressed-indicator bar widgets.css draws for .check-button is the
+ * wrong idiom for a round icon button; the filled state below replaces it. */
+#quick-filter-bar #qfb-sticky::before {
+  content: none;
+}
+
+#quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):enabled:hover {
+  /* The design hovers with `filter: brightness(0.97)`, which is a light-theme
+   * trick: on the dark palette it darkens the control toward the background so
+   * the hover reads as "less there". An M3 state layer keyed to
+   * --m3-on-surface lightens or darkens correctly in both themes. */
+  background-color: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
+  color: var(--m3-on-surface);
+  border-color: transparent;
+}
+
+#quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):enabled:hover:active {
+  background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
+}
+
+#quick-filter-bar #qfb-sticky[aria-pressed="true"] {
+  background-color: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  box-shadow: none;
+}
+
+#quick-filter-bar #qfb-sticky[aria-pressed="true"]:enabled:hover {
+  background-color: color-mix(in srgb, var(--m3-on-secondary-container) 8%, var(--m3-secondary-container));
+  color: var(--m3-on-secondary-container);
+}
+
+#quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* ==========================================================================
+ * Chips.
+ *
+ * chipSt() at design line 964 is a genuine design-system primitive (the
+ * notifications panel at line 531 reuses it), so it is expressed once here and
+ * shared by the top filter row and the text-scope row. Both rows are
+ * .button-group, whose segmented-control border and zeroed child radii have to
+ * be undone first.
+ * ======================================================================== */
+
+#quick-filter-bar .button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--m3-qfb-gap);
+  margin: 0;
+  border: none;
+  background: none;
+  /* The group's stacking context existed only to layer the segmented borders;
+   * with gaps between free-standing chips it just traps the focus ring. */
+  isolation: auto;
+  z-index: auto;
+}
+
+#quick-filter-bar .button-group > .button {
+  box-sizing: border-box;
+  block-size: var(--m3-qfb-chip);
+  min-block-size: 0;
+  min-inline-size: 0;
+  margin: 0;
+  padding-block: 0;
+  border: 1px solid var(--m3-outline);
+  border-radius: var(--m3-radius-s);
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--m3-on-surface-variant);
+  font-family: var(--m3-font);
+  font-size: var(--m3-font-size);
+  /* M3 label-large is 500. --m3-font-weight (400) is the body ramp and would
+   * make the chips read as static text. */
+  font-weight: 500;
+  line-height: 1;
+}
+
+#quick-filter-bar .button-group > .button:enabled:hover {
+  /* See the icon-button note above for why this is a state layer and not the
+   * design's brightness filter. */
+  background-color: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
+  color: var(--m3-on-surface);
+  border-color: var(--m3-outline);
+}
+
+#quick-filter-bar .button-group > .button:enabled:hover:active {
+  background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
+}
+
+#quick-filter-bar .button-group > .button[aria-pressed="true"] {
+  border-color: transparent;
+  background-color: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  /* Kills widgets.css's inset --button-pressed-shadow, which reads as a dent
+   * under a filled M3 chip. */
+  box-shadow: none;
+}
+
+#quick-filter-bar .button-group > .button[aria-pressed="true"]:enabled:hover {
+  background-color: color-mix(in srgb, var(--m3-on-secondary-container) 8%, var(--m3-secondary-container));
+  color: var(--m3-on-secondary-container);
+  border-color: transparent;
+}
+
+/* Restated because .button-group flattens the focus ring to outline-offset: 0
+ * for the segmented look. Chips are free-standing, so the ring goes outside. */
+#quick-filter-bar .button-group > .button:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* ==========================================================================
+ * Top filter chips — unread / starred / in address book / tags / attachment.
+ * These keep their semantic icon, which the design's chips do not have.
+ * ======================================================================== */
+
+#quick-filter-bar .quickFilterButtons > .button {
+  /* widgets.css derives BOTH the icon's x-position (--button-padding * 1.2)
+   * and the label's leading padding (--button-padding * 2 + --icon-size) from
+   * this one value, and already ships the :dir(rtl) mirror for it. Solving for
+   * the design's 12px icon inset is cheaper — and stays correct in RTL —
+   * than restating background-position here and re-deriving the flip. */
+  --button-padding: 10px;
+  /* Zeroed so the geometry above no longer reserves room for the pressed
+   * indicator bar, whose own rule is suppressed just below. It is otherwise
+   * forked per uidensity (6/9/3px) and would shift the icon between densities. */
+  --button-pressed-indicator-padding: 0;
+
+  padding-inline-end: 12px;
+  background-size: 16px;
+}
+
+#quick-filter-bar .quickFilterButtons > .button::before {
+  content: none;
+}
+
+#quick-filter-bar .quickFilterButtons > .button[aria-pressed="true"] {
+  /* checkIcon() at design line 968: an M3 filter chip swaps its leading glyph
+   * for a check when selected. Safe here ONLY because the label is visible —
+   * the collapsed rule further down puts the semantic icon back when the label
+   * is hidden, otherwise five selected chips would be five identical ticks. */
+  background-image: var(--icon-check);
+}
+
+/* ==========================================================================
+ * Text-scope row — sender / recipients / subject / body.
+ *
+ * No design counterpart at all, but it is on the feature-parity checklist:
+ * onCommand reveals it when the search text is non-empty and its state
+ * persists to XULStore under quickFilter/textFilters. These chips carry no
+ * semantic icon, so unlike the row above they can follow chipSt() literally:
+ * 16px inline padding when off, 12px plus a leading tick when on.
+ * ======================================================================== */
+
+#quick-filter-bar #quick-filter-bar-filter-text-bar:not([hidden]) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--m3-qfb-gap);
+  /* material-tokens.css only declares --m3-motion-duration inside its
+   * reduced-motion block, so the fallback here is the normal-motion value. */
+  animation: m3-fade var(--m3-motion-duration, 160ms) ease;
+}
+
+/* quickFilterBar.css declares display: flex unconditionally on this row and on
+ * the tag row, which outranks the UA sheet's [hidden] rule wherever that rule
+ * is not !important. Restate it so `.hidden = true` from
+ * MessageTextFilter.reflectInDOM and _populateTagBar stays authoritative. */
+#quick-filter-bar #quick-filter-bar-filter-text-bar[hidden],
+#quick-filter-bar #quickFilterBarTagsContainer[hidden] {
+  display: none;
+}
+
+#quick-filter-bar #qfb-qs-label {
+  color: var(--m3-on-surface-variant);
+  font-size: var(--m3-qfb-meta-size);
+  letter-spacing: 0.4px;
+  margin-inline-end: 4px;
+}
+
+#quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button {
+  padding-inline: 16px;
+}
+
+#quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button[aria-pressed="true"] {
+  padding-inline: 12px;
+}
+
+/* Rebuilds widgets.css's 4x12 pressed-indicator bar as the design's 18px
+ * leading check. Collapsed to zero width when off so the chip is a plain
+ * label, exactly as chipSt(false) renders it. A background-image and not a
+ * mask: the compact icon set paints with fill="context-fill" /
+ * "context-stroke", which resolve to nothing outside a context-properties
+ * consumer, so a mask built from them would come out empty. */
+#quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button::before {
+  content: "";
+  position: static;
+  display: inline-block;
+  vertical-align: middle;
+  inline-size: 0;
+  block-size: 16px;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  background-image: none;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 16px;
+  box-shadow: none;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      inline-size 0.15s ease,
+      margin-inline-end 0.15s ease;
+  }
+}
+
+#quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button[aria-pressed="true"]::before {
+  inline-size: 16px;
+  margin-inline-end: 6px;
+  background-image: var(--icon-check);
+}
+
+/* ==========================================================================
+ * Second-filters column — the scope row and the tag row, stacked.
+ * ======================================================================== */
+
+#quick-filter-bar #quickFilterBarSecondFilters {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: var(--m3-qfb-gap);
+  padding-inline-start: 0;
+}
+
+/* :has() so an all-hidden second row contributes no dead height. It is a flex
+ * child of the bar, and an unconditional padding would push the message list
+ * away from the search row whenever neither a text filter nor the tag filter
+ * is showing — which is most of the time. */
+#quick-filter-bar #quickFilterBarSecondFilters:has(> :not([hidden])) {
+  padding-block-start: var(--m3-qfb-gap);
+}
+
+/* ==========================================================================
+ * Tag row.
+ *
+ * Zero design coverage and the most stateful sub-surface here: a mode menulist
+ * (Any of / All of / None of) plus per-tag buttons built at runtime by
+ * TagFacetingFilter._populateTagBar, which writes --tag-color and
+ * --tag-contrast-color onto each button as an inline style attribute and adds
+ * [inverted] on right-click to mean "must NOT have this tag".
+ * ======================================================================== */
+
+#quick-filter-bar #quickFilterBarTagsContainer:not([hidden]) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--m3-qfb-gap);
+  margin-inline-start: 0;
+  animation: m3-fade var(--m3-motion-duration, 160ms) ease;
+}
+
+/* Shape and metrics only. Nothing here may declare background-color, color or
+ * border-color: those are computed per tag by quickFilterBar.css from the
+ * runtime custom properties, and a higher-specificity fill would flatten every
+ * tag to one colour. border-width/border-style are set as longhands for the
+ * same reason — the `border` shorthand would reset border-color and outrank the
+ * [aria-pressed] and [inverted] rules that own it. */
+#quick-filter-bar button.qfb-tag-button {
+  box-sizing: border-box;
+  block-size: var(--m3-qfb-chip);
+  min-block-size: 0;
+  min-inline-size: 0;
+  margin: 0;
+  padding-block: 0;
+  padding-inline: 12px;
+  border-width: 1px;
+  border-style: solid;
+  /* 8px, matching the chips above, rather than the current 100px pill: the tag
+   * row and the filter row read as one family only if they share a shape. */
+  border-radius: var(--m3-radius-s);
+  box-shadow: none;
+  font-family: var(--m3-font);
+  font-size: var(--m3-font-size);
+  font-weight: 500;
+  line-height: 1;
+}
+
+#quick-filter-bar button.qfb-tag-button:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: var(--focus-outline-offset);
+}
+
+/* The XUL menulist is styled as an outlined chip so it reads as part of the
+ * row rather than as a form control dropped into it. */
+#quick-filter-bar #qfb-tag-filter-mode {
+  appearance: none;
+  block-size: var(--m3-qfb-chip);
+  min-block-size: 0;
+  margin: 0;
+  padding-block: 0;
+  padding-inline: 12px 8px;
+  border: 1px solid var(--m3-outline);
+  border-radius: var(--m3-radius-s);
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--m3-on-surface-variant);
+  font-family: var(--m3-font);
+  font-size: var(--m3-font-size);
+  font-weight: 500;
+  line-height: unset;
+}
+
+#quick-filter-bar #qfb-tag-filter-mode:not([disabled], [open="true"]):hover {
+  background-color: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
+  border-color: var(--m3-outline);
+  color: var(--m3-on-surface);
+}
+
+#quick-filter-bar #qfb-tag-filter-mode[open="true"] {
+  background-color: var(--m3-secondary-container);
+  border-color: transparent;
+  color: var(--m3-on-secondary-container);
+  box-shadow: none;
+}
+
+#quick-filter-bar #qfb-tag-filter-mode:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: var(--focus-outline-offset);
+}
+
+#quick-filter-bar #qfb-tag-filter-mode::part(dropmarker-icon) {
+  -moz-context-properties: stroke;
+  stroke: currentColor;
+}
+
+/* ==========================================================================
+ * Throbber and results count.
+ * ======================================================================== */
+
+/* Both `content:` branches are restated verbatim, and at the same escalated
+ * specificity as each other, so the reduced-motion swap at the foot of this
+ * file still wins. Only the tint changes: AccentColor is an OS colour that
+ * ignores the M3 seed entirely. The `.searching` gate in quickFilterBar.css is
+ * left alone — nothing here declares `display` on this node. */
+#quick-filter-bar:not([hidden]) #qfb-searching-throbber {
+  margin-inline-end: 0;
+  inline-size: 16px;
+  min-block-size: 16px;
+  vertical-align: middle;
+  content: url("chrome://messenger/skin/icons/spinning.svg");
+  -moz-context-properties: fill;
+  fill: var(--m3-primary);
+}
+
+#quick-filter-bar #qfb-results-label {
+  margin: 0;
+  /* Pushes the count to the trailing edge of whichever wrapped row it lands
+   * on, which is where SearchField.dc.html's countStyle sits it. */
+  margin-inline-start: auto;
+  align-self: center;
+  text-align: end;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--m3-qfb-meta-size);
+  letter-spacing: 0.4px;
+  /* countStyle again: stops the row reflowing every time the count ticks. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* The design's --m3-error glyph, mapped onto the one error state this surface
+ * actually has. Keyed off the Fluent id because QuickFilterManager sets it via
+ * l10n.setAttributes and exposes no other hook; if that id is ever renamed the
+ * rule simply stops applying and the count stays neutral.
+ *
+ * Colour only, never `display`: QuickFilterManager writes style.visibility on
+ * this node directly, and a display rule would fight it — the label would hold
+ * layout space while invisible. */
+#quick-filter-bar #qfb-results-label[data-l10n-id="quick-filter-bar-no-results"] {
+  color: var(--m3-error);
+}
+
+/* ==========================================================================
+ * Narrow pane.
+ * ======================================================================== */
+
+/* Below 999px widgets.css hides each chip's label (visibility: hidden;
+ * inline-size: 0), which would leave an M3 chip as a blank capsule with an
+ * off-centre glyph. Square it up and put the semantic icon back — with no
+ * label to disambiguate them, five selected chips showing the same tick would
+ * be unusable. The accessible name is unaffected either way; it comes from
+ * data-l10n-id on the button. */
+@container threadPane (max-width: 999px) {
+  #quick-filter-bar .quickFilterButtons > .button.collapsible-button {
+    inline-size: var(--m3-qfb-chip);
+    padding-inline: 0;
+    background-position: center;
+  }
+
+  #quick-filter-bar #qfb-unread[aria-pressed="true"] {
+    background-image: var(--icon-unread);
+  }
+
+  #quick-filter-bar #qfb-starred[aria-pressed="true"] {
+    background-image: var(--icon-star);
+  }
+
+  #quick-filter-bar #qfb-inaddrbook[aria-pressed="true"] {
+    background-image: var(--icon-address-book);
+  }
+
+  #quick-filter-bar #qfb-tags[aria-pressed="true"] {
+    background-image: var(--icon-tag);
+  }
+
+  #quick-filter-bar #qfb-attachment[aria-pressed="true"] {
+    background-image: var(--icon-attachment);
+  }
+}
+
+/* ==========================================================================
+ * Menu surfaces — the tag-mode popup and the narrow-pane overflow menu.
+ *
+ * Shape only. Under (-moz-windows-mica-popups) contextMenu.css pins
+ * --panel-background-color to the system Menu colour with !important, so a
+ * tonal fill would land on some Windows machines and not others; the radius is
+ * the one thing that applies everywhere. The five #quickFilterButtonsContext
+ * menuitems are mirrored from filter state by
+ * quickFilterBar.updateCheckedStateQuickFilterButtons() on popupshowing and are
+ * not touched.
+ * ======================================================================== */
+
+#qfb-tag-filter-mode > menupopup,
+#quickFilterButtonsContext {
+  --panel-border-radius: var(--m3-radius-xs);
+}
+
+#qfb-tag-filter-mode > menupopup > menuitem,
+#quickFilterButtonsContext > menuitem {
+  border-radius: var(--m3-radius-xs);
+}
+
+/* ==========================================================================
+ * Gloda upsell tooltip.
+ *
+ * MessageTextFilter.reflectInDOM anchors this to #quick-filter-bar itself with
+ * openPopup(..., "after_end", -7, 7), so the bar must stay a normal in-flow
+ * anchorable box — which is why the shell rule above is a plain flex column
+ * and not, say, absolutely positioned.
+ *
+ * The tooltip's own surface is left native on purpose. XUL tooltips are themed
+ * by the platform widget layer, the design has no tooltip spec at all, and
+ * overriding the chrome here would be inventing visuals while risking an
+ * unreadable popup. Typography only.
+ * ======================================================================== */
+
+#qfb-text-search-upsell {
+  font-family: var(--m3-font);
+  font-size: calc(var(--m3-font-size) * 0.85);
+}
+
+/* M3 label-large rather than bold: the upsell is two lines of running text and
+ * `bold` on the first makes it read as a heading it is not. */
+#qfb-text-search-upsell > #qfb-upsell-line-one {
+  font-weight: 500;
+}
+
+/* ==========================================================================
+ * Reduced motion.
+ *
+ * material-tokens.css already collapses --m3-motion-duration to 1ms, so this
+ * is belt and braces for the two revealing rows; the throbber swap, however, is
+ * load-bearing and must stay at the same specificity as the rule it overrides.
+ * ======================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  #quick-filter-bar :is(#quick-filter-bar-filter-text-bar, #quickFilterBarTagsContainer):not([hidden]) {
+    animation: none;
+  }
+
+  #quick-filter-bar:not([hidden]) #qfb-searching-throbber {
+    content: url("chrome://messenger/skin/icons/hourglass.svg");
+  }
+}
+
+/* ==========================================================================
+ * Gloda disabled.
+ *
+ * Must stay the LAST rule touching #qfb-qs-textbox: it matches the main field
+ * rule's specificity exactly and relies on source order to win, which is how
+ * the magnifier disappears and its reserved trailing space collapses when
+ * global indexing is off.
+ * ======================================================================== */
+
+/* stylelint-disable-next-line media-query-no-invalid */
+@media not -moz-pref("mailnews.database.global.indexer.enabled") {
+  #quick-filter-bar #qfb-qs-textbox {
+    --search-button-show: none;
+    --search-buttons-padding: var(--search-padding);
+  }
+}

@@ -107,6 +107,15 @@
     href="chrome://calendar/skin/widgets/calendar-widgets.css"
   />
 
+<!-- Material Design 3 app chrome (tab strip, spaces toolbar, chrome menus).
+     material-tokens.css must be repeated here: this is a separate document from
+     about:3pane, and custom properties do not cross the browser boundary, so
+     without it every M3 var() in m3-chrome.css would drop as
+     invalid-at-computed-value-time. Both go last so the M3 rules win over
+     tabmail.css / spacesToolbar.css / messenger.css on equal specificity. -->
+  <link rel="stylesheet" href="chrome://messenger/skin/material-tokens.css" />
+  <link rel="stylesheet" href="chrome://messenger/skin/m3-chrome.css" />
+
   <link rel="localization" href="branding/brand.ftl" />
   <link rel="localization" href="messenger/shortcuts.ftl" />
   <link rel="localization" href="messenger/messenger.ftl" />

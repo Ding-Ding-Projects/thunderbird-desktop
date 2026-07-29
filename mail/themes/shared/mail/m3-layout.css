@@ -1,0 +1,200 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/**
+ * Material Design 3 skin for the about3Pane layout shell and its two pane
+ * splitters.
+ *
+ * SCOPE / PROVENANCE
+ * The "Material Mail" design (design/Material Mail.dc.html) has no splitter,
+ * no drag-to-resize and no layout switcher — it hardcodes exactly one
+ * arrangement, which happens to be Thunderbird's `layout-vertical`. So this
+ * file is deliberately a *colour, typography and gutter* pass only. All layout
+ * behaviour (the four grid-template blocks, resize-lock-ids, collapse
+ * thresholds, resize-with-window) stays owned by about3Pane.css,
+ * pane-layout.mjs and pane-splitter.js, which is what keeps
+ * cmd_viewClassicMailLayout / Wide / Vertical and Account Central working.
+ *
+ * Loaded AFTER material-tokens.css, about3Pane.css and splitter.css so it wins
+ * the cascade on equal specificity without needing !important.
+ *
+ * DO NOT ADD HERE — each of these is load-bearing elsewhere:
+ *   - `display`, `grid-template` or `grid-area` on body. The `.layout-classic`
+ *     / `.layout-vertical` / `.layout-wide` / `.account-central` templates in
+ *     about3Pane.css are authoritative; the M3 look is applied per pane and to
+ *     the splitter track instead, so it renders correctly in all four.
+ *   - Any restyle of `.collapsed-by-splitter`. Its `display: none` is the only
+ *     thing that lets the grid's `auto` track shrink to 0 (see the note at
+ *     about3Pane.css). opacity/visibility/inline-size:0 all regress it.
+ *   - `inline-size` / `block-size` / `min-*` / `max-*` on any pane. Pane sizing
+ *     belongs to the grid tracks plus the splitter variables; a fixed width
+ *     kills drag-resize, and a min-block-size on #folderPane inflates every row
+ *     in the classic layout (which is why resize-lock-ids is JS-managed).
+ *   - `cursor` or `z-index` on the splitters. splitter.css already ships the
+ *     ns/ew/n/s/e/w set with :dir(ltr)/:dir(rtl) mirroring, and the collapsed
+ *     grow indicator depends on `--splitter-z-index + 1`.
+ *   - `transition` on a pane's inline-size/block-size. #messagePaneSplitter's
+ *     resize-with-window logic measures lock elements per animation frame and
+ *     desyncs if the measured box is mid-transition.
+ */
+
+/* ==========================================================================
+ * Shell
+ * ======================================================================== */
+
+body#paneLayout {
+  /* The design's tabpanel background: the tone that shows through the gutter
+   * between the pane cards. */
+  background-color: var(--m3-s3);
+  color: var(--m3-on-surface);
+  font-family: var(--m3-font);
+  font-size: var(--m3-font-size);
+  font-weight: var(--m3-font-weight);
+
+  /* Re-declared in px *in the same rule that sets font-size*. about3Pane.css
+   * defaults these to 18em/54em/36em, which resolve against body's font-size;
+   * dropping body to --m3-font-size (14px) would silently shrink all three
+   * panes by 12.5% for every user who has never dragged a splitter (XULStore
+   * only restores explicitly dragged sizes). 864/576 are the current 54em/36em
+   * at the old 16px basis, preserved exactly. 272px is the design's folder
+   * pane width — it is only a *default*: PaneSplitter writes the live value as
+   * an inline custom property on this element, which still wins. */
+  --folderPaneSplitter-width: 272px;
+  --messagePaneSplitter-width: 864px;
+  --messagePaneSplitter-height: 576px;
+}
+
+/* ==========================================================================
+ * Pane surfaces — the design's tonal ramp, applied per pane so it is
+ * layout-independent and survives all four grid templates.
+ * ======================================================================== */
+
+#folderPane {
+  background-color: var(--m3-surface);
+  color: var(--m3-on-surface);
+  /* Design's <aside> gap; density-scaled (1px compact / 2px comfortable /
+   * 4px relaxed). */
+  gap: var(--m3-gap);
+  /* Logical, never the design's `border-radius: 16px 0 0 0` — that shorthand
+   * rounds the top-LEFT corner even in RTL, which is a bug in the design. */
+  border-start-start-radius: var(--m3-radius-l);
+}
+
+#threadPane {
+  background-color: var(--m3-s2);
+  border-start-start-radius: var(--m3-radius-l);
+}
+
+#messagePane {
+  background-color: var(--m3-s1);
+  border-start-start-radius: var(--m3-radius-l);
+}
+
+#accountCentralBrowser {
+  background-color: var(--m3-s1);
+  border-start-start-radius: var(--m3-radius-l);
+}
+
+/* No box-shadow on any of the above: all three panes carry `contain: strict`,
+ * which clips paint to their own box, so a card shadow would simply be cut
+ * off. The separation is carried by the tonal step plus the gutter instead. */
+
+/* ==========================================================================
+ * Splitters
+ *
+ * ID-scoped on purpose. A bare `hr[is="pane-splitter"]` selector would also
+ * hit the thread pane's column resizers (styled in tree-listbox.css), which
+ * are the same custom element at a completely different size.
+ * ======================================================================== */
+
+#folderPaneSplitter,
+#messagePaneSplitter {
+  /* Reproduce the design's 8px inter-pane gutter entirely inside the
+   * splitter's own box, so about3Pane.css's grid templates never need to
+   * change and every layout inherits the look for free.
+   *
+   * occupy-size is the space taken in the grid track; content-size is the
+   * draggable hit area. Keeping them equal makes --splitter-margin-size
+   * compute to 0, so the full 8px is both gutter and hit target (up from the
+   * current 5px — an improvement, not a regression). */
+  --splitter-occupy-size: var(--m3-radius-s);
+  --splitter-content-size: var(--m3-radius-s);
+
+  /* MUST accompany the sizes above. splitter.css sets
+   * `border-width: var(--splitter-occupy-size)`, so leaving it alone would
+   * give an 8px border inside an 8px border-box — a zero-width content box,
+   * and the ::after grow indicator (sized 100%/100% of that content box)
+   * would collapse to nothing. Zeroing the border keeps the content box at
+   * the full 8px and, as a bonus, removes the --sidebar-border hairline the
+   * design does not have. Occupied space is unaffected: it is always
+   * content-size + margin-size == occupy-size. */
+  border-width: 0;
+  border-color: transparent;
+}
+
+#folderPaneSplitter::after,
+#messagePaneSplitter::after {
+  /* Replaces splitter.css's --selected-item-color. */
+  background-color: var(--m3-primary);
+  /* On an 8px-wide/tall bar this clamps to a 4px pill cap. */
+  border-radius: var(--m3-radius-full);
+}
+
+#folderPaneSplitter:not(.splitter-collapsed)::after,
+#messagePaneSplitter:not(.splitter-collapsed)::after {
+  /* Hidden until hovered/dragged. splitter.css already hides it with
+   * scale(0); fading opacity as well is what lets the affordance animate in
+   * and out symmetrically. Scoped to :not(.splitter-collapsed) so the
+   * collapsed state keeps opacity 1 and its own grow animation untouched. */
+  opacity: 0;
+
+  /* --m3-motion-duration is only defined under prefers-reduced-motion:
+   * reduce, where it is 1ms; the fallback supplies the normal duration. That
+   * is the token's whole purpose, so no media query is needed here.
+   *
+   * Restricted to :not(.splitter-collapsed) on purpose: once the collapsed
+   * class lands, this rule stops matching and splitter.css's own
+   * `.splitter-collapsed::after` transition takes over, preserving the
+   * documented asymmetry (smooth when collapsing mid-drag, instant when
+   * un-collapsing). */
+  transition:
+    transform var(--m3-motion-duration, 150ms) ease,
+    opacity var(--m3-motion-duration, 150ms) ease;
+}
+
+#folderPaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after,
+#messagePaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after {
+  /* New affordance: an expanded (not collapsed) splitter now shows a tinted
+   * bar on hover/drag, which it previously did not. `transform: none` beats
+   * both the scaleY(0) and the [resize-direction="horizontal"] scaleX(0)
+   * defaults, so this works for the vertical and horizontal splitters alike.
+   * The collapsed-state scale rules in splitter.css are keyed on
+   * .splitter-collapsed and are deliberately not touched. */
+  transform: none;
+  opacity: 0.32;
+}
+
+@media (prefers-contrast) {
+  #folderPaneSplitter,
+  #messagePaneSplitter {
+    /* A tonal step alone is not a reliable boundary in high contrast, so put
+     * the hairline back. Occupied space is unchanged (it is driven by
+     * occupy-size, not border-width), so this causes no layout shift. */
+    border-width: 1px;
+    border-color: var(--m3-outline);
+  }
+
+  #folderPaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after,
+  #messagePaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after {
+    /* 32% of --m3-primary is not distinguishable in high contrast. */
+    opacity: 1;
+  }
+}
+
+/* Accessibility note: the splitters are intentionally left as bare <hr> with
+ * no role, no tabindex and no keyboard handling — exactly as they ship today.
+ * Adding role="separator" without also implementing arrow-key resize would
+ * advertise an interaction that does not exist, which is a regression rather
+ * than a fix. Nothing here is focusable, so nothing here removes or overrides
+ * a :focus-visible outline; the panes' existing focus styling is untouched. */

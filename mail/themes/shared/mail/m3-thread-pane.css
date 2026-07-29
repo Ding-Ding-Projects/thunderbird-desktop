@@ -1,0 +1,835 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/**
+ * Material Mail — thread pane (message list + list header).
+ *
+ * Override layer for the EXISTING thread pane DOM. Must be loaded AFTER
+ * about3Pane.css, which @imports threadPane.css -> threadCard.css; this file
+ * deliberately imports none of them.
+ *
+ * Strategy: most of the work is done by re-pointing the legacy design tokens
+ * (--tree-card-*, --listbox-*, --tree-view-*, --thread-pane-*) at the --m3-*
+ * palette on #threadPane. Those variables drive a state machine in
+ * tree-listbox.css / threadCard.css that already handles focus vs. unfocused,
+ * current vs. selected, junk, tagged and forced-colors. Re-skinning the
+ * variables keeps every one of those states working instead of re-deriving
+ * them, and leaves the accessibility contract (role=treegrid,
+ * aria-multiselectable, aria-activedescendant, the aria-hidden decorative row
+ * buttons, the reverse tabindex in the header) completely untouched.
+ *
+ * Two hard constraints this file works around rather than fights:
+ *
+ * 1. The list is virtualised. ThreadCard.ROW_HEIGHT / ThreadRow.ROW_HEIGHT are
+ *    computed in about3Pane.js#densityChange from UIDensity and UIFontSize —
+ *    NOT from --m3-row-padding / --m3-gap. Any rule that would make a rendered
+ *    row taller than that computed box clips the card. So block-axis metrics
+ *    inside a row are only ever reduced here, never increased, and all the M3
+ *    row typography is expressed in rem/unitless ratios that stay under the
+ *    1.5 line-height budget densityChange assumes.
+ * 2. material-tokens.css declares --m3-motion-duration ONLY inside
+ *    prefers-reduced-motion, so every use needs an explicit no-preference
+ *    fallback.
+ */
+
+/* ==========================================================================
+ * 1. Local derived values. The --m3-* tokens are consumed, never redefined.
+ * ======================================================================== */
+
+#threadPane {
+  --m3-tp-state-hover: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
+  --m3-tp-state-press: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
+  --m3-tp-focus-ring: 3px solid var(--m3-primary);
+  --m3-tp-duration: var(--m3-motion-duration, 150ms);
+
+  /* The design draws header affordances at 40px and chips at 32px against a
+   * 48px comfortable control token, so both are derived from --m3-control-size
+   * rather than hardcoded — they keep tracking the density scale. */
+  --m3-tp-icon-button-size: calc(var(--m3-control-size) - 8px);
+  --m3-tp-chip-size: calc(var(--m3-control-size) - 16px);
+
+  font-family: var(--m3-font);
+}
+
+/* Colour remap. Guarded by `not (forced-colors)` exactly like the definitions
+ * in tree-listbox.css, so high-contrast mode keeps the system palette that
+ * file already provides. */
+@media not (forced-colors) {
+  #threadPane {
+    /* Pane + rows */
+    --tree-view-bg: var(--m3-s2);
+    --tree-view-color: var(--m3-on-surface);
+    --tree-pane-background: var(--m3-s2);
+    --unread-color: var(--m3-on-surface);
+
+    /* Cards: flat tonal fills, no borders. The design carries state entirely
+     * in the fill, so every border variable resolves to transparent and the
+     * 1px border is kept (transparent) to preserve the card's box metrics. */
+    --tree-card-background: transparent;
+    --tree-card-border: transparent;
+    --tree-card-border-hover: transparent;
+    --tree-card-border-focus: transparent;
+    --tree-card-border-selected: transparent;
+    --tree-card-border-selected-unfocused: transparent;
+    --tree-card-background-current: var(--m3-tp-state-hover);
+    --tree-card-background-selected: var(--m3-secondary-container);
+    --tree-card-background-selected-current: var(--m3-secondary-container);
+    --tree-card-background-current-unfocused: var(--m3-tp-state-hover);
+    --tree-card-background-selected-unfocused: color-mix(in srgb, var(--m3-secondary-container) 55%, transparent);
+    --tree-card-background-selected-current-unfocused: color-mix(in srgb, var(--m3-secondary-container) 70%, transparent);
+    --tree-card-background-selected-current-unfocused-hover: color-mix(in srgb, var(--m3-secondary-container) 40%, transparent);
+    --tree-focus-outline: var(--m3-primary);
+    --thread-line-color: var(--m3-outline-variant);
+
+    /* Junk cards keep their own louder ramp, moved onto the error role. */
+    --tree-card-border-hover-spam: color-mix(in srgb, var(--m3-error) 60%, transparent);
+    --tree-card-border-selected-spam: var(--m3-error);
+    --tree-card-background-current-spam: color-mix(in srgb, var(--m3-error-container) 35%, transparent);
+    --tree-card-background-selected-spam: color-mix(in srgb, var(--m3-error-container) 65%, transparent);
+    --tree-card-background-selected-current-spam: var(--m3-error-container);
+    --thread-card-focus-spam: var(--m3-error);
+    --focus-outline-spam: var(--m3-error);
+
+    /* Table rows */
+    --listbox-hover: var(--m3-tp-state-hover);
+    --listbox-focused-selected-bg: var(--m3-secondary-container);
+    --listbox-selected-bg: color-mix(in srgb, var(--m3-secondary-container) 55%, transparent);
+    --listbox-selected-color: var(--m3-on-secondary-container);
+    --listbox-focused-selected-color: var(--m3-on-secondary-container);
+    --listbox-border-type: solid;
+    --tree-view-header-hover-bg: var(--m3-s4);
+    --tree-view-header-hover-active-bg: var(--m3-s5);
+    --tree-row-delete-button-color: var(--m3-error);
+
+    /* Message-state accents. The "new" sparkle keeps its own amber (it is a
+     * distinct signal from unread), the rest move onto the primary role. */
+    --new-color: var(--m3-primary);
+    --new-subject-color: var(--m3-primary);
+  }
+
+  /* prefers-contrast (but not forced-colors) still gets the platform-derived
+   * flag/spam ramp from threadPane.css; only the normal path is re-skinned. */
+  @media not (prefers-contrast) {
+    #threadPane {
+      --thread-pane-unread-fill: color-mix(in srgb, var(--m3-primary) 55%, transparent);
+      --thread-pane-unread-stroke: var(--m3-primary);
+      --thread-pane-spam-fill: color-mix(in srgb, var(--m3-error) 35%, transparent);
+      --thread-pane-spam-stroke: var(--m3-error);
+      /* The design's star amber. There is no amber/warning role in the M3
+       * token set, so the design's literal value is bound to the existing
+       * flag pair — that keeps every prefers-contrast and selected-row
+       * override in threadPane.css pointed at a single place. */
+      --thread-pane-flag-fill: color-mix(in srgb, #f9a825 45%, transparent);
+      --thread-pane-flag-stroke: #f9a825;
+    }
+  }
+}
+
+/* ==========================================================================
+ * 2. Pane shell.
+ * ======================================================================== */
+
+#threadPane {
+  background-color: var(--m3-s2);
+  color: var(--m3-on-surface);
+  /* The design's list pane is a tonal card tucked under the top chrome; only
+   * the block-start/inline-start corner is rounded (16px 0 0 0 in LTR). */
+  border-start-start-radius: var(--m3-radius-l);
+}
+
+#threadPane > tree-view#threadTree {
+  background-color: transparent;
+  color: var(--m3-on-surface);
+
+  /* Table view sits on the base surface, cards on the s2 list surface — the
+   * design's list/detail tonal split. */
+  &[rows="thread-row"] {
+    background-color: var(--m3-surface);
+  }
+}
+
+/* The tbody itself carries focus. tree-listbox.css suppresses its outline
+ * because the current row normally shows it; when there is no current row
+ * (empty or freshly loaded folder) that leaves keyboard focus invisible, so
+ * the design's list ring is drawn instead. */
+#threadPane #threadTree [is="tree-view-table-body"]:focus-visible:not(:has(> tr.current)) {
+  outline: var(--m3-tp-focus-ring);
+  outline-offset: -3px;
+}
+
+/* ==========================================================================
+ * 3. Header bar.
+ * ======================================================================== */
+
+#threadPane > #threadPaneHeaderBar.list-header-bar {
+  gap: 8px;
+  padding-inline: 16px 8px;
+  background-color: transparent;
+  color: var(--m3-on-surface);
+  /* The design separates the header from the list by surface tone, not by a
+   * rule; the divider would cut the pane's rounded corner. */
+  border-block-end: none;
+}
+
+/* Lightweight themes repaint the header bar from the toolbar palette, which
+ * would sit an opaque slab on top of the tonal surface. */
+:root[lwtheme][lwt-tree] #threadPane > #threadPaneHeaderBar.list-header-bar {
+  background-color: transparent;
+  color: var(--m3-on-surface);
+}
+
+#threadPane > #threadPaneHeaderBar > .list-header-bar-container-start {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+#threadPane > #threadPaneHeaderBar > .list-header-bar-container-end {
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+#threadPane #threadPaneFolderName.list-header-title {
+  /* Design: 22px/28px/400 against its 14px base. Expressed against
+   * --m3-font-size so the appearance surface's font scale drives it; the
+   * header is not virtualised, so absolute type is safe here. */
+  font-size: calc(var(--m3-font-size) * 22 / 14);
+  font-weight: 400;
+  line-height: 1.28;
+  color: var(--m3-on-surface);
+}
+
+#threadPane #threadPaneFolderCountContainer {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+#threadPane .thread-pane-count-info {
+  padding-inline-start: 0;
+  font-size: calc(var(--m3-font-size) * 12 / 14);
+  font-weight: 400;
+  line-height: 1.34;
+  letter-spacing: 0.4px;
+  color: var(--m3-on-surface-variant);
+}
+
+/* The total and the selected count are two separately pluralised Fluent
+ * messages that happen to sit side by side. The selected count gets a tonal
+ * pill so it reads as a transient state rather than part of the total. */
+#threadPane #threadPaneSelectedCount {
+  padding-inline: 8px;
+  padding-block: 1px;
+  border-radius: var(--m3-radius-s);
+  background-color: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+}
+
+#threadPane #threadPaneDisplayButton.button {
+  inline-size: var(--m3-tp-icon-button-size);
+  block-size: var(--m3-tp-icon-button-size);
+  min-inline-size: 0;
+  min-block-size: 0;
+  flex: 0 0 auto;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: var(--m3-radius-full);
+  background-color: transparent;
+  background-position: center;
+  color: var(--m3-on-surface-variant);
+
+  &:enabled:hover {
+    background-color: var(--m3-s4);
+    color: var(--m3-on-surface);
+  }
+
+  &:enabled:hover:active,
+  &[open="true"] {
+    background-color: var(--m3-s5);
+    color: var(--m3-on-surface);
+  }
+
+  &:focus-visible {
+    outline: var(--m3-tp-focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+/* The quick filter toggle keeps its visible label (it is a Fluent-labelled
+ * control, not a decorative icon) and takes the design's chip shape. */
+#threadPane #threadPaneQuickFilterButton.button {
+  min-block-size: var(--m3-tp-chip-size);
+  margin: 0;
+  border: 1px solid var(--m3-outline);
+  border-radius: var(--m3-radius-s);
+  background-color: transparent;
+  color: var(--m3-on-surface-variant);
+
+  &:enabled:hover {
+    background-color: var(--m3-tp-state-hover);
+    color: var(--m3-on-surface);
+  }
+
+  &:enabled[aria-pressed="true"] {
+    background-color: var(--m3-secondary-container);
+    color: var(--m3-on-secondary-container);
+    border-color: transparent;
+    box-shadow: none;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--m3-on-secondary-container) 8%, var(--m3-secondary-container));
+    }
+  }
+
+  /* The 4x12 pressed bar is the platform's chip affordance; recolour it onto
+   * the accent role rather than replacing it, so the pressed state still
+   * reads without relying on the container fill alone. */
+  &::before {
+    background-color: color-mix(in srgb, var(--m3-on-surface) 10%, transparent);
+    border-color: var(--m3-outline-variant);
+    border-radius: var(--m3-radius-full);
+  }
+
+  &[aria-pressed="true"]::before {
+    background-color: var(--m3-primary);
+    border-color: var(--m3-primary);
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    outline: var(--m3-tp-focus-ring);
+    outline-offset: 1px;
+  }
+}
+
+/* ==========================================================================
+ * 4. Display / sort / column-picker menus.
+ *
+ * These stay XUL menupopups. The design's absolutely-positioned <div
+ * role="menu"> cannot express submenus, keyboard type-ahead or the native
+ * popup lifecycle, so only its visual spec is ported.
+ * ======================================================================== */
+
+#threadPaneDisplayContext,
+#menu_threadPaneSortPopup,
+.menupopup-column-picker {
+  --panel-background-color: var(--m3-s4);
+  --panel-text-color: var(--m3-on-surface);
+  --panel-border-color: var(--m3-outline-variant);
+  --panel-border-radius: var(--m3-radius-xs);
+  --panel-background-color-dimmed: var(--m3-s5);
+  --panel-background-color-dimmed-further: color-mix(in srgb, var(--m3-on-surface) 12%, var(--m3-s5));
+  --menuitem-icon-fill: color-mix(in srgb, var(--m3-primary) 30%, transparent);
+  --panel-padding: 8px 0;
+
+  font-family: var(--m3-font);
+
+  & > :is(menu, menuitem) {
+    min-block-size: var(--m3-control-size);
+    padding-inline: 16px;
+    margin: 0;
+    border-radius: 0;
+    font-size: var(--m3-font-size);
+
+    &[checked],
+    &[selected="true"] {
+      stroke: var(--m3-primary);
+      fill: color-mix(in srgb, var(--m3-primary) 30%, transparent);
+    }
+  }
+
+  & > menuseparator {
+    border-color: var(--m3-outline-variant);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* These popups live outside #threadPane, so --m3-tp-duration is out of
+   * scope; the token's own no-preference fallback is inlined instead. */
+  #threadPaneDisplayContext,
+  #menu_threadPaneSortPopup,
+  .menupopup-column-picker {
+    animation: m3-fade var(--m3-motion-duration, 150ms) ease;
+  }
+}
+
+/* ==========================================================================
+ * 5. Cards view.
+ * ======================================================================== */
+
+#threadPane #threadTree[rows="thread-card"] {
+  & tr.card-layout > td {
+    /* The design's `margin: var(--m3-gap) 8px` on the row. It is applied to
+     * the cell rather than the card because .card-container is block-size:100%
+     * of the virtualiser's fixed row box — a margin there would overflow it. */
+    padding: var(--m3-gap) 8px;
+  }
+
+  & tr.card-layout > td > .card-container {
+    border-radius: var(--m3-radius-l);
+    /* Kept at 1px transparent rather than removed: the border is inside the
+     * border-box, so dropping it would change the card's usable height. */
+    border: 1px solid transparent;
+    column-gap: 8px;
+
+    /* Only the inline half of --m3-row-padding is honoured. The block half is
+     * owned by ThreadCard.ROW_HEIGHT (about3Pane.js#densityChange), which is
+     * derived from UIDensity/UIFontSize and knows nothing about these tokens;
+     * adding block padding here clips the third line. */
+    padding: var(--m3-row-padding);
+    padding-block: 0;
+  }
+
+  /* Unread. The design fills unread rows with --m3-s2 on an --m3-s2 pane,
+   * i.e. no visible difference at all — signal is carried by the dot and the
+   * bold weights. That loses too much, so a real primary tint is used, guarded
+   * so the hover/current/selected fills from tree-listbox.css still win. */
+  & tr.card-layout[data-properties~="unread"]:not(:hover, :focus, :focus-within, .current, .selected) {
+    --tree-card-background: color-mix(in srgb, var(--m3-primary) 7%, transparent);
+  }
+
+  /* The current row. Selection is a flat fill, so the keyboard cursor needs
+   * its own ring; borders are transparent in this layer. */
+  & [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.card-layout.current > td > .card-container,
+  & [is="tree-view-table-body"] > tr.card-layout.current:focus-within > td > .card-container {
+    outline: var(--m3-tp-focus-ring);
+    outline-offset: -3px;
+  }
+
+  /* Typography. rem/unitless only — see the file header for why. */
+  & .card-container {
+    & .thread-card-row,
+    & .thread-card-dynamic-row {
+      /* Design ratio is 20/14 = 1.43. Staying under the 1.5 that
+       * densityChange budgets also buys back the headroom the 8px inline
+       * padding above consumes. */
+      line-height: 1.4;
+    }
+
+    & .sender {
+      padding-inline-start: 0;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--m3-on-surface);
+    }
+
+    & .date {
+      font-size: 0.8rem;
+      font-weight: 400;
+      opacity: 1;
+      color: var(--m3-on-surface-variant);
+    }
+
+    & .thread-card-subject-container {
+      padding-inline-start: 0;
+    }
+
+    & .subject {
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: var(--m3-on-surface);
+    }
+
+    & .thread-card-icon-info {
+      gap: 8px;
+    }
+
+    & .account-indicator {
+      border-radius: var(--m3-radius-full);
+    }
+  }
+
+  & tr.card-layout[data-properties~="unread"] .card-container {
+    & .sender {
+      font-weight: 700;
+    }
+
+    & .subject {
+      font-weight: 600;
+    }
+
+    & .date {
+      font-weight: 600;
+    }
+  }
+
+  /* The unread dot. Recoloured only — the icon keeps arriving through
+   * `content: var(--icon-*)` + -moz-context-properties so the sparkle/new
+   * override in threadCard.css and the flagged/junk duotones keep working;
+   * a CSS mask (as the design uses) would flatten all of them to one colour. */
+  & tr.card-layout[data-properties~="unread"] {
+    --read-status-fill: color-mix(in srgb, var(--m3-primary) 55%, transparent);
+    --read-status-stroke: var(--m3-primary);
+  }
+
+  /* Threading affordances, absent from the design, built from its vocabulary:
+   * a tonal pill carrying the reply count and the twisty. */
+  & td button.twisty {
+    border-radius: var(--m3-radius-full);
+    color: var(--m3-on-surface-variant);
+
+    &:hover {
+      background-color: var(--m3-s4);
+      border-color: var(--m3-outline-variant);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--m3-primary);
+      outline-offset: 1px;
+    }
+  }
+
+  & tr.card-layout[data-properties~="hasUnread"] td button.twisty {
+    background-color: var(--m3-s4);
+    border-color: var(--m3-outline-variant);
+
+    /* The "this thread has unread replies" pip. */
+    &::before {
+      fill: color-mix(in srgb, var(--m3-primary) 55%, transparent);
+      stroke: var(--m3-primary);
+    }
+  }
+
+  & .thread-replies {
+    font-size: 0.75rem;
+    color: var(--m3-on-surface-variant);
+  }
+
+  & tr.card-layout[data-properties~="hasUnread"] :is(.replies-icon, .thread-replies) {
+    color: var(--m3-primary);
+  }
+
+  /* Row buttons. All six stay in the DOM, aria-hidden and tabindex=-1 as
+   * today; they get the design's circular state layer at their existing size.
+   * Colour is left inheriting so the selected-row and tagged-row overrides in
+   * threadPane.css continue to apply. */
+  & .card-container :is(.button-star, .button-spam, .tree-button-more) {
+    border-radius: var(--m3-radius-full);
+
+    &:hover {
+      background-color: var(--m3-tp-state-hover);
+      border-color: transparent;
+    }
+
+    &:active {
+      background-color: var(--m3-tp-state-press);
+      border-color: transparent;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--m3-primary);
+      outline-offset: 1px;
+    }
+  }
+
+  /* Tags. The shadow DOM of <thread-card-tags> is out of reach from here, so
+   * the design's pill is applied to the host and the per-tag --tag-color that
+   * threadPane.setUpTagStyles writes still drives the icons inside. The fill
+   * is a low mix so coloured tags stay legible on top of it. */
+  & thread-card-tags[tags]:not([tags=""]) {
+    padding-inline: 6px;
+    padding-block: 1px;
+    border-radius: var(--m3-radius-xs);
+    background-color: color-mix(in srgb, var(--m3-tertiary-container) 55%, transparent);
+    color: var(--m3-on-tertiary-container);
+  }
+
+  /* Grouped-by-sort headers. */
+  & tr.card-layout[data-properties~="dummy"] {
+    & .subject {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--m3-on-surface-variant);
+    }
+
+    & .sort-header-details {
+      color: var(--m3-on-surface-variant);
+    }
+
+    &:not(:hover, :focus, :focus-within, .current, .selected) {
+      --tree-card-background: var(--m3-s3);
+      --tree-card-border: transparent;
+    }
+  }
+}
+
+/* ==========================================================================
+ * 6. Table view.
+ *
+ * The design has no table, no columns and no column picker. Everything below
+ * is built from the design's vocabulary (tonal header, 12px/0.4px labels, flat
+ * selection fill, no radius — radius belongs to cards) so that the 20 columns,
+ * the picker, resize and reorder all survive.
+ * ======================================================================== */
+
+#threadPane #threadTree thead[is="tree-view-table-header"] {
+  &::after {
+    border-block-end-color: var(--m3-outline-variant);
+  }
+
+  & th[is="tree-view-table-header-cell"] {
+    background-color: var(--m3-s3);
+  }
+
+  & .tree-table-cell-container button {
+    font-size: calc(var(--m3-font-size) * 12 / 14);
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    color: var(--m3-on-surface-variant);
+
+    &:focus-visible {
+      outline: 2px solid var(--m3-primary);
+      outline-offset: -2px;
+      border-radius: var(--m3-radius-xs);
+    }
+  }
+
+  /* Sorted column: label promoted to the full on-surface colour and the
+   * asc/desc chevron stroked with the accent. */
+  & th[aria-sort] .tree-table-cell-container button:not(.button-column-picker) {
+    color: var(--m3-on-surface);
+    stroke: var(--m3-primary);
+  }
+
+  & .button-column-picker {
+    border-radius: var(--m3-radius-full);
+    color: var(--m3-on-surface-variant);
+
+    &:hover {
+      background-color: var(--m3-s4);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--m3-primary);
+      outline-offset: -2px;
+    }
+  }
+
+  /* Column resizers: invisible until reached, accent while dragging. */
+  & th hr[is="pane-splitter"] {
+    border-inline-end-color: var(--m3-outline-variant);
+
+    &:hover:not(:active, [disabled]) {
+      background-color: var(--m3-primary);
+    }
+  }
+}
+
+#threadPane #threadTree[rows="thread-row"] {
+  & tbody tr.table-layout {
+    /* --tag-color still wins, as in threadPane.css. */
+    color: var(--tag-color, var(--m3-on-surface));
+    border-radius: 0;
+  }
+
+  /* The design's bold-for-unread, at M3 weights rather than `bold`. */
+  & tbody tr.table-layout[data-properties~="unread"] {
+    font-weight: 600;
+  }
+
+  /* Keyboard cursor. 2px rather than the design's 3px: a table row is roughly
+   * one line tall and a 3px inset ring would cover the text. */
+  & [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.table-layout.current,
+  & [is="tree-view-table-body"] > tr.table-layout.current:focus-within {
+    outline: 2px solid var(--m3-primary);
+    outline-offset: -2px;
+  }
+
+  /* Grouped-by-sort dummy rows. */
+  & tbody tr[data-properties~="dummy"]:not(.card-layout, :hover, .selected) {
+    background-color: var(--m3-s3);
+    font-weight: 500;
+  }
+
+  /* Inline row buttons (thread, flag, unread, spam, delete, restore). Sized
+   * from the control token so the hit target follows density, with the
+   * design's state layer; they stay aria-hidden and unfocusable. */
+  & tbody .button-column .button-flat {
+    border-radius: var(--m3-radius-s);
+
+    &:hover {
+      background-color: var(--m3-tp-state-hover);
+    }
+
+    &:active {
+      background-color: var(--m3-tp-state-press);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--m3-primary);
+      outline-offset: -2px;
+    }
+  }
+}
+
+/* The thread twisty and its indent are absent from the design; the existing
+ * 16px-per-level indent and 1.4 line-height are load-bearing for
+ * densityChange's ThreadRow.ROW_HEIGHT and are deliberately NOT touched here.
+ * Only the twisty's colour and state layer are restyled. */
+#threadPane #threadTree tr.table-layout .twisty {
+  color: var(--m3-on-surface-variant);
+  border-radius: var(--m3-radius-xs);
+
+  &:hover {
+    background-color: var(--m3-tp-state-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--m3-primary);
+    outline-offset: 1px;
+  }
+}
+
+/* ==========================================================================
+ * 7. Placeholders and the notification box.
+ * ======================================================================== */
+
+#threadPane #threadTree slot[name="placeholders"] {
+  inset-block-start: 64px;
+  padding-inline: 24px;
+  opacity: 1;
+  color: var(--m3-on-surface-variant);
+
+  & > div {
+    max-inline-size: 34ch;
+    margin-inline: auto;
+    margin-block-end: 0;
+    font-size: calc(var(--m3-font-size) * 16 / 14);
+    font-weight: 400;
+    line-height: 1.5;
+    text-shadow: none;
+  }
+
+  & div::before {
+    block-size: 48px;
+    margin-block-end: 12px;
+    fill: var(--m3-outline);
+    stroke: var(--m3-outline);
+    fill-opacity: 1;
+  }
+}
+
+/* Stays an inline bar at the top of the pane. The design uses floating toasts,
+ * but converting this would change the notificationbox layout contract and
+ * every consumer that measures the pane. */
+#threadPane #threadPaneNotificationBox {
+  background-color: var(--m3-s3);
+  color: var(--m3-on-surface);
+
+  & notification-message {
+    border-radius: var(--m3-radius-s);
+    --message-bar-background-color: var(--m3-s4);
+    --message-bar-text-color: var(--m3-on-surface);
+  }
+
+  & notification-message[type="warning"] {
+    --message-bar-background-color: var(--m3-tertiary-container);
+    --message-bar-text-color: var(--m3-on-tertiary-container);
+  }
+
+  & notification-message[type="success"] {
+    --message-bar-background-color: var(--m3-primary-container);
+    --message-bar-text-color: var(--m3-on-primary-container);
+  }
+
+  & notification-message:is([type="error"], [type="critical"]) {
+    --message-bar-background-color: var(--m3-error-container);
+    --message-bar-text-color: var(--m3-on-error-container);
+  }
+}
+
+/* ==========================================================================
+ * 8. Motion.
+ * ======================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  #threadPane #threadTree tr.card-layout > td > .card-container {
+    transition:
+      background-color var(--m3-tp-duration, 150ms) ease,
+      color var(--m3-tp-duration, 150ms) ease,
+      outline-color var(--m3-tp-duration, 150ms) ease;
+  }
+
+  #threadPane #threadPaneHeaderBar .button {
+    transition:
+      background-color var(--m3-tp-duration, 150ms) ease,
+      color var(--m3-tp-duration, 150ms) ease,
+      border-color var(--m3-tp-duration, 150ms) ease;
+  }
+}
+
+/* ==========================================================================
+ * 9. High-contrast guards.
+ *
+ * The design signals selection with colour alone, which fails in
+ * prefers-contrast and forced-colors. Shape is added back so selection and the
+ * keyboard cursor stay distinguishable.
+ * ======================================================================== */
+
+@media (prefers-contrast) {
+  #threadPane #threadTree[rows="thread-card"] tr.card-layout.selected > td > .card-container {
+    border-color: currentColor;
+  }
+
+  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"] > tr.table-layout.selected {
+    outline: 1px solid currentColor;
+    outline-offset: -1px;
+  }
+}
+
+@media (forced-colors) {
+  /* Hand every surface back to the system palette. The tonal fills above are
+   * scoped to `not (forced-colors)`; these are the few places that set a
+   * colour outright rather than through a variable. */
+  #threadPane,
+  #threadPane > tree-view#threadTree,
+  #threadPane > tree-view#threadTree[rows="thread-row"] {
+    background-color: Canvas;
+    color: CanvasText;
+  }
+
+  #threadPane #threadPaneFolderName.list-header-title,
+  #threadPane .thread-pane-count-info,
+  #threadPane #threadTree .card-container :is(.sender, .subject, .date),
+  #threadPane #threadTree[rows="thread-row"] tbody tr.table-layout {
+    color: inherit;
+  }
+
+  #threadPane #threadPaneSelectedCount {
+    background-color: SelectedItem;
+    color: SelectedItemText;
+  }
+
+  #threadPane #threadTree thead[is="tree-view-table-header"] th[is="tree-view-table-header-cell"] {
+    background-color: Canvas;
+  }
+
+  #threadPane #threadTree thead[is="tree-view-table-header"] .tree-table-cell-container button {
+    color: CanvasText;
+  }
+
+  #threadPane #threadTree slot[name="placeholders"] {
+    color: CanvasText;
+  }
+
+  #threadPane #threadTree slot[name="placeholders"] div::before {
+    fill: CanvasText;
+    stroke: CanvasText;
+  }
+
+  #threadPane #threadTree[rows="thread-card"] thread-card-tags[tags]:not([tags=""]) {
+    background-color: transparent;
+    color: CanvasText;
+  }
+
+  /* Focus rings must not rely on the accent role, which forced-colors flattens. */
+  #threadPane :is(button, [is="tree-view-table-body"]):focus-visible,
+  #threadPane #threadTree tr.current > td > .card-container {
+    outline-color: Highlight;
+  }
+}

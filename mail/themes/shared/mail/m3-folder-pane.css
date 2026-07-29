@@ -1,0 +1,661 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/**
+ * Material Design 3 skin for the about:3pane folder pane.
+ *
+ * Source of truth: design/Material Mail.dc.html lines 93-118 (the
+ * `<aside aria-label="{{ t.folders }}">` drawer) and its view-model in
+ * mailVals() lines 1089-1113. The design renders a flat list of pill-shaped
+ * rows; Thunderbird renders an accessible, multi-selectable, nestable
+ * `role="tree"` with six folder modes. This file only re-skins the DOM that
+ * about3Pane.xhtml already emits (#folderTemplate / #modeTemplate) — no markup,
+ * no script, no string changes — because that is what keeps feature parity.
+ *
+ * LOAD ORDER: must be linked AFTER about3Pane.css. Several rules here rely on
+ * source order to win at equal specificity (notably the .icon and
+ * [data-is-busy] overrides, which deliberately match about3Pane.css exactly
+ * rather than escalating specificity and locking out future themes).
+ *
+ * Deliberate deviations from the design, and why:
+ *  - Two count badges, not one. The design shows a single plain-text count.
+ *    Thunderbird shows unread AND total, so unread is a filled
+ *    --m3-primary-container pill and total stays plain text; rendering both as
+ *    plain text produces an unreadable "12 34".
+ *  - Tag-mode rows keep the tag glyph rather than the design's 12px colour dot.
+ *    The glyph is an <img> whose `content:` and `--icon-color` are written by
+ *    about3Pane.js; replacing it with a dot would require suppressing `content`
+ *    on a replaced element, which is not reliably specified.
+ *  - Icons are NOT the design's 24px. See the [data-is-busy] note below.
+ *  - No flex `gap` on .container. See the .new-icon note below.
+ */
+
+/* ==========================================================================
+ * Density bridge.
+ *
+ * material-tokens.css keys its density scale off :root[data-m3-density], but
+ * Thunderbird's live preference (mail.uidensity) writes :root[uidensity].
+ * Nothing currently sets data-m3-density, so the m3 density steps would be
+ * dead here. Rather than redefine any --m3-* token (which would leak into every
+ * other surface), the pane derives private --m3-fp-* aliases and re-points them
+ * per uidensity. If the integration agent ever mirrors uidensity onto
+ * data-m3-density, only this block needs deleting.
+ * ======================================================================== */
+
+#folderPane {
+  --m3-fp-control: var(--m3-control-size); /* 48px comfortable */
+  --m3-fp-header-button: calc(var(--m3-fp-control) - 8px);
+  --m3-fp-icon: var(--folder-pane-icon-size); /* see [data-is-busy] below */
+  --m3-fp-twisty: 16px;
+  --m3-fp-gap: 8px;
+  --m3-fp-pad: 16px;
+  --m3-fp-radius: var(--m3-radius-xl);
+  /* Row labels ride --m3-font-size so the appearance surface's font scale (an
+   * accessibility control) reaches the pane; secondary text is expressed as a
+   * ratio of it rather than a hard px, for the same reason. */
+  --m3-fp-label-size: var(--m3-font-size);
+  --m3-fp-meta-size: calc(var(--m3-font-size) * 0.85);
+  --m3-fp-overline-size: calc(var(--m3-font-size) * 0.8);
+}
+
+:root[uidensity="compact"] #folderPane {
+  --m3-fp-control: 40px;
+  --m3-fp-twisty: 14px;
+  --m3-fp-gap: 6px;
+  --m3-fp-pad: 12px;
+  --m3-fp-radius: var(--m3-radius-l);
+}
+
+:root[uidensity="touch"] #folderPane {
+  --m3-fp-control: 56px;
+  --m3-fp-twisty: 20px;
+  --m3-fp-gap: 12px;
+  --m3-fp-pad: 20px;
+}
+
+/* ==========================================================================
+ * Pane shell
+ * ======================================================================== */
+
+#folderPane {
+  background-color: var(--m3-surface);
+  color: var(--m3-on-surface);
+  font-family: var(--m3-font);
+  font-size: var(--m3-fp-label-size);
+}
+
+/* containers.css paints ::after with --sidebar-background to mask the sticky
+ * scroll shadow. Re-point it or a light strip shows over the M3 surface. */
+#folderTree.sidebar-panel-scroll::after {
+  background-color: var(--m3-surface);
+}
+
+#folderTree {
+  padding-block-end: 16px;
+}
+
+/* The design's drawer separates mode groups generously; 3px is not enough once
+ * rows are pills. */
+#folderTree li[data-mode] {
+  margin-block-end: 8px;
+}
+
+/* ==========================================================================
+ * Header bar.
+ *
+ * The design has no sidebar header at all — its Compose is a header pill and
+ * Get Messages does not exist — so this is derived from the design's app-header
+ * icon buttons and its Compose button (design line 82). Nothing here reorders
+ * the buttons or touches their tabindex: about3Pane.xhtml sets a deliberate
+ * reverse tabindex (3/2/1) to survive `flex-direction: row-reverse`, and each
+ * button is independently hideable.
+ * ======================================================================== */
+
+#folderPaneHeaderBar {
+  background-color: var(--m3-s3);
+  border-block-end: 1px solid var(--m3-outline-variant);
+  padding: 8px;
+  gap: 6px;
+}
+
+#folderPaneGetMessages,
+#folderPaneMoreButton {
+  inline-size: var(--m3-fp-header-button);
+  block-size: var(--m3-fp-header-button);
+  border-radius: var(--m3-radius-full);
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--m3-on-surface-variant);
+}
+
+#folderPaneGetMessages:enabled:hover,
+#folderPaneMoreButton:enabled:hover {
+  background-color: var(--m3-s4);
+  color: var(--m3-on-surface);
+  border-color: transparent;
+}
+
+#folderPaneGetMessages:enabled:hover:active,
+#folderPaneMoreButton:enabled:hover:active,
+#folderPaneGetMessages[aria-pressed="true"],
+#folderPaneMoreButton[aria-pressed="true"] {
+  background-color: var(--m3-s5);
+}
+
+#folderPaneWriteMessage {
+  /* .icon-button positions its background image from --button-padding; since
+   * the padding is being replaced, the inset has to be replaced with it or the
+   * glyph drifts off-centre. */
+  --m3-fp-write-inset: 16px;
+  block-size: var(--m3-fp-header-button);
+  min-block-size: var(--m3-fp-header-button);
+  padding-block: 0;
+  padding-inline-start: calc(var(--m3-fp-write-inset) * 2 + var(--icon-size));
+  padding-inline-end: 20px;
+  background-position: var(--m3-fp-write-inset) center;
+  border: none;
+  border-radius: var(--m3-radius-l);
+  background-color: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+  font-size: var(--m3-fp-label-size);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  box-shadow: 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+}
+
+#folderPaneWriteMessage:dir(rtl) {
+  background-position-x: right var(--m3-fp-write-inset);
+}
+
+#folderPaneWriteMessage:enabled:hover {
+  background-color: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+  box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+}
+
+#folderPaneWriteMessage:enabled:hover:active {
+  background-color: color-mix(in srgb, var(--m3-on-primary-container) 12%, var(--m3-primary-container));
+}
+
+/* .button:disabled only drops opacity; keep it that way. The button is disabled
+ * until an identity exists, and hiding it would lose the affordance. */
+
+#folderPaneGetMessages:focus-visible,
+#folderPaneMoreButton:focus-visible,
+#folderPaneWriteMessage:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+ * Mode headers.
+ *
+ * Mapped from the design's "LABELS" overline plus the 1px --m3-outline-variant
+ * divider above it (design lines 105-106). The kebab has no design analogue —
+ * it opens the mode reorder / compact menu, so it is restyled, never removed.
+ * ======================================================================== */
+
+#folderTree > li > .mode-container {
+  /* tree-listbox.css gives every `li > div` --list-item-min-height; a section
+   * label is not a row and should hug its text. */
+  min-block-size: auto;
+  padding-block: 8px 4px;
+  padding-inline: calc(var(--m3-fp-pad) + 8px) 8px;
+  margin-inline: 0;
+}
+
+#folderTree > li:not(:first-of-type) > .mode-container {
+  border-block-start: 1px solid var(--m3-outline-variant);
+  margin-block-start: 12px;
+  padding-block-start: 16px;
+}
+
+#folderTree > li > .mode-container > .mode-name {
+  padding-block: 0;
+  padding-inline-start: 0;
+  font-size: var(--m3-fp-overline-size);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  /* Visual casing only — the string still comes from Fluent, so this does not
+   * hardcode or bake in English. Locales without case mapping are unaffected. */
+  text-transform: uppercase;
+  color: var(--m3-on-surface-variant);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow-x: hidden;
+}
+
+#folderTree > li > .mode-container > .mode-button {
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: var(--m3-radius-full);
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--m3-on-surface-variant);
+}
+
+#folderTree > li > .mode-container > .mode-button:enabled:hover {
+  background-color: var(--m3-s4);
+  border-color: transparent;
+}
+
+#folderTree > li > .mode-container > .mode-button:enabled:hover:active {
+  background-color: var(--m3-s5);
+}
+
+#folderTree > li > .mode-container > .mode-button:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+ * The row pill — the core of the design.
+ * ======================================================================== */
+
+#folderTree li > .container {
+  box-sizing: border-box;
+  /* .container has `contain: strict`, so its intrinsic height is zero and the
+   * height comes from min-block-size alone. Setting block-size instead would
+   * fight the min-block-size that tree-listbox.css applies to every `li > div`. */
+  min-block-size: var(--m3-fp-control);
+  margin-inline: 8px;
+  margin-block: var(--m3-gap);
+  /* NEVER a padding-inline shorthand: padding-inline-start carries --indent,
+   * which is how the tree draws nesting depth in the all/smart/unified modes.
+   * Overwriting it collapses every level into a flat list. */
+  padding-inline-start: calc(var(--m3-fp-pad) + var(--indent));
+  padding-inline-end: var(--m3-fp-pad);
+  border-radius: var(--m3-fp-radius);
+  /* Only the colour is neutralised, not the border itself: list-container.css
+   * signals a drag target with `border-style: dashed` on this same 1px border,
+   * and removing the border would both kill that signal and shift the geometry. */
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--m3-on-surface-variant);
+}
+
+/* The design's `filter: brightness(0.97)` hover is unusable here: it does
+ * nothing on a transparent background, and `filter` would make .container a
+ * containing block and a stacking context, which moves the absolutely
+ * positioned #dropIndicator. A state-layer tint is the M3-correct equivalent. */
+#folderTree li:not(.selected) > .container:hover {
+  background-color: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
+  border-color: transparent;
+  color: var(--m3-on-surface);
+}
+
+#folderTree li:not(.selected) > .container:active {
+  background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
+}
+
+#folderTree li.selected > .container,
+#folderTree:focus-within li.selected > .container,
+#folderTree li.selected > .container:hover {
+  background-color: var(--m3-secondary-container);
+  border-color: transparent;
+  color: var(--m3-on-secondary-container);
+}
+
+#folderTree li.selected > .container > .name {
+  font-weight: 500;
+  color: var(--m3-on-secondary-container);
+}
+
+#folderTree li.selected > .container > .icon {
+  --icon-color: var(--m3-on-secondary-container);
+}
+
+/* The design has a single "active" state. Thunderbird needs three, because the
+ * tree is aria-multiselectable: .selected (in the selection), .current (the
+ * keyboard cursor) and both. Collapsing them makes keyboard multi-select
+ * impossible to follow. The ring is dimmed while the tree is unfocused so the
+ * cursor stays discoverable without competing with the selection fill. */
+#folderTree li.current > .container {
+  outline: 2px solid color-mix(in srgb, var(--m3-primary) 45%, transparent);
+  /* Negative offset keeps the ring inside #folderPane, which has `contain:
+   * strict` and would otherwise clip it at the pane edge. */
+  outline-offset: -2px;
+}
+
+#folderTree:focus-within li.current > .container {
+  outline-color: var(--m3-primary);
+}
+
+/* ==========================================================================
+ * Row internals
+ * ======================================================================== */
+
+/* No flex `gap` on .container, deliberately. .new-icon (the new-mail sparkle)
+ * sits in flow with negative margins so it overlaps the folder icon, and it
+ * keeps its box even while `visibility: hidden`. A gap would push it 12px clear
+ * of the icon on every row and break the badge. Spacing is applied to the
+ * individual children instead. */
+
+#folderTree .container > .twisty {
+  inline-size: var(--m3-fp-twisty);
+  block-size: var(--m3-fp-twisty);
+  color: var(--m3-on-surface-variant);
+}
+
+#folderTree li.selected > .container > .twisty {
+  color: var(--m3-on-secondary-container);
+}
+
+/* Matches about3Pane.css's own `#folderTree .icon` specificity exactly and wins
+ * on source order, so `content:`, -moz-context-properties and every
+ * [data-folder-type] / [data-server-type] tint stay in force. Converting these
+ * to the design's mask-image would blank every RSS favicon (about3Pane.js
+ * writes `content: url("page-icon:…")` inline) and discard user folder colours. */
+#folderTree .icon {
+  inline-size: var(--m3-fp-icon);
+  block-size: var(--m3-fp-icon);
+  margin-inline-end: 0;
+}
+
+#folderTree .container > .name {
+  flex: 1;
+  min-inline-size: 0;
+  margin-inline: var(--m3-fp-gap) 0;
+  font-size: var(--m3-fp-label-size);
+  font-weight: 400;
+  color: inherit;
+}
+
+/* The design uses 500, not bold, for emphasis. */
+#folderTree li.unread > .container > .name,
+#folderTree li.new-messages > .container > .name {
+  font-weight: 500;
+  color: var(--m3-on-surface);
+}
+
+#folderTree li.new-messages > .container > .name {
+  color: var(--m3-primary);
+}
+
+#folderTree li.selected.unread > .container > .name,
+#folderTree li.selected.new-messages > .container > .name {
+  color: var(--m3-on-secondary-container);
+}
+
+/* Servers stay heavier than their folders; the design's flat list has no
+ * equivalent, but losing the distinction makes deep trees unreadable. */
+#folderTree li[data-server-type] > .container > .name {
+  font-weight: 600;
+}
+
+#folderTree li.tls-error > .container > .name {
+  color: var(--m3-error);
+}
+
+/* about3Pane.css marks this !important, so matching it is the only way to
+ * retint. Busy and errored rows are excluded so they keep beating the TLS tint,
+ * exactly as source order made them do before this file existed. */
+#folderTree li.tls-error:not([data-is-busy="true"], [data-has-error="true"]) > .container > .icon {
+  --icon-color: var(--m3-error) !important;
+}
+
+/* .name carries tabindex="-1" and can take focus during row interaction. */
+#folderTree .container > .name:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  outline-offset: -1px;
+  border-radius: var(--m3-radius-xs);
+}
+
+/* ==========================================================================
+ * Counts, size, indicators
+ * ======================================================================== */
+
+#folderTree .container > .folder-count-badge {
+  margin-inline: var(--m3-fp-gap) 0;
+  padding: 2px 6px;
+  border-radius: var(--m3-radius-full);
+  min-inline-size: 18px;
+  font-size: var(--m3-fp-meta-size);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+/* Unread is the one count that must survive at a glance, so it keeps a filled
+ * pill; total falls back to the design's plain trailing text. */
+#folderTree li.unread > .container > .unread-count,
+#folderTree li.new-messages > .container > .unread-count {
+  background-color: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+  border: 1px solid transparent;
+}
+
+#folderTree li.new-messages > .container > .unread-count {
+  background-color: var(--m3-primary);
+  color: var(--m3-on-primary);
+}
+
+/* Collapsed parents whose unread lives in hidden children keep the outlined
+ * variant — that distinction is the only cue that the count is not local. */
+#folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
+#folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+  background-color: transparent;
+  color: var(--m3-primary);
+  border: 1px solid var(--m3-primary);
+  padding-block: 1px;
+}
+
+#folderTree .container > .total-count {
+  background-color: transparent;
+  padding-inline: 2px;
+  min-inline-size: 0;
+  font-weight: 400;
+  color: var(--m3-on-surface-variant);
+}
+
+#folderTree li.selected > .container > .total-count,
+#folderTree li.selected > .container > .folder-size {
+  color: var(--m3-on-secondary-container);
+}
+
+#folderTree .container > .folder-size {
+  margin-inline: var(--m3-fp-gap) 0;
+  font-size: var(--m3-fp-overline-size);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--m3-on-surface-variant);
+}
+
+/* The 3px account colour bar only exists under [data-mode="smart"] and is
+ * positioned with a negative --account-indicator-inline-end that is tuned per
+ * uidensity in about3Pane.css. Only the shape is touched here; the margins and
+ * the `display` rule that gates it are left alone so it stays attached. */
+#folderTree .container > .account-indicator {
+  border-radius: var(--m3-radius-full);
+}
+
+#folderTree .container > .status-icon {
+  margin-inline: var(--m3-fp-gap) 0;
+  inline-size: calc(var(--m3-fp-control) - 16px);
+  block-size: calc(var(--m3-fp-control) - 16px);
+  min-block-size: 0;
+  border-radius: var(--m3-radius-full);
+  border-color: transparent;
+  background-color: transparent;
+}
+
+#folderTree .container > .status-icon:enabled:hover {
+  background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
+  border-color: transparent;
+}
+
+#folderTree .container > .status-icon:focus-visible {
+  outline: 2px solid var(--m3-primary);
+  /* Inside .container, which has paint containment — a positive offset clips. */
+  outline-offset: -1px;
+}
+
+/* ==========================================================================
+ * Drag, drop and context-menu targets.
+ *
+ * Every one of these must stay visible: they are the only feedback for folder
+ * move/copy and mode reorder.
+ * ======================================================================== */
+
+#folderTree li[role="treeitem"].drop-target > .container,
+#folderTree:focus-within li[role="treeitem"].drop-target > .container {
+  background-color: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+  outline: 2px solid var(--m3-primary);
+  outline-offset: -2px;
+  border-color: transparent;
+}
+
+#folderTree li[role="treeitem"].drag-target > .container,
+#folderTree li.selected.drag-target > .container {
+  color: color-mix(in srgb, currentColor 50%, transparent);
+  /* Recolours the border list-container.css already switched to `dashed`;
+   * swapping to an outline here would collide with the .current ring. */
+  border-color: var(--m3-outline);
+}
+
+#folderTree li.context-menu-target:not(.selected) > .container,
+#folderTree li.context-menu-target:not(.selected) > .container:hover {
+  background-color: color-mix(in srgb, var(--m3-primary) 10%, transparent);
+  outline: 1px dashed var(--m3-primary);
+  outline-offset: -1px;
+}
+
+/* .reorder-target-before / .reorder-target-after draw through .icon::before and
+ * ::after with hand-tuned insets, and #dropIndicator is absolutely positioned
+ * against the pane. Both are left entirely alone. */
+
+/* ==========================================================================
+ * Motion
+ * ======================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  #folderTree li > .container {
+    transition:
+      background-color 120ms ease,
+      color 120ms ease,
+      border-color 120ms ease,
+      outline-color 120ms ease;
+  }
+}
+
+/* about3Pane.css animates the busy indicator with a 480x16 sprite stepped 30
+ * times at 16px per frame, so the step size is hardwired to a 16px icon box.
+ * --m3-fp-icon therefore defaults to Thunderbird's --folder-pane-icon-size
+ * rather than the design's 24px. This keyframe generalises the sprite maths so
+ * the icon can be resized later (`object-fit: cover` scales the strip by
+ * size/16, so the final offset is 30 x the box size) without desynchronising
+ * the animation. Only animation-name is overridden; duration, timing and
+ * iteration count stay with the original declaration. */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes m3-folder-activity-indicator {
+    100% {
+      object-position: calc(-30 * var(--m3-fp-icon)) 0;
+    }
+  }
+
+  #folderTree li[data-is-busy="true"] > .container > .icon {
+    animation-name: m3-folder-activity-indicator;
+  }
+}
+
+/* ==========================================================================
+ * High contrast / forced colors.
+ *
+ * about3Pane.css and list-container.css both fall back to system colours under
+ * prefers-contrast; the M3 fills above would silently undo that, so they are
+ * handed back here. Nothing in this block relies on an --m3-* colour.
+ * ======================================================================== */
+
+@media (prefers-contrast) {
+  #folderPane {
+    background-color: var(--sidebar-background);
+    color: var(--sidebar-color);
+  }
+
+  #folderTree.sidebar-panel-scroll::after {
+    background-color: var(--sidebar-background);
+  }
+
+  #folderPaneHeaderBar {
+    background-color: var(--sidebar-background);
+    border-block-end-color: var(--sidebar-border);
+  }
+
+  #folderPaneWriteMessage {
+    background-color: var(--selected-item-color);
+    color: var(--selected-item-text-color);
+    box-shadow: none;
+  }
+
+  #folderTree li > .container {
+    color: inherit;
+  }
+
+  #folderTree li:not(.selected) > .container:hover {
+    background-color: transparent;
+    color: inherit;
+    outline: var(--treeitem-outline-hover);
+    outline-offset: -2px;
+  }
+
+  #folderTree li.selected > .container,
+  #folderTree:focus-within li.selected > .container,
+  #folderTree li.selected > .container:hover,
+  #folderTree li[role="treeitem"].drop-target > .container {
+    background-color: var(--treeitem-background-active);
+    color: var(--treeitem-text-active);
+  }
+
+  #folderTree li.selected > .container > .name,
+  #folderTree li.selected.unread > .container > .name,
+  #folderTree li.selected.new-messages > .container > .name,
+  #folderTree li.selected > .container > .total-count,
+  #folderTree li.selected > .container > .folder-size {
+    color: currentColor;
+  }
+
+  #folderTree li.selected > .container > .icon {
+    /* Overrides the user's per-folder colour, which can be unreadable on the
+     * high-contrast selection fill. */
+    --icon-color: currentColor !important;
+  }
+
+  #folderTree li.unread > .container > .unread-count,
+  #folderTree li.new-messages > .container > .unread-count {
+    background-color: var(--folderpane-unread-count-background);
+    color: var(--folderpane-unread-count-text);
+  }
+
+  #folderTree li.selected > .container > .unread-count {
+    background-color: var(--folderpane-unread-count-text);
+    color: var(--treeitem-background-active);
+  }
+
+  #folderTree .container > .total-count {
+    background-color: var(--folderpane-total-count-background);
+    color: var(--folderpane-total-count-text);
+  }
+}
+
+@media (forced-colors) {
+  #folderTree li.current > .container,
+  #folderTree:focus-within li.current > .container {
+    outline-color: CanvasText;
+  }
+
+  #folderTree li.selected > .container {
+    background-color: SelectedItem;
+    color: SelectedItemText;
+  }
+
+  #folderPaneGetMessages:focus-visible,
+  #folderPaneMoreButton:focus-visible,
+  #folderPaneWriteMessage:focus-visible,
+  #folderTree > li > .mode-container > .mode-button:focus-visible,
+  #folderTree .container > .name:focus-visible,
+  #folderTree .container > .status-icon:focus-visible {
+    outline-color: CanvasText;
+  }
+}
