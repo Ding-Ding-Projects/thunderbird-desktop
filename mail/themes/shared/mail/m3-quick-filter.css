@@ -625,6 +625,21 @@
  * label to disambiguate them, five selected chips showing the same tick would
  * be unusable. The accessible name is unaffected either way; it comes from
  * data-l10n-id on the button. */
+/* Below 499px quickFilterBar.css collapses the whole chip row into
+ * #qfd-dropdown, which opens #quickFilterButtonsContext instead. It does that
+ * with `.button-group.quickFilterButtons { display: none }` at (0,2,0) — which
+ * the id-scoped `display: flex` in the chip block above outranks at (1,1,0),
+ * silently defeating the collapse and leaving the pane with both the five chips
+ * AND the overflow button. Restated here at (1,2,0) so it wins on specificity
+ * rather than on which sheet the integration agent links first. Scoped to
+ * .quickFilterButtons, never bare .button-group: the text-scope row is a
+ * .button-group too and upstream keeps that one visible at every width. */
+@container threadPane (max-width: 499px) {
+  #quick-filter-bar .button-group.quickFilterButtons {
+    display: none;
+  }
+}
+
 @container threadPane (max-width: 999px) {
   #quick-filter-bar .quickFilterButtons > .button.collapsible-button {
     inline-size: var(--m3-qfb-chip);

@@ -133,6 +133,28 @@ body#paneLayout {
   border-color: transparent;
 }
 
+#folderPaneSplitter.splitter-collapsed,
+#messagePaneSplitter.splitter-collapsed {
+  /* REQUIRED, and it must be ID-scoped to outrank the rule above.
+   *
+   * splitter.css collapses the track with
+   * `hr[is="pane-splitter"].splitter-collapsed { --splitter-occupy-size: 0px }`,
+   * which is only (0,2,1). The (1,0,0) rule above would otherwise keep
+   * occupy-size at 8px for a collapsed splitter, leaving a permanent 8px dead
+   * gutter where the collapsed pane used to be — the grid's `min-content`
+   * splitter track would never reach 0, so `.collapsed-by-splitter`'s
+   * `display: none` would no longer fully reclaim the space it is documented to
+   * reclaim. Re-asserting 0px here restores upstream exactly.
+   *
+   * content-size deliberately stays 8px, so --splitter-margin-size becomes
+   * -8px: while collapsed the grab strip overhangs the neighbouring pane by
+   * 8px instead of upstream's 5px. That is the same hit-area increase applied
+   * to the expanded state, it occupies no layout space, and splitter.css's
+   * `z-index: calc(var(--splitter-z-index) + 1)` still paints it above the
+   * pane it overhangs. */
+  --splitter-occupy-size: 0px;
+}
+
 #folderPaneSplitter::after,
 #messagePaneSplitter::after {
   /* Replaces splitter.css's --selected-item-color. */
@@ -176,11 +198,15 @@ body#paneLayout {
 }
 
 @media (prefers-contrast) {
-  #folderPaneSplitter,
-  #messagePaneSplitter {
+  #folderPaneSplitter:not(.splitter-collapsed),
+  #messagePaneSplitter:not(.splitter-collapsed) {
     /* A tonal step alone is not a reliable boundary in high contrast, so put
      * the hairline back. Occupied space is unchanged (it is driven by
-     * occupy-size, not border-width), so this causes no layout shift. */
+     * occupy-size, not border-width), so this causes no layout shift.
+     *
+     * Excluded while collapsed: there upstream's border-width resolves to
+     * var(--splitter-occupy-size) == 0px, and a collapsed splitter must not
+     * paint a boundary for a pane that is not on screen. */
     border-width: 1px;
     border-color: var(--m3-outline);
   }

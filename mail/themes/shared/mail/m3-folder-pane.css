@@ -302,7 +302,13 @@
   color: var(--m3-on-secondary-container);
 }
 
-#folderTree li.selected > .container > .icon {
+/* Only plain folders are retinted on selection. A user-assigned folder or
+ * server colour is written by about3Pane.js as an *inline* `--icon-color`, so
+ * it already outranks this rule; the [data-folder-type] / [data-server-type] /
+ * [data-tag-key] tints are author rules of equal-or-lower specificity, so they
+ * have to be excluded by hand or selecting an Inbox would silently drop its
+ * colour. Excluding them hands those rows straight back to about3Pane.css. */
+#folderTree li.selected:not([data-folder-type], [data-server-type], [data-tag-key]) > .container > .icon {
   --icon-color: var(--m3-on-secondary-container);
 }
 

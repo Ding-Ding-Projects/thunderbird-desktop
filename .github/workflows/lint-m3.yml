@@ -1,0 +1,266 @@
+# Lints the files the Material Mail 3-pane rewrite actually touches.
+#
+# Deliberately a SEPARATE workflow from windows-installer.yml. It shares no job,
+# no `needs:`, no concurrency group and no permissions with the installer, so it
+# cannot make the installer fail, cancel it, or change what it publishes.
+#
+# Why this needs gecko at all
+# ---------------------------
+# This repo is the *comm* tree only: no mach, no mozlint, no node_modules. The
+# linter configuration that governs these files lives here (comm/.stylelintrc.js,
+# comm/eslint.config.mjs, comm/tools/lint/*.yml) but the machinery that reads it
+# lives in mozilla-central. comm's own CI runs `./mach commlint -l stylelint ...`
+# from the gecko topsrcdir with comm/ mounted inside it - see
+# taskcluster/kinds/source-test/mozlint.yml. This workflow reproduces exactly
+# that, using the same gecko acquisition as windows-installer.yml (pinned SHA
+# from the vendor/gecko gitlink, depth-1 fetch straight to the destination).
+#
+# `mach commlint` (comm/tools/lint/mach_commands.py) is what registers comm's
+# linter definitions: it inserts comm/tools/lint into mozlint's config_paths so
+# that comm's stylelint.yml / eslint.yml - which point at comm's own rc files and
+# push the working directory into comm/ before running - win over gecko's.
+# Plain `./mach lint` would silently use *Firefox's* rules instead.
+#
+# What it does NOT do
+# -------------------
+# It does not build, does not bootstrap, does not need a mozconfig or an objdir,
+# and never sets MOZ_AUTOMATION (which, per windows-installer.yml, is a
+# Taskcluster contract that breaks builds outside Taskcluster).
+
+name: Lint (Material Mail)
+
+on:
+  push:
+    branches:
+      - main
+      - 'design-import/**'
+  pull_request:
+  workflow_dispatch:
+
+# Read-only. The installer workflow needs `contents: write` to publish releases;
+# this one must never be able to write anything.
+permissions:
+  contents: read
+
+# Scoped to this workflow by a name nothing else uses. The installer workflow
+# declares no concurrency group at all, so it cannot be a member of this one and
+# cannot be cancelled by it. Superseding an in-flight lint run is fine: unlike
+# the installer, a lint run produces no artefact that can be lost.
+concurrency:
+  group: m3-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: stylelint + eslint (m3 rewrite)
+    # GitHub-hosted Linux. Lint is platform-independent - stylelint and eslint
+    # are node programs reading the same rc files whatever the OS - so there is
+    # no reason to spend a windows runner on it.
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      GECKO_DIR: ${{ github.workspace }}/gecko
+      # Everything mach caches (its lint virtualenv) goes here rather than into
+      # an unpredictable HOME-relative default.
+      MOZBUILD_STATE_PATH: ${{ github.workspace }}/.mozbuild
+
+    steps:
+      - name: Check out comm (this repo)
+        uses: actions/checkout@v4
+        with:
+          path: comm-src
+          # Unlike the installer, lint never walks comm history: it does not run
+          # `mach artifact install`, so it has no pushhead to resolve. Depth 1 is
+          # enough, and `git ls-tree HEAD vendor/gecko` (below) still works at
+          # depth 1 because the gitlink is part of the tree, not the history.
+          fetch-depth: 1
+          # vendor/gecko is fetched separately and directly below; nothing else
+          # is needed to lint.
+          submodules: false
+
+      - name: Report free disk
+        run: df -h /
+
+      - name: Obtain gecko
+        working-directory: ${{ github.workspace }}/comm-src
+        run: |
+          set -euo pipefail
+          # Same approach as windows-installer.yml's "Obtain gecko": fetch the
+          # pinned revision DIRECTLY into $GECKO_DIR so no submodule pointer has
+          # to be repaired afterwards.
+          gecko_url="https://github.com/mozilla-firefox/firefox.git"
+          rev=""
+          pinned=false
+
+          # The pinned SHA is a gitlink entry in this repo's tree.
+          entry="$(git ls-tree HEAD vendor/gecko || true)"
+          if [[ "$entry" =~ ^[0-9]+[[:space:]]+commit[[:space:]]+([0-9a-f]{40}) ]]; then
+            rev="${BASH_REMATCH[1]}"
+            pinned=true
+            echo "vendor/gecko pins gecko at $rev"
+          else
+            echo "::notice::vendor/gecko gitlink not found - using mozilla-central tip (unpinned)."
+          fi
+
+          git init --quiet "$GECKO_DIR"
+          git -C "$GECKO_DIR" remote add origin "$gecko_url"
+
+          if [[ "$pinned" == true ]]; then
+            if git -C "$GECKO_DIR" fetch --depth 1 --quiet origin "$rev"; then
+              git -C "$GECKO_DIR" checkout --quiet --detach FETCH_HEAD
+            else
+              echo "::warning::pinned fetch of $rev failed; falling back to tip."
+              pinned=false
+            fi
+          fi
+          if [[ "$pinned" != true ]]; then
+            git -C "$GECKO_DIR" fetch --depth 1 --quiet origin HEAD
+            git -C "$GECKO_DIR" checkout --quiet --detach FETCH_HEAD
+          fi
+
+          # mach is the entry point; package.json/package-lock.json are what the
+          # stylelint and eslint setup steps install from. Assert all three now
+          # rather than fail confusingly two steps later.
+          for f in mach package.json package-lock.json tools/lint/stylelint/__init__.py; do
+            if [[ ! -e "$GECKO_DIR/$f" ]]; then
+              echo "::error::gecko checkout is missing $f - the fetch produced an unusable tree"
+              exit 1
+            fi
+          done
+          echo "gecko rev: $(git -C "$GECKO_DIR" rev-parse HEAD) (pinned: $pinned)"
+
+      - name: Assemble gecko/comm tree
+        run: |
+          set -euo pipefail
+          # Build/lint layout is gecko/comm. mach itself looks for
+          # comm/build/mach_initialize.py first (see gecko's `mach`), and that is
+          # what registers the `commlint` command, so comm MUST be at gecko/comm
+          # and not merely somewhere on disk.
+          mv "${{ github.workspace }}/comm-src" "$GECKO_DIR/comm"
+          for f in build/mach_initialize.py tools/lint/stylelint.yml tools/lint/eslint.yml \
+                   .stylelintrc.js eslint.config.mjs .stylelintignore; do
+            if [[ ! -e "$GECKO_DIR/comm/$f" ]]; then
+              echo "::error::comm/$f missing - comm was not placed correctly, or its lint config moved"
+              exit 1
+            fi
+          done
+          # Create the state dir up front so mach never has to ask about it.
+          mkdir -p "$MOZBUILD_STATE_PATH"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # mach refuses to start below 3.9 and warns above 3.12
+          # (MIN_PYTHON_VERSION / MAX_PYTHON_VERSION_TO_CONSIDER in gecko's
+          # `mach`). 3.11 is what windows-installer.yml already uses.
+          python-version: '3.11'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          # gecko's package.json pins eslint 9.x (needs >=20.9) and stylelint 16
+          # (needs >=18.12). mozbuild/nodeutil.py finds node on PATH when
+          # ~/.mozbuild/node is absent, which it is here - we do not bootstrap.
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: gecko/package-lock.json
+
+      - name: Resolve the files to lint
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          set -euo pipefail
+          # Paths are relative to the gecko topsrcdir, which is what mozlint
+          # treats as its root and what comm's linter `include:` entries
+          # (`comm/`) are written against.
+          shopt -s nullglob
+          css=(comm/mail/themes/shared/mail/m3-*.css)
+          shopt -u nullglob
+
+          # A lint job that finds nothing to lint and exits 0 is decoration. If
+          # the rewrite's files are renamed or moved, this fails loudly instead
+          # of quietly going green over an empty set.
+          if [[ ${#css[@]} -eq 0 ]]; then
+            echo "::error::no comm/mail/themes/shared/mail/m3-*.css found - nothing would have been linted"
+            exit 1
+          fi
+          for f in comm/mail/themes/shared/mail/material-tokens.css \
+                   comm/mail/base/content/about3Pane.xhtml; do
+            if [[ ! -f "$f" ]]; then
+              echo "::error::$f is missing - it is part of the rewrite's lint surface"
+              exit 1
+            fi
+          done
+
+          {
+            echo "### Lint surface"
+            echo
+            for f in "${css[@]}" comm/mail/themes/shared/mail/material-tokens.css \
+                     comm/mail/base/content/about3Pane.xhtml; do
+              echo "- \`$f\`"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Self-test - prove the linter fails on a known-bad file
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          set -uo pipefail
+          # NOTE: mach is invoked with `|| rc=$?`, never bare. GitHub runs this
+          # with `bash -e`, so a bare failing command would abort the step before
+          # $? could be read - and a step that dies here would look like the
+          # self-test itself was broken.
+          #
+          # Without this step, a green run proves nothing: it is indistinguishable
+          # from a run where mozlint quietly skipped every path, or where the
+          # setup failed open. So lint a file that is *definitely* an error under
+          # comm/.stylelintrc.js - `colour` is not a CSS property, and that rc
+          # enables `property-no-unknown` explicitly - and demand a red result.
+          #
+          # This also warms the npm install and the mach lint virtualenv, so the
+          # real lint below is a second, fast invocation.
+          dir=comm/mail/themes/shared/mail/lint-selftest
+          mkdir -p "$dir"
+          printf '/* CI self-test, deleted immediately. */\n.m3-lint-selftest {\n  colour: red;\n}\n' > "$dir/broken.css"
+
+          rc=0
+          ./mach commlint -l stylelint "$dir/broken.css" || rc=$?
+
+          rm -rf "$dir"
+
+          if [[ $rc -eq 0 ]]; then
+            echo "::error::stylelint passed a file containing an unknown property. The lint job is not actually checking anything - fix the wiring before trusting a green run."
+            exit 1
+          fi
+          echo "Self-test OK: mach commlint exited $rc on a known-bad file."
+
+      - name: stylelint - m3-*.css and material-tokens.css
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          set -euo pipefail
+          # The glob is expanded here, in the shell, rather than passed in
+          # through a `${{ }}` step output: filenames come from the working tree
+          # and a `${{ }}` substitution would splice them into the command line
+          # before bash quoting could protect them.
+          shopt -s nullglob
+          css=(comm/mail/themes/shared/mail/m3-*.css)
+          shopt -u nullglob
+          # No `|| true`, no `continue-on-error`. mozlint returns 1 when any
+          # result has level "error" (mozlint/result.py::returncode), so a lint
+          # error fails this step and therefore this job.
+          ./mach commlint -l stylelint \
+            "${css[@]}" \
+            comm/mail/themes/shared/mail/material-tokens.css
+
+      - name: eslint - about3Pane.xhtml
+        # Runs even when stylelint failed, so one push reports both. A failure
+        # here still fails the job.
+        if: ${{ !cancelled() }}
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          # comm's eslint.config.mjs applies eslint-plugin-html to **/*.xhtml,
+          # which extracts and lints the <script> blocks. about3Pane.xhtml
+          # currently has 19 <script> elements and all of them are src-only, so
+          # today this checks that no inline script is added that breaks the
+          # rules - it is a regression guard, not a source of current findings.
+          set -euo pipefail
+          ./mach commlint -l eslint comm/mail/base/content/about3Pane.xhtml

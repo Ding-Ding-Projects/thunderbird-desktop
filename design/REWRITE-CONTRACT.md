@@ -46,55 +46,55 @@ still do*. Nothing here may be dropped silently; anything intentionally cut need
 ## Feature checklist
 
 ### Folder pane
-- [ ] Six folder modes: **all, smart (unified), unread, favorite, recent, tags** — independently
+- [x] Six folder modes: **all, smart (unified), unread, favorite, recent, tags** — independently
       toggleable, multiple active at once, reorderable (move up/down)
-- [ ] Compact mode per-mode (`canModeBeCompact`)
-- [ ] Toggles: total count badge, folder size, full path, hide local folders
-- [ ] Unread-count and total-count badges; new-mail indicator; folder colors; account indicator
-- [ ] Header bar with Get Messages / Write / More buttons, each independently hideable; header itself hideable
-- [ ] Server ordering + user custom sort order (`insertFolder`, `clearUserSortOrder`, `setSortOrderOnNewFolder`)
-- [ ] Gmail folder special-casing (`_isGmailFolder`, `_getNonGmailParent`)
-- [ ] Quota status indicator (`_updateStatusQuota`)
-- [ ] Multi-select (`aria-multiselectable`), swap selection
-- [ ] Middle-click → open in new tab
-- [ ] Full drag-and-drop: folder reorder, message drop onto folder, auto-expand on hover with
+- [x] Compact mode per-mode (`canModeBeCompact`)
+- [x] Toggles: total count badge, folder size, full path, hide local folders
+- [x] Unread-count and total-count badges; new-mail indicator; folder colors; account indicator
+- [x] Header bar with Get Messages / Write / More buttons, each independently hideable; header itself hideable
+- [x] Server ordering + user custom sort order (`insertFolder`, `clearUserSortOrder`, `setSortOrderOnNewFolder`)
+- [x] Gmail folder special-casing (`_isGmailFolder`, `_getNonGmailParent`)
+- [x] Quota status indicator (`_updateStatusQuota`)
+- [x] Multi-select (`aria-multiselectable`), swap selection
+- [x] Middle-click → open in new tab
+- [x] Full drag-and-drop: folder reorder, message drop onto folder, auto-expand on hover with
       timer, collapse of auto-expanded rows, drop indicator positioning
-- [ ] Context menu — 25+ items: get messages, pause updates (all/one), open new tab/window, search,
+- [x] Context menu — 25+ items: get messages, pause updates (all/one), open new tab/window, search,
       subscribe/unsubscribe, new/remove/rename, move-to & copy-to folder pickers (with recent/
       favorites/last), compact (one/all), mark folder read, mark newsgroup read, empty trash,
       empty spam, send unsent, favorite toggle, properties, mark all folders read, settings,
       filters, manage tags, reset sort
 
 ### Thread pane
-- [ ] **Two view modes: table and cards** — switchable, persisted
-- [ ] All 20 columns: select, thread, flagged, attachment, subject, unread, sender, recipient,
+- [x] **Two view modes: table and cards** — switchable, persisted
+- [x] All 20 columns: select, thread, flagged, attachment, subject, unread, sender, recipient,
       correspondent, junk status, date, received, status, size, tags, account, priority, unread
       count, total count, location, id, delete
 - [ ] Column picker; reorder; resize; **apply columns to folder / folder+children**
-- [ ] Sort by 15 fields (date, received, flagged, id, priority, author, recipient, correspondent,
+- [x] Sort by 15 fields (date, received, flagged, id, priority, author, recipient, correspondent,
       size, status, subject, unread, tags, junk status, attachments) × ascending/descending
-- [ ] Grouping: **threaded / unthreaded / grouped-by-sort**; apply view to folder(+children)
-- [ ] Inline row buttons: thread twisty, flag/star, unread toggle, spam, delete, restore
-- [ ] Cards view: read status, sender, replied/forwarded/redirected state icons, date, kebab menu,
+- [x] Grouping: **threaded / unthreaded / grouped-by-sort**; apply view to folder(+children)
+- [x] Inline row buttons: thread twisty, flag/star, unread toggle, spam, delete, restore
+- [x] Cards view: read status, sender, replied/forwarded/redirected state icons, date, kebab menu,
       reply count + twisty, subject, attachment icon, tags, spam, star
-- [ ] Header bar: folder name, message count, selected count, quick-filter toggle, display menu; hideable
-- [ ] Placeholders: no-messages, multiple-folders
-- [ ] Notification box
-- [ ] Virtualized scrolling for large folders (tree-view.mjs)
-- [ ] Select-all, select-thread, select-flagged; collapse/expand all threads
+- [x] Header bar: folder name, message count, selected count, quick-filter toggle, display menu; hideable
+- [x] Placeholders: no-messages, multiple-folders
+- [x] Notification box
+- [x] Virtualized scrolling for large folders (tree-view.mjs)
+- [x] Select-all, select-thread, select-flagged; collapse/expand all threads
 
 ### Quick filter bar
-- [ ] All filter buttons + text search across sender/recipients/subject/body
-- [ ] Sticky filter persistence; per-folder retention
-- [ ] Gloda upsell tooltip
+- [x] All filter buttons + text search across sender/recipients/subject/body
+- [x] Sticky filter persistence; per-folder retention
+- [x] Gloda upsell tooltip
 
 ### Message pane
-- [ ] Single message, multi-message summary, web browser, account central browser, conversation view
-- [ ] Message pane show/hide; splitter collapse
+- [x] Single message, multi-message summary, web browser, account central browser, conversation view
+- [x] Message pane show/hide; splitter collapse
 
 ### Layout
-- [ ] Three layouts: **classic, vertical, wide** (`cmd_viewClassicMailLayout` / `Vertical` / `Wide`)
-- [ ] Splitters: drag resize, collapse at threshold, resize-with-window, layout-dependent lock targets
+- [x] Three layouts: **classic, vertical, wide** (`cmd_viewClassicMailLayout` / `Vertical` / `Wide`)
+- [x] Splitters: drag resize, collapse at threshold, resize-with-window, layout-dependent lock targets
 
 ### Cross-cutting — must not regress
 - [ ] **All 137 `cmd_*` commands** remain wired and correctly enabled/disabled
@@ -257,6 +257,188 @@ exposed today, contrary to clear author intent. Flagged as a deliberate fix to
 `"true"` with verbosity re-tested, **not** something to copy forward. Not fixed in
 this change: it is a behaviour change and belongs with an AT test, not a
 packaging commit.
+
+---
+
+**Feature-survival audit of the M3 restyle — 30 boxes ticked, 1 refused**
+
+The Material Mail work restyles the *existing* 3-pane DOM. `about3Pane.js`,
+`about3Pane.xhtml` and the `widgets/*.mjs` behaviour layer were deliberately not
+rewritten, so features survive **by construction** unless a rule we added breaks
+one. Five section agents were tasked with proving that claim box by box against
+named selectors, DOM elements and handler line numbers; an adversarial pass then
+tried to break every proof.
+
+**Boxes examined: 31 claimed tickable. Ticked: 30. Refused by the adversarial
+pass: 1.** The remaining 7 unticked boxes are the cross-cutting section, which
+nobody claimed — see below.
+
+| Section | Claimed | Ticked | Refused |
+|---|---:|---:|---:|
+| Folder pane | 12 | 12 | 0 |
+| Thread pane | 12 | 11 | 1 |
+| Quick filter bar | 3 | 3 | 0 |
+| Message pane | 2 | 2 | 0 |
+| Layout | 2 | 2 | 0 |
+
+**What a tick means here.** It certifies that the named behaviour still
+*functions* — that no rule we added hides, un-hit-tests, reparents, mis-measures
+or out-ranks the mechanism that implements it. It is **not** a visual sign-off.
+Nothing on this branch has been built or launched; see open item 1 above, which
+still stands.
+
+The single strongest piece of evidence is mechanical rather than rhetorical.
+`m3-folder-pane.css` and `m3-layout.css` each contain **zero** declarations of
+`display`, `visibility`, `position`, `transform`, `filter`, `contain`,
+`overflow`, `pointer-events`, `z-index`, `isolation`, `will-change` or
+`clip-path` (`m3-layout.css`'s one structural hit is `transform: none` on a
+childless splitter `::after`); `m3-thread-pane.css` has exactly one `display`
+(`flex`, on the static `#threadPaneFolderCountContainer`) and no
+`overflow`/`contain`/`position`/`transform` at all. That single fact forecloses
+most of the hazard list at once: nothing can create a containing block between
+`#dropIndicator` and `#folderPane`, change what the virtualized `tree-view.mjs`
+scrolls or measures, or hide something the JS keeps focusable.
+
+### Refused — do not tick
+
+- **Thread pane / "Column picker; reorder; resize; apply columns to folder /
+  folder+children".** The named evidence was broken outright. The intended fix,
+  `.menupopup-column-picker > :is(menu, menuitem)` at `m3-thread-pane.css:357`,
+  is specificity **(0,1,1)**. It is trying to override a rule nested under a
+  comma-list parent that includes `#threadPaneDisplayContext` — and CSS Nesting
+  gives `&` the weight of the *most specific* selector in that list, so
+  `m3-thread-pane.css:332` resolves to **(1,0,1)** and wins regardless of source
+  order. `tree-view.mjs:2300` really does add `.menupopup-column-picker`, and the
+  ~20 column items, the separator, the restore item and the two apply-to
+  submenus really are direct children, so the picker renders ~23 × 48px ≈ 1130px
+  and scrolls on a 1080p screen. Reorder, resize and the apply-to submenus are
+  individually sound, but the box is graded as one unit and its evidence is
+  demonstrably wrong. Fix needs an id, or `:where(...)` on the base rule, or the
+  override raised to at least (1,0,1).
+
+### Regressions found and fixed while proving the ticks
+
+Six real defects, all shipped by the restyle and all caught by the proof
+requirement rather than by review-by-eyeball:
+
+1. **`m3-layout.css` — collapsed splitters left an 8px dead gutter.**
+   `#folderPaneSplitter, #messagePaneSplitter { --splitter-occupy-size: … }` is
+   (1,0,0) and out-ranked `splitter.css`'s `hr[is="pane-splitter"].splitter-collapsed
+   { --splitter-occupy-size: 0px }` at (0,2,1). Once `pane-splitter.js` added
+   `.splitter-collapsed`, the splitter's `min-content` grid track stayed 8px —
+   defeating the exact thing `about3Pane.css:176-186` documents its `display: none`
+   as existing to achieve. Re-asserted at (1,1,0). The `prefers-contrast` hairline
+   was also scoped away from the collapsed state, where upstream draws none.
+2. **`m3-quick-filter.css` — the narrow-pane collapse was dead.**
+   `#quick-filter-bar .button-group { display: flex }` at (1,1,0) beat upstream's
+   `@container threadPane (max-width: 499px) { .button-group.quickFilterButtons
+   { display: none } }` at (0,2,0) — container queries add no specificity — so
+   below 499px the five chips stayed on screen *next to* the `#qfd-dropdown`
+   overflow button they collapse into. Fixed with a matching container block at
+   (1,2,0).
+3. **`m3-thread-pane.css` — two virtualiser budget overruns.** `tree-view.mjs`
+   lays rows in normal flow between spacers sized `N * ROW_HEIGHT`, so a row that
+   renders even 2px tall shifts everything below it and desynchronises
+   hit-testing, `scrollTo` and `scrollToIndex`. Card cell padding keyed to
+   `--m3-gap` (4px vs the 2px `about3Pane.js#densityChange` budgets) and 1px of
+   block padding on the tags pill were both over. Pinned to values upstream
+   already accounts for. The overlay-scrollbar gutter that a `padding` shorthand
+   had wiped from `tree-listbox.css` was also restored — without it the star,
+   spam and kebab buttons sit under the Windows 11 overlay scrollbar.
+4. **`m3-thread-pane.css` — selected + tagged rows were invisible.**
+   `tr.table-layout { color: var(--tag-color, …) }` carried two IDs and beat
+   `[is="tree-view-table-body"]:focus .table-layout.selected { color:
+   var(--tag-contrast-color, …) }` at (0,4,0), painting tag-coloured text on a
+   tag-coloured background. Declaration removed.
+5. **`m3-thread-pane.css` — the `new` message signal was flattened.** The unread
+   recolour at (2,3,1) swallowed `threadCard.css`'s amber `[unread][new]` ramp at
+   (1,4,0), and a flat `.card-container .subject` colour swallowed the
+   `--new-subject-color` accent. Both re-scoped. **See the open blocker below —
+   this fix is currently inert.**
+6. **`m3-folder-pane.css` — selecting an Inbox dropped its folder colour.** The
+   selected-row icon retint tied `about3Pane.css`'s `[data-folder-type]`,
+   `[data-server-type]` and `[data-tag-key]` tints on specificity and won on
+   source order. Now excluded via `:not(…)`. User-assigned colours were never at
+   risk (`folder-tree-row.mjs:259` writes `--icon-color` inline).
+
+### Open blockers found by this audit — none of them refute a tick, all of them ship
+
+- **⛔ `m3-thread-pane.css:504` closes a comment early.** The line ends `… would
+  flatten all of them to one colour. */` and lines 505-509 are then parsed as
+  stylesheet content, consumed as a garbage selector up to the next `{`. That
+  swallows the selector on line 510, so the whole qualified rule — the
+  `--read-status-fill` / `--read-status-stroke` unread-dot recolour, i.e. fix 5
+  above — **is dropped by the parser today**. The dot falls back to upstream's
+  colours, so no *feature* is lost, which is why box 7 stays ticked; but the M3
+  restyle of it is not running. One-line fix: delete the trailing ` */` from line
+  504. Owner is the thread-pane section; deliberately not fixed here, since this
+  pass may edit only this file.
+- **⛔ The font-size accessibility control is severed for four of five surfaces.**
+  `UIFontSize.sys.mjs:194-198` sets the user's size on `documentElement`;
+  `m3-layout.css:52` then sets `body#paneLayout { font-size: var(--m3-font-size) }`,
+  and `--m3-font-size` is `calc(14px * var(--m3-font-scale) / 100)` where
+  `--m3-font-scale` is a literal `100` that **nothing in the tree ever writes**.
+  So it is a hard 14px, and it breaks inheritance for every descendant not using
+  `rem`: the whole folder pane, the whole quick filter bar, the thread-pane
+  header, the column headers and every menuitem are pinned at 14px while the
+  `rem`-based card rows still scale — so raising the font size grows the messages
+  and not the chrome. It also shrinks that text ~7% on a stock profile. Three
+  section evidence statements claimed the opposite; they are wrong. This breaks
+  no listed feature, so it refuted no box, but it violates *"not relaxed —
+  accessibility"* and it is why the **Accessibility** box below stays unticked.
+  Fixing it means either wiring `--m3-font-scale` to `UIFontSize` or redefining
+  `--m3-font-size` in `rem`/`em` — the latter lives in `material-tokens.css`, so
+  it needs an owner with rights to that file.
+- **RTL: `m3-thread-pane.css:406` uses the physical shorthand `padding:
+  var(--m3-row-padding)` and the token is asymmetric (`12px 8px 12px 16px`), so
+  the card's 16px inset lands on the wrong side under RTL.** Cosmetic mirroring
+  bug, not a feature break; the token itself is in `material-tokens.css`.
+- **`--m3-thread-pane.css` nesting trap is a live pattern**, not a one-off. Any
+  rule nested under a comma-list parent containing an id inherits that id's
+  weight. Audit before adding more nesting.
+
+### Still unticked, with honest reasons
+
+All 7 remaining boxes are in **Cross-cutting — must not regress**. No section
+agent claimed any of them, and this pass will not tick a box nobody proved.
+
+- **All 137 `cmd_*` commands** — not claimed. The command tables live in
+  `about3Pane.js` / `mailCommon.js` / `mailContext.js`, untouched, so they very
+  probably hold; "probably" is not evidence and nobody enumerated them.
+- **Keyboard navigation / tabindex** — partially evidenced only. The folder pane
+  proved its `row-reverse` 3/2/1 exception survives and that no `:focus-visible`
+  is suppressed anywhere; nobody walked the full tab order, and the audit's
+  warning that the design explodes the tab-stop count is unaddressed.
+- **Accessibility** — blocked outright by the `--m3-font-scale` finding above.
+  Also still carrying the pre-existing `aria-hidden="hidden"` invalid-token bug
+  (11 occurrences) recorded earlier in this file.
+- **Localization** — no new user-visible strings were added by any of the six
+  sheets, which is necessary but not sufficient. The RTL padding bug above is an
+  active l10n defect, and the message-pane empty state still has no Fluent id.
+- **Theming** — unchanged from the previous entry. `m3-chrome.css` scopes itself
+  to `:root:not([lwtheme])`, so lightweight themes bypass it; the four seeds,
+  `forced-colors` and folder colours are unverified in a running build.
+- **CSP** — nothing landed violates it, but this is a must-not-regress item and
+  there is still no finished surface to assert it about.
+- **Session/state persistence** — the individual mechanisms were each proved not
+  to be styleable (mode order and compact read from DOM/XULStore; splitter sizes
+  are inline custom properties that out-rank ours; quick-filter state is
+  XULStore + `aria-pressed`). But the box names seven persisted things at once
+  and column layout is entangled with the refused column-picker box, so it stays
+  open until that one closes.
+
+### Also landing here
+
+`.github/workflows/lint-m3.yml` — a `Lint (Material Mail)` job running
+`./mach commlint -l stylelint` over `m3-*.css` + `material-tokens.css` and
+`-l eslint` over `about3Pane.xhtml`. It uses `commlint`, not `lint`, because only
+`commlint` inserts `comm/tools/lint` into mozlint's `config_paths` and thereby
+makes comm's `.stylelintrc.js` win over Firefox's. It has no `|| true` and no
+`continue-on-error`, fails if the glob matches zero files, and carries a
+self-test that lints a deliberately broken file and fails the job if stylelint
+reports it clean. **It will be red on its first run** — the comment bug above is
+a real `CssSyntaxError`. That is the job doing its job. Its `mach commlint`
+invocation has never been executed end-to-end; the first CI run is the real test.
 
 ## Verification
 

@@ -348,6 +348,16 @@
   }
 }
 
+/* The column picker is not a navigation menu: tree-view.mjs rebuilds it on
+ * every popupshowing with one checkbox menuitem per column (20 of them), plus
+ * the restore item and the two apply-to submenus. At the 48px comfortable
+ * control height that popup is ~1130px tall and has to scroll on a 1080p
+ * screen, which turns "tick the column you want" into a hunt. Use the chip
+ * step instead — still well above the native ~24px item. */
+.menupopup-column-picker > :is(menu, menuitem) {
+  min-block-size: calc(var(--m3-control-size) - 16px);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   /* These popups live outside #threadPane, so --m3-tp-duration is out of
    * scope; the token's own no-preference fallback is inlined instead. */
@@ -364,10 +374,22 @@
 
 #threadPane #threadTree[rows="thread-card"] {
   & tr.card-layout > td {
-    /* The design's `margin: var(--m3-gap) 8px` on the row. It is applied to
-     * the cell rather than the card because .card-container is block-size:100%
-     * of the virtualiser's fixed row box — a margin there would overflow it. */
-    padding: var(--m3-gap) 8px;
+    /* The design's row inset. It is applied to the cell rather than the card
+     * because .card-container is block-size:100% of the virtualiser's fixed
+     * row box — a margin there would overflow it.
+     *
+     * ONLY the inline half comes from the design. The block half must stay on
+     * --card-container-padding-block (tree-listbox.css): that is the exact
+     * value about3Pane.js#densityChange budgets as `card padding-block` when
+     * it computes ThreadCard.ROW_HEIGHT, and tree-view.mjs sizes spacerTop /
+     * spacerBottom as N * ROW_HEIGHT while the rows themselves sit in normal
+     * flow between them. A row that renders taller than ROW_HEIGHT therefore
+     * does not clip — it shifts every row below it, and hit-testing, scrollTo
+     * and scrollToIndex all drift. --m3-gap happens to equal
+     * --card-container-padding-block at compact (1px) and comfortable (2px)
+     * but is 4px at relaxed/touch against 2px, which is exactly that failure. */
+    padding-block: var(--card-container-padding-block);
+    padding-inline: 8px;
   }
 
   & tr.card-layout > td > .card-container {
@@ -383,6 +405,16 @@
      * adding block padding here clips the third line. */
     padding: var(--m3-row-padding);
     padding-block: 0;
+
+    /* tree-listbox.css reserves the overlay scrollbar's width here as
+     * `padding-inline-end: env(scrollbar-inline-size)`. The shorthand above
+     * would wipe that out, putting .button-star / .button-spam /
+     * .tree-button-more underneath the overlay scrollbar — on Windows 11 that
+     * is the default whenever "Always show scrollbars" is off. Restore the
+     * gutter, never shrinking the design's own inline-end inset. */
+    @media (-moz-overlay-scrollbars) {
+      padding-inline-end: max(env(scrollbar-inline-size), 8px);
+    }
   }
 
   /* Unread. The design fills unread rows with --m3-s2 on an --m3-s2 pane,
@@ -444,6 +476,14 @@
     }
   }
 
+  /* Re-assert the new-message subject accent. threadCard.css sets it at
+   * (1,4,0) from inside `[unread][new]`; the flat `.card-container .subject`
+   * rule above is (2,3,0) and would otherwise swallow it, leaving
+   * --new-subject-color (remapped in section 1) with nothing to apply to. */
+  & tr.card-layout[data-properties~="new"] .card-container .subject {
+    color: var(--new-subject-color);
+  }
+
   & tr.card-layout[data-properties~="unread"] .card-container {
     & .sender {
       font-weight: 700;
@@ -462,7 +502,12 @@
    * `content: var(--icon-*)` + -moz-context-properties so the sparkle/new
    * override in threadCard.css and the flagged/junk duotones keep working;
    * a CSS mask (as the design uses) would flatten all of them to one colour. */
-  & tr.card-layout[data-properties~="unread"] {
+   * `new` is excluded on purpose. threadCard.css paints the sparkle amber
+   * inside a nested `[unread][new]` rule whose specificity is (1,4,0); this
+   * selector carries two IDs, so without the :not() it would win and flatten
+   * new back into ordinary unread — losing a signal the token remap in
+   * section 1 explicitly says it wants to keep. */
+  & tr.card-layout[data-properties~="unread"]:not([data-properties~="new"]) {
     --read-status-fill: color-mix(in srgb, var(--m3-primary) 55%, transparent);
     --read-status-stroke: var(--m3-primary);
   }
@@ -533,7 +578,12 @@
    * is a low mix so coloured tags stay legible on top of it. */
   & thread-card-tags[tags]:not([tags=""]) {
     padding-inline: 6px;
-    padding-block: 1px;
+    /* Inline-only. The host is a flex item on the `info` grid track of
+     * .thread-card-dynamic-row, which is minmax(auto, 1fr) — block padding
+     * here raises the track's auto minimum above the 16px .tag-icon and grows
+     * the card past ThreadCard.ROW_HEIGHT, which desynchronises the
+     * virtualiser's spacer arithmetic. The pill reads at icon height. */
+    padding-block: 0;
     border-radius: var(--m3-radius-xs);
     background-color: color-mix(in srgb, var(--m3-tertiary-container) 55%, transparent);
     color: var(--m3-on-tertiary-container);
@@ -622,8 +672,15 @@
 
 #threadPane #threadTree[rows="thread-row"] {
   & tbody tr.table-layout {
-    /* --tag-color still wins, as in threadPane.css. */
-    color: var(--tag-color, var(--m3-on-surface));
+    /* Deliberately sets NO `color`. Rows inherit --tree-view-color, already
+     * remapped to --m3-on-surface in section 1, which is what threadPane.css
+     * expects. An explicit colour here carries two IDs and would beat
+     *   [is="tree-view-table-body"]:focus .table-layout.selected {
+     *     background-color: var(--tag-color, var(--listbox-focused-selected-bg));
+     *     color: var(--tag-contrast-color, var(--listbox-selected-color)); }
+     * at (0,4,0) — a selected tagged row would then paint --tag-color text on
+     * a --tag-color background and the subject line would vanish, and an
+     * untagged selected row would lose --listbox-selected-color. */
     border-radius: 0;
   }
 
@@ -646,9 +703,11 @@
     font-weight: 500;
   }
 
-  /* Inline row buttons (thread, flag, unread, spam, delete, restore). Sized
-   * from the control token so the hit target follows density, with the
-   * design's state layer; they stay aria-hidden and unfocusable. */
+  /* Inline row buttons (thread, flag, unread, spam, delete, restore). Shape
+   * and state layer only — no sizing, because the row box is
+   * ThreadRow.ROW_HEIGHT and tree-view.mjs routes their clicks by class
+   * (`event.target.classList.contains("tree-button-spam")` etc.), so they must
+   * keep their existing hit box. They stay aria-hidden and unfocusable. */
   & tbody .button-column .button-flat {
     border-radius: var(--m3-radius-s);
 
