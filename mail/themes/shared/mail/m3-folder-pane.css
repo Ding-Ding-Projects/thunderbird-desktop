@@ -18,6 +18,10 @@
  * [data-is-busy] overrides, which deliberately match about3Pane.css exactly
  * rather than escalating specificity and locking out future themes).
  *
+ * LIGHTWEIGHT THEMES: everything colour-bearing below is guarded by
+ * :root:not([lwtheme]) so an installed theme still wins — same pattern and same
+ * formatting as m3-chrome.css. See the note above "Pane shell" for why.
+ *
  * Deliberate deviations from the design, and why:
  *  - Two count badges, not one. The design shows a single plain-text count.
  *    Thunderbird shows unread AND total, so unread is a filled
@@ -41,6 +45,9 @@
  * other surface), the pane derives private --m3-fp-* aliases and re-points them
  * per uidensity. If the integration agent ever mirrors uidensity onto
  * data-m3-density, only this block needs deleting.
+ *
+ * NOT guarded: these are custom property *definitions*, i.e. metrics, not
+ * colour application. A lightweight theme changes the palette, not the density.
  * ======================================================================== */
 
 #folderPane {
@@ -75,19 +82,47 @@
 }
 
 /* ==========================================================================
+ * Why every colour below sits behind :root:not([lwtheme]).
+ *
+ * When a user installs a third-party lightweight theme the platform sets an
+ * [lwtheme] attribute on documentElement, and ThemeVariableMap.sys.mjs writes
+ * that theme's palette onto the same element as INLINE custom properties
+ * (--lwt-accent-color, --toolbar-bgcolor, --sidebar-background, --sidebar-color,
+ * --sidebar-border, …). about3Pane.css consumes exactly those properties, so
+ * with a theme installed it is the user's theme that paints the folder pane.
+ *
+ * This file loads after about3Pane.css and matches or exceeds its specificity,
+ * so an unguarded `#folderPane { background-color: var(--m3-surface) }` simply
+ * overwrites the theme. That is the bug: the chrome honours the theme, the
+ * content does not, and the palette visibly stops at the <browser> boundary.
+ *
+ * The guard makes the M3 skin stand down whenever a theme is present — colour,
+ * and only colour, is handed back to about3Pane.css. Layout, sizing, shape,
+ * type, motion, focus rings, the high-contrast fallbacks and the folder-colour
+ * path stay unguarded: a theme supplies a palette, not a layout, and dropping
+ * the row geometry or a focus ring on theme install would be a regression
+ * rather than deference.
+ * ======================================================================== */
+
+/* ==========================================================================
  * Pane shell
  * ======================================================================== */
 
 #folderPane {
-  background-color: var(--m3-surface);
-  color: var(--m3-on-surface);
   font-family: var(--m3-font);
   font-size: var(--m3-fp-label-size);
 }
 
+:root:not([lwtheme]) #folderPane {
+  background-color: var(--m3-surface);
+  color: var(--m3-on-surface);
+}
+
 /* containers.css paints ::after with --sidebar-background to mask the sticky
- * scroll shadow. Re-point it or a light strip shows over the M3 surface. */
-#folderTree.sidebar-panel-scroll::after {
+ * scroll shadow. Re-point it or a light strip shows over the M3 surface —
+ * but only when no theme is installed, since --sidebar-background is precisely
+ * what the theme has just rewritten. */
+:root:not([lwtheme]) #folderTree.sidebar-panel-scroll::after {
   background-color: var(--m3-surface);
 }
 
@@ -113,10 +148,19 @@
  * ======================================================================== */
 
 #folderPaneHeaderBar {
-  background-color: var(--m3-s3);
-  border-block-end: 1px solid var(--m3-outline-variant);
   padding: 8px;
   gap: 6px;
+}
+
+/* The whole border-block-end ships guarded, width and style included, and this
+ * is the one place that departs from "shape stays unguarded". about3Pane.css
+ * draws no border here at all, so this rule introduces one; leaving the width
+ * and style behind would fall back to `currentColor` and paint a hard rule
+ * under a themed header. Handing the entire edge back costs 1px of block size
+ * under a theme and paints nothing that the theme did not ask for. */
+:root:not([lwtheme]) #folderPaneHeaderBar {
+  background-color: var(--m3-s3);
+  border-block-end: 1px solid var(--m3-outline-variant);
 }
 
 #folderPaneGetMessages,
@@ -124,22 +168,26 @@
   inline-size: var(--m3-fp-header-button);
   block-size: var(--m3-fp-header-button);
   border-radius: var(--m3-radius-full);
+}
+
+:root:not([lwtheme]) #folderPaneGetMessages,
+:root:not([lwtheme]) #folderPaneMoreButton {
   border-color: transparent;
   background-color: transparent;
   color: var(--m3-on-surface-variant);
 }
 
-#folderPaneGetMessages:enabled:hover,
-#folderPaneMoreButton:enabled:hover {
+:root:not([lwtheme]) #folderPaneGetMessages:enabled:hover,
+:root:not([lwtheme]) #folderPaneMoreButton:enabled:hover {
   background-color: var(--m3-s4);
   color: var(--m3-on-surface);
   border-color: transparent;
 }
 
-#folderPaneGetMessages:enabled:hover:active,
-#folderPaneMoreButton:enabled:hover:active,
-#folderPaneGetMessages[aria-pressed="true"],
-#folderPaneMoreButton[aria-pressed="true"] {
+:root:not([lwtheme]) #folderPaneGetMessages:enabled:hover:active,
+:root:not([lwtheme]) #folderPaneMoreButton:enabled:hover:active,
+:root:not([lwtheme]) #folderPaneGetMessages[aria-pressed="true"],
+:root:not([lwtheme]) #folderPaneMoreButton[aria-pressed="true"] {
   background-color: var(--m3-s5);
 }
 
@@ -156,11 +204,18 @@
   background-position: var(--m3-fp-write-inset) center;
   border: none;
   border-radius: var(--m3-radius-l);
-  background-color: var(--m3-primary-container);
-  color: var(--m3-on-primary-container);
   font-size: var(--m3-fp-label-size);
   font-weight: 500;
   letter-spacing: 0.1px;
+}
+
+/* box-shadow travels with the fill rather than with the shape: it is the M3
+ * elevation that belongs to a --m3-primary-container button, and a hardcoded
+ * black drop shadow floating under a theme-coloured button reads as an
+ * artefact. prefers-contrast already stands it down for the same reason. */
+:root:not([lwtheme]) #folderPaneWriteMessage {
+  background-color: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
   box-shadow: 0 1px 3px 1px rgba(0, 0, 0, 0.15);
 }
 
@@ -168,19 +223,21 @@
   background-position-x: right var(--m3-fp-write-inset);
 }
 
-#folderPaneWriteMessage:enabled:hover {
+:root:not([lwtheme]) #folderPaneWriteMessage:enabled:hover {
   background-color: var(--m3-primary-container);
   color: var(--m3-on-primary-container);
   box-shadow: 0 2px 6px 2px rgba(0, 0, 0, 0.15);
 }
 
-#folderPaneWriteMessage:enabled:hover:active {
+:root:not([lwtheme]) #folderPaneWriteMessage:enabled:hover:active {
   background-color: color-mix(in srgb, var(--m3-on-primary-container) 12%, var(--m3-primary-container));
 }
 
 /* .button:disabled only drops opacity; keep it that way. The button is disabled
  * until an identity exists, and hiding it would lose the affordance. */
 
+/* Focus rings are never guarded, here or anywhere below: keyboard visibility is
+ * an accessibility guarantee and must not depend on which theme is installed. */
 #folderPaneGetMessages:focus-visible,
 #folderPaneMoreButton:focus-visible,
 #folderPaneWriteMessage:focus-visible {
@@ -205,10 +262,19 @@
   margin-inline: 0;
 }
 
+/* Only the divider's colour is guarded. about3Pane.css already draws this edge
+ * as `border-block-start: 1px solid var(--sidebar-border)`, so handing the
+ * colour back lands on the theme's own divider, and keeping the width and
+ * style here preserves the extra breathing room the pills need. */
 #folderTree > li:not(:first-of-type) > .mode-container {
-  border-block-start: 1px solid var(--m3-outline-variant);
+  border-block-start-width: 1px;
+  border-block-start-style: solid;
   margin-block-start: 12px;
   padding-block-start: 16px;
+}
+
+:root:not([lwtheme]) #folderTree > li:not(:first-of-type) > .mode-container {
+  border-block-start-color: var(--m3-outline-variant);
 }
 
 #folderTree > li > .mode-container > .mode-name {
@@ -220,27 +286,33 @@
   /* Visual casing only — the string still comes from Fluent, so this does not
    * hardcode or bake in English. Locales without case mapping are unaffected. */
   text-transform: uppercase;
-  color: var(--m3-on-surface-variant);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;
+}
+
+:root:not([lwtheme]) #folderTree > li > .mode-container > .mode-name {
+  color: var(--m3-on-surface-variant);
 }
 
 #folderTree > li > .mode-container > .mode-button {
   inline-size: 32px;
   block-size: 32px;
   border-radius: var(--m3-radius-full);
+}
+
+:root:not([lwtheme]) #folderTree > li > .mode-container > .mode-button {
   border-color: transparent;
   background-color: transparent;
   color: var(--m3-on-surface-variant);
 }
 
-#folderTree > li > .mode-container > .mode-button:enabled:hover {
+:root:not([lwtheme]) #folderTree > li > .mode-container > .mode-button:enabled:hover {
   background-color: var(--m3-s4);
   border-color: transparent;
 }
 
-#folderTree > li > .mode-container > .mode-button:enabled:hover:active {
+:root:not([lwtheme]) #folderTree > li > .mode-container > .mode-button:enabled:hover:active {
   background-color: var(--m3-s5);
 }
 
@@ -267,9 +339,14 @@
   padding-inline-start: calc(var(--m3-fp-pad) + var(--indent));
   padding-inline-end: var(--m3-fp-pad);
   border-radius: var(--m3-fp-radius);
-  /* Only the colour is neutralised, not the border itself: list-container.css
-   * signals a drag target with `border-style: dashed` on this same 1px border,
-   * and removing the border would both kill that signal and shift the geometry. */
+}
+
+/* Only the colour is neutralised, not the border itself: list-container.css
+ * signals a drag target with `border-style: dashed` on this same 1px border,
+ * and removing the border would both kill that signal and shift the geometry.
+ * Under a theme the border falls back to list-container.css's own
+ * --list-container-border, which is what the theme has repainted. */
+:root:not([lwtheme]) #folderTree li > .container {
   border-color: transparent;
   background-color: transparent;
   color: var(--m3-on-surface-variant);
@@ -279,19 +356,19 @@
  * nothing on a transparent background, and `filter` would make .container a
  * containing block and a stacking context, which moves the absolutely
  * positioned #dropIndicator. A state-layer tint is the M3-correct equivalent. */
-#folderTree li:not(.selected) > .container:hover {
+:root:not([lwtheme]) #folderTree li:not(.selected) > .container:hover {
   background-color: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
   border-color: transparent;
   color: var(--m3-on-surface);
 }
 
-#folderTree li:not(.selected) > .container:active {
+:root:not([lwtheme]) #folderTree li:not(.selected) > .container:active {
   background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
 }
 
-#folderTree li.selected > .container,
-#folderTree:focus-within li.selected > .container,
-#folderTree li.selected > .container:hover {
+:root:not([lwtheme]) #folderTree li.selected > .container,
+:root:not([lwtheme]) #folderTree:focus-within li.selected > .container,
+:root:not([lwtheme]) #folderTree li.selected > .container:hover {
   background-color: var(--m3-secondary-container);
   border-color: transparent;
   color: var(--m3-on-secondary-container);
@@ -299,6 +376,9 @@
 
 #folderTree li.selected > .container > .name {
   font-weight: 500;
+}
+
+:root:not([lwtheme]) #folderTree li.selected > .container > .name {
   color: var(--m3-on-secondary-container);
 }
 
@@ -307,7 +387,13 @@
  * it already outranks this rule; the [data-folder-type] / [data-server-type] /
  * [data-tag-key] tints are author rules of equal-or-lower specificity, so they
  * have to be excluded by hand or selecting an Inbox would silently drop its
- * colour. Excluding them hands those rows straight back to about3Pane.css. */
+ * colour. Excluding them hands those rows straight back to about3Pane.css.
+ *
+ * NOT guarded, deliberately: this is the folder-colour path. The whole rule is
+ * calibrated against about3Pane.css's own specificity (see LOAD ORDER at the
+ * top of the file), and prefixing it would escalate that specificity and break
+ * the hand-off it depends on. --icon-color is also a definition consumed by
+ * -moz-context-properties, not a paint of its own. */
 #folderTree li.selected:not([data-folder-type], [data-server-type], [data-tag-key]) > .container > .icon {
   --icon-color: var(--m3-on-secondary-container);
 }
@@ -316,15 +402,26 @@
  * tree is aria-multiselectable: .selected (in the selection), .current (the
  * keyboard cursor) and both. Collapsing them makes keyboard multi-select
  * impossible to follow. The ring is dimmed while the tree is unfocused so the
- * cursor stays discoverable without competing with the selection fill. */
+ * cursor stays discoverable without competing with the selection fill.
+ *
+ * The ring's geometry is NOT guarded: .current is the keyboard cursor, so it
+ * has to survive a theme install exactly like a focus ring does. Only its
+ * colour stands down, leaving the ring on `currentColor` — still visible, and
+ * now in the theme's own text colour. It also keeps the forced-colors override
+ * at the foot of this file working, which sets outline-color alone. */
 #folderTree li.current > .container {
-  outline: 2px solid color-mix(in srgb, var(--m3-primary) 45%, transparent);
+  outline-width: 2px;
+  outline-style: solid;
   /* Negative offset keeps the ring inside #folderPane, which has `contain:
    * strict` and would otherwise clip it at the pane edge. */
   outline-offset: -2px;
 }
 
-#folderTree:focus-within li.current > .container {
+:root:not([lwtheme]) #folderTree li.current > .container {
+  outline-color: color-mix(in srgb, var(--m3-primary) 45%, transparent);
+}
+
+:root:not([lwtheme]) #folderTree:focus-within li.current > .container {
   outline-color: var(--m3-primary);
 }
 
@@ -341,10 +438,13 @@
 #folderTree .container > .twisty {
   inline-size: var(--m3-fp-twisty);
   block-size: var(--m3-fp-twisty);
+}
+
+:root:not([lwtheme]) #folderTree .container > .twisty {
   color: var(--m3-on-surface-variant);
 }
 
-#folderTree li.selected > .container > .twisty {
+:root:not([lwtheme]) #folderTree li.selected > .container > .twisty {
   color: var(--m3-on-secondary-container);
 }
 
@@ -352,7 +452,9 @@
  * on source order, so `content:`, -moz-context-properties and every
  * [data-folder-type] / [data-server-type] tint stay in force. Converting these
  * to the design's mask-image would blank every RSS favicon (about3Pane.js
- * writes `content: url("page-icon:…")` inline) and discard user folder colours. */
+ * writes `content: url("page-icon:…")` inline) and discard user folder colours.
+ * Size only, so nothing here is guarded — and guarding it would break the
+ * equal-specificity hand-off this comment describes. */
 #folderTree .icon {
   inline-size: var(--m3-fp-icon);
   block-size: var(--m3-fp-icon);
@@ -365,6 +467,9 @@
   margin-inline: var(--m3-fp-gap) 0;
   font-size: var(--m3-fp-label-size);
   font-weight: 400;
+}
+
+:root:not([lwtheme]) #folderTree .container > .name {
   color: inherit;
 }
 
@@ -372,15 +477,19 @@
 #folderTree li.unread > .container > .name,
 #folderTree li.new-messages > .container > .name {
   font-weight: 500;
+}
+
+:root:not([lwtheme]) #folderTree li.unread > .container > .name,
+:root:not([lwtheme]) #folderTree li.new-messages > .container > .name {
   color: var(--m3-on-surface);
 }
 
-#folderTree li.new-messages > .container > .name {
+:root:not([lwtheme]) #folderTree li.new-messages > .container > .name {
   color: var(--m3-primary);
 }
 
-#folderTree li.selected.unread > .container > .name,
-#folderTree li.selected.new-messages > .container > .name {
+:root:not([lwtheme]) #folderTree li.selected.unread > .container > .name,
+:root:not([lwtheme]) #folderTree li.selected.new-messages > .container > .name {
   color: var(--m3-on-secondary-container);
 }
 
@@ -390,13 +499,17 @@
   font-weight: 600;
 }
 
-#folderTree li.tls-error > .container > .name {
+:root:not([lwtheme]) #folderTree li.tls-error > .container > .name {
   color: var(--m3-error);
 }
 
 /* about3Pane.css marks this !important, so matching it is the only way to
  * retint. Busy and errored rows are excluded so they keep beating the TLS tint,
- * exactly as source order made them do before this file existed. */
+ * exactly as source order made them do before this file existed.
+ *
+ * NOT guarded, same reason as the selected-row --icon-color above: this is the
+ * folder-colour path, it is pinned to about3Pane.css's specificity on purpose,
+ * and a prefix would break that pinning. */
 #folderTree li.tls-error:not([data-is-busy="true"], [data-has-error="true"]) > .container > .icon {
   --icon-color: var(--m3-error) !important;
 }
@@ -424,15 +537,22 @@
 }
 
 /* Unread is the one count that must survive at a glance, so it keeps a filled
- * pill; total falls back to the design's plain trailing text. */
-#folderTree li.unread > .container > .unread-count,
-#folderTree li.new-messages > .container > .unread-count {
+ * pill; total falls back to the design's plain trailing text.
+ *
+ * The badge borders ship guarded whole, width and style included — the second
+ * and last departure from "shape stays unguarded". about3Pane.css gives the
+ * filled badge no border at all and sizes its own outlined variant with
+ * `padding-block: 0`, so a leftover 1px width here would either paint a
+ * currentColor ring or, worse, out-specify the theme's outlined badge and erase
+ * the only cue that a collapsed parent's unread count is not local. */
+:root:not([lwtheme]) #folderTree li.unread > .container > .unread-count,
+:root:not([lwtheme]) #folderTree li.new-messages > .container > .unread-count {
   background-color: var(--m3-primary-container);
   color: var(--m3-on-primary-container);
   border: 1px solid transparent;
 }
 
-#folderTree li.new-messages > .container > .unread-count {
+:root:not([lwtheme]) #folderTree li.new-messages > .container > .unread-count {
   background-color: var(--m3-primary);
   color: var(--m3-on-primary);
 }
@@ -441,22 +561,29 @@
  * variant — that distinction is the only cue that the count is not local. */
 #folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
 #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
-  background-color: transparent;
-  color: var(--m3-primary);
-  border: 1px solid var(--m3-primary);
   padding-block: 1px;
 }
 
-#folderTree .container > .total-count {
+:root:not([lwtheme]) #folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
+:root:not([lwtheme]) #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
   background-color: transparent;
+  color: var(--m3-primary);
+  border: 1px solid var(--m3-primary);
+}
+
+#folderTree .container > .total-count {
   padding-inline: 2px;
   min-inline-size: 0;
   font-weight: 400;
+}
+
+:root:not([lwtheme]) #folderTree .container > .total-count {
+  background-color: transparent;
   color: var(--m3-on-surface-variant);
 }
 
-#folderTree li.selected > .container > .total-count,
-#folderTree li.selected > .container > .folder-size {
+:root:not([lwtheme]) #folderTree li.selected > .container > .total-count,
+:root:not([lwtheme]) #folderTree li.selected > .container > .folder-size {
   color: var(--m3-on-secondary-container);
 }
 
@@ -465,13 +592,17 @@
   font-size: var(--m3-fp-overline-size);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
+}
+
+:root:not([lwtheme]) #folderTree .container > .folder-size {
   color: var(--m3-on-surface-variant);
 }
 
 /* The 3px account colour bar only exists under [data-mode="smart"] and is
  * positioned with a negative --account-indicator-inline-end that is tuned per
  * uidensity in about3Pane.css. Only the shape is touched here; the margins and
- * the `display` rule that gates it are left alone so it stays attached. */
+ * the `display` rule that gates it are left alone so it stays attached. Shape
+ * only, and the bar's colour is the account's, so there is nothing to guard. */
 #folderTree .container > .account-indicator {
   border-radius: var(--m3-radius-full);
 }
@@ -482,11 +613,14 @@
   block-size: calc(var(--m3-fp-control) - 16px);
   min-block-size: 0;
   border-radius: var(--m3-radius-full);
+}
+
+:root:not([lwtheme]) #folderTree .container > .status-icon {
   border-color: transparent;
   background-color: transparent;
 }
 
-#folderTree .container > .status-icon:enabled:hover {
+:root:not([lwtheme]) #folderTree .container > .status-icon:enabled:hover {
   background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
   border-color: transparent;
 }
@@ -501,11 +635,19 @@
  * Drag, drop and context-menu targets.
  *
  * Every one of these must stay visible: they are the only feedback for folder
- * move/copy and mode reorder.
+ * move/copy and mode reorder. Guarding does not cost that visibility —
+ * list-container.css draws its own drop-target and drag-target states from
+ * --list-container-*, which is exactly what an installed theme repaints, and
+ * about3Pane.css does the same for .context-menu-target. Standing down hands
+ * the feedback back rather than removing it.
+ *
+ * These outlines are guarded whole, unlike .current above: an outline takes no
+ * space, so nothing shifts, and a stray currentColor ring layered over the
+ * theme's own drop-target fill would read as a rendering fault.
  * ======================================================================== */
 
-#folderTree li[role="treeitem"].drop-target > .container,
-#folderTree:focus-within li[role="treeitem"].drop-target > .container {
+:root:not([lwtheme]) #folderTree li[role="treeitem"].drop-target > .container,
+:root:not([lwtheme]) #folderTree:focus-within li[role="treeitem"].drop-target > .container {
   background-color: var(--m3-primary-container);
   color: var(--m3-on-primary-container);
   outline: 2px solid var(--m3-primary);
@@ -513,16 +655,16 @@
   border-color: transparent;
 }
 
-#folderTree li[role="treeitem"].drag-target > .container,
-#folderTree li.selected.drag-target > .container {
+:root:not([lwtheme]) #folderTree li[role="treeitem"].drag-target > .container,
+:root:not([lwtheme]) #folderTree li.selected.drag-target > .container {
   color: color-mix(in srgb, currentColor 50%, transparent);
   /* Recolours the border list-container.css already switched to `dashed`;
    * swapping to an outline here would collide with the .current ring. */
   border-color: var(--m3-outline);
 }
 
-#folderTree li.context-menu-target:not(.selected) > .container,
-#folderTree li.context-menu-target:not(.selected) > .container:hover {
+:root:not([lwtheme]) #folderTree li.context-menu-target:not(.selected) > .container,
+:root:not([lwtheme]) #folderTree li.context-menu-target:not(.selected) > .container:hover {
   background-color: color-mix(in srgb, var(--m3-primary) 10%, transparent);
   outline: 1px dashed var(--m3-primary);
   outline-offset: -1px;
@@ -534,6 +676,9 @@
 
 /* ==========================================================================
  * Motion
+ *
+ * Not guarded: a transition is timing, not palette. The properties it animates
+ * resolve to whatever won the cascade, theme or not.
  * ======================================================================== */
 
 @media (prefers-reduced-motion: no-preference) {
@@ -572,90 +717,110 @@
  * about3Pane.css and list-container.css both fall back to system colours under
  * prefers-contrast; the M3 fills above would silently undo that, so they are
  * handed back here. Nothing in this block relies on an --m3-* colour.
+ *
+ * These rules carry the same :root:not([lwtheme]) prefix as the rules they are
+ * undoing, and that is a specificity requirement, not a theme opt-out: an
+ * unprefixed `#folderPane` (1,0,0) can no longer beat a prefixed
+ * `:root:not([lwtheme]) #folderPane` (1,2,0), so leaving the prefix off here
+ * would let the M3 fills survive into high contrast — the exact regression this
+ * block exists to prevent. With the prefix, every pair is equal-specificity and
+ * this block wins on source order, as it always did. Nothing is lost when a
+ * theme IS installed either: the M3 fills have already stood down, and
+ * about3Pane.css / list-container.css run their own prefers-contrast fallbacks.
  * ======================================================================== */
 
 @media (prefers-contrast) {
-  #folderPane {
-    background-color: var(--sidebar-background);
-    color: var(--sidebar-color);
+  :root:not([lwtheme]) {
+    #folderPane {
+      background-color: var(--sidebar-background);
+      color: var(--sidebar-color);
+    }
+
+    #folderTree.sidebar-panel-scroll::after {
+      background-color: var(--sidebar-background);
+    }
+
+    #folderPaneHeaderBar {
+      background-color: var(--sidebar-background);
+      border-block-end-color: var(--sidebar-border);
+    }
+
+    #folderPaneWriteMessage {
+      background-color: var(--selected-item-color);
+      color: var(--selected-item-text-color);
+      box-shadow: none;
+    }
+
+    #folderTree li > .container {
+      color: inherit;
+    }
+
+    #folderTree li:not(.selected) > .container:hover {
+      background-color: transparent;
+      color: inherit;
+      outline: var(--treeitem-outline-hover);
+      outline-offset: -2px;
+    }
+
+    #folderTree li.selected > .container,
+    #folderTree:focus-within li.selected > .container,
+    #folderTree li.selected > .container:hover,
+    #folderTree li[role="treeitem"].drop-target > .container {
+      background-color: var(--treeitem-background-active);
+      color: var(--treeitem-text-active);
+    }
+
+    #folderTree li.selected > .container > .name,
+    #folderTree li.selected.unread > .container > .name,
+    #folderTree li.selected.new-messages > .container > .name,
+    #folderTree li.selected > .container > .total-count,
+    #folderTree li.selected > .container > .folder-size {
+      color: currentColor;
+    }
+
+    #folderTree li.unread > .container > .unread-count,
+    #folderTree li.new-messages > .container > .unread-count {
+      background-color: var(--folderpane-unread-count-background);
+      color: var(--folderpane-unread-count-text);
+    }
+
+    #folderTree li.selected > .container > .unread-count {
+      background-color: var(--folderpane-unread-count-text);
+      color: var(--treeitem-background-active);
+    }
+
+    #folderTree .container > .total-count {
+      background-color: var(--folderpane-total-count-background);
+      color: var(--folderpane-total-count-text);
+    }
   }
 
-  #folderTree.sidebar-panel-scroll::after {
-    background-color: var(--sidebar-background);
-  }
-
-  #folderPaneHeaderBar {
-    background-color: var(--sidebar-background);
-    border-block-end-color: var(--sidebar-border);
-  }
-
-  #folderPaneWriteMessage {
-    background-color: var(--selected-item-color);
-    color: var(--selected-item-text-color);
-    box-shadow: none;
-  }
-
-  #folderTree li > .container {
-    color: inherit;
-  }
-
-  #folderTree li:not(.selected) > .container:hover {
-    background-color: transparent;
-    color: inherit;
-    outline: var(--treeitem-outline-hover);
-    outline-offset: -2px;
-  }
-
-  #folderTree li.selected > .container,
-  #folderTree:focus-within li.selected > .container,
-  #folderTree li.selected > .container:hover,
-  #folderTree li[role="treeitem"].drop-target > .container {
-    background-color: var(--treeitem-background-active);
-    color: var(--treeitem-text-active);
-  }
-
-  #folderTree li.selected > .container > .name,
-  #folderTree li.selected.unread > .container > .name,
-  #folderTree li.selected.new-messages > .container > .name,
-  #folderTree li.selected > .container > .total-count,
-  #folderTree li.selected > .container > .folder-size {
-    color: currentColor;
-  }
-
+  /* Unprefixed on purpose. It is !important, so it needs no specificity help,
+   * and the user's per-folder colour can be unreadable on the high-contrast
+   * selection fill whether or not a lightweight theme is installed. */
   #folderTree li.selected > .container > .icon {
-    /* Overrides the user's per-folder colour, which can be unreadable on the
-     * high-contrast selection fill. */
     --icon-color: currentColor !important;
-  }
-
-  #folderTree li.unread > .container > .unread-count,
-  #folderTree li.new-messages > .container > .unread-count {
-    background-color: var(--folderpane-unread-count-background);
-    color: var(--folderpane-unread-count-text);
-  }
-
-  #folderTree li.selected > .container > .unread-count {
-    background-color: var(--folderpane-unread-count-text);
-    color: var(--treeitem-background-active);
-  }
-
-  #folderTree .container > .total-count {
-    background-color: var(--folderpane-total-count-background);
-    color: var(--folderpane-total-count-text);
   }
 }
 
 @media (forced-colors) {
-  #folderTree li.current > .container,
-  #folderTree:focus-within li.current > .container {
-    outline-color: CanvasText;
+  /* Prefixed for the same specificity reason as the prefers-contrast block:
+   * these two undo guarded rules and have to stay able to out-rank them. */
+  :root:not([lwtheme]) {
+    #folderTree li.current > .container,
+    #folderTree:focus-within li.current > .container {
+      outline-color: CanvasText;
+    }
+
+    #folderTree li.selected > .container {
+      background-color: SelectedItem;
+      color: SelectedItemText;
+    }
   }
 
-  #folderTree li.selected > .container {
-    background-color: SelectedItem;
-    color: SelectedItemText;
-  }
-
+  /* Unprefixed: the focus rings it overrides are unguarded too, so it already
+   * out-ranks them, and a forced-colors focus ring must never depend on which
+   * theme is installed. */
   #folderPaneGetMessages:focus-visible,
   #folderPaneMoreButton:focus-visible,
   #folderPaneWriteMessage:focus-visible,

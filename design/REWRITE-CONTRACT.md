@@ -615,6 +615,151 @@ and `about3Pane.js` was verified **unmodified** by `git status --porcelain`
 throughout, which is what makes "features survive by construction" true rather
 than hopeful.
 
+---
+
+**Lightweight-theme guard pass — the five content sheets — still 37 / 38, Theming still refused**
+
+The single refusal above named one cause: `m3-chrome.css` guards its colour-bearing
+rules with `:root:not([lwtheme])` **eight** times (lines 71, 120, 276, 352, 407,
+462, 512, 536) and the five content sheets guarded **nothing**, so an installed
+third-party lightweight theme painted the chrome and was overridden across the
+3-pane content. Five agents applied that guard, one sheet each; an adversarial
+pass then re-derived every specificity pair.
+
+**The under-guarding is fixed. The box is still not ticked, because fixing it
+introduced three over-guarding regressions of a new shape.**
+
+| Sheet | Rules guarded | Rules split | Guard occurrences |
+|---|---:|---:|---:|
+| `m3-layout.css` | 7 | 7 | 10 |
+| `m3-folder-pane.css` | 52 | 17 | 60 |
+| `m3-thread-pane.css` | 18 | 15 | 23 |
+| `m3-quick-filter.css` | 21 | 16 | 22 |
+| `m3-message-pane.css` | 2 | 0 | 4 |
+| **Total** | **100** | **55** | **119** |
+
+Rule counts include rules guarded by inheritance from a guarded nesting parent;
+the occurrence column is the literal count of the guard string and is the number
+that was checked mechanically. Where a rule mixed both kinds, the layout half
+stays unguarded and the colour half follows immediately after it, so source order
+relative to neighbours is unchanged.
+
+#### Verified mechanically by the ratify pass, not taken on report
+
+- Braces balance with comments stripped in all five: **20/20, 98/98, 152/152,
+  74/74, 9/9**. Final depth 0, never negative.
+- All **119** guards spell the selector identically as `:root:not([lwtheme])`.
+  Zero malformed variants — no `:root[lwtheme]`, no `:not(lwtheme)`, no dropped
+  bracket.
+- **Zero** positive-`[lwtheme]` selectors survive in any content sheet. The three
+  greps that hit are comment prose (`m3-thread-pane.css:251`,
+  `m3-quick-filter.css:125`, `m3-message-pane.css:205`), confirmed by re-running
+  comment-stripped.
+- `git status --porcelain` lists exactly the five assigned sheets. `about3Pane.js`,
+  `about3Pane.xhtml`, `about3Pane.css`, `jar.inc.mn`, `material-tokens.css` and
+  `m3-chrome.css` are all **unmodified**.
+
+#### What was deliberately left unguarded, and why
+
+The exemption list is the same in every sheet and was audited for over-reach:
+every `:focus-visible` outline and the two keyboard-cursor rings that are not
+literally `:focus-visible` (`tr.card-layout.current`, `tr.table-layout.current`) —
+accessibility must never depend on which theme is installed; icon `fill`/`stroke`
+and `-moz-context-properties`, including the folder-colour `--icon-color` path,
+which `folder-tree-row.mjs:259` writes inline; `background-image` that carries an
+icon glyph rather than a surface; `content:`; `border-width`/`border-style`/
+`border-radius`, kept outside the guard in all three shorthand decompositions so a
+theme cannot un-round a pane card or collapse the splitter's grow indicator;
+`border: 1px solid transparent`, which is the absence of paint and is load-bearing
+for `ThreadCard.ROW_HEIGHT`; the `opacity` family; all layout, sizing, typography
+and motion; and local metric custom properties. Custom-property **definitions**
+were not guarded anywhere — `material-tokens.css` was not touched, and the
+`--m3-fp-*`, `--m3-tp-*`, `--m3-qfb-*` and pane-sizing locals stay unguarded
+because guarding a definition only makes its guarded consumers resolve to nothing.
+
+The one judgement call worth flagging: `m3-thread-pane.css`'s `--tree-card-*` /
+`--listbox-*` / `--tree-view-*` remap **was** guarded, correctly. That block is not
+a token definition — it is how the sheet paints every row, by re-pointing variables
+`tree-listbox.css` and `threadCard.css` consume — so it is the same case as
+`m3-chrome.css:462`'s already-guarded `--spaces-bg-color`.
+
+#### Still refused — three over-guarding regressions, all the same shape
+
+The guard adds (0,2,0). Every accessibility fallback that used to tie its base
+rule and win on **source order** now loses on **specificity**, because the base
+rule was raised and the fallback was not. A media query contributes no
+specificity, so `@media (prefers-contrast)` and `@media (forced-colors)` did not
+move with it.
+
+1. **`m3-layout.css` — the high-contrast splitter hairline is now invisible.**
+   `:root:not([lwtheme]) #folderPaneSplitter` (1,2,0) sets
+   `border-color: transparent`; `@media (prefers-contrast)
+   #folderPaneSplitter:not(.splitter-collapsed)` (1,1,0) sets
+   `border-color: var(--m3-outline)`. With no theme and `prefers-contrast` on, the
+   splitter takes `border-width: 1px` from the fallback and `transparent` from the
+   guard — a 1px invisible border that costs 2px of content box for nothing.
+   The guard rule's own comment asserts the contrast block "is the only place the
+   border regains a width" and is "deliberately NOT guarded"; that reasoning is
+   exactly backwards, and the comment is now false.
+2. **`m3-thread-pane.css` — the whole `@media (forced-colors)` block (1077-1120)
+   is out-specified by the rules it exists to undo**, across eight selector
+   groups. Most degrade quietly because the UA's forced-colors adjustment
+   re-forces the losing token anyway. Two do not, because a *system colour* is
+   preserved in forced-colors mode and a token is not: `#threadPaneSelectedCount`
+   (2,0,0) loses `SelectedItem`/`SelectedItemText` to the guarded (2,2,0) rule at
+   :315, so the "N selected" pill goes indistinguishable from the header bar in
+   High Contrast; and `thread-card-tags[tags]` loses `background-color: transparent`
+   to a `color-mix()` that *is* forced, so the tag host paints an opaque box over
+   the row.
+3. **`m3-message-pane.css` — the high-contrast findbar divider is defeated.**
+   `:root:not([lwtheme]) #messagePane findbar` (1,2,1) holds
+   `--m3-outline-variant`; `@media (prefers-contrast) #messagePane findbar`
+   (1,0,1) can no longer restore `--m3-outline`.
+
+All three take the same one-line fix, and the precedent is already in this tree:
+`m3-chrome.css:511-512` prefixes its own contrast fallback with the guard, and
+`m3-folder-pane.css` did the same to its `prefers-contrast` and two of three
+`forced-colors` rules for precisely this reason — reviewed and cleared, because
+with the prefix each pair is equal-specificity and the fallback wins on source
+order as it always did, and under `[lwtheme]` the M3 fills have already stood
+down while `about3Pane.css` (contrast variables at 18-57, rules at 404-410,
+419-425, 441-445) and `list-container.css` (forced-colors at 6-24, 112-115,
+127-129) run their own fallbacks. The correct fix in the other three sheets is
+that same prefix; the focus-ring groups must stay unprefixed, since the rings
+they override are themselves unguarded.
+
+**Not fixed in this pass by design.** The ratify agent grades, it does not
+re-cut the work it is grading. Recorded here as the whole of what remains between
+this branch and 38/38.
+
+#### One deletion, recorded because it is not a guard
+
+`m3-thread-pane.css` **deleted** rather than guarded:
+
+    :root[lwtheme][lwt-tree] #threadPane > #threadPaneHeaderBar.list-header-bar {
+      background-color: transparent;
+      color: var(--m3-on-surface);
+    }
+
+This is the only declaration loss across all five sheets; every other delta is a
+guard, a split, or a `border`/`outline` shorthand decomposed into longhands. The
+rationale holds — that rule applied an M3 colour *precisely when* a theme is
+installed, which is this bug in miniature, and with the fill above it now guarded
+there is no M3 surface left for it to protect — but it is a deletion, outside the
+letter of the brief, and is flagged here rather than buried.
+
+#### Running total: **37 / 38**, unchanged
+
+Theming stays unticked. Its sixth claim moved from "no guard at all" to "guarded,
+but the guard defeats three accessibility fallbacks", which is progress on the
+same box and not a tick. The other five claims are unaffected and still hold.
+
+And the standing caveat has not moved a millimetre, eleven fixes and one guard
+pass later: **nothing on this branch has been built or launched.** Every proof
+here is static — selector, specificity, cascade and source reading. Open item 1
+stands. A green contract would not be a substitute for running the application,
+and this contract is not even green.
+
 ## Verification
 
 A rewrite is not "done" until every box above is ticked. Minimum gates:

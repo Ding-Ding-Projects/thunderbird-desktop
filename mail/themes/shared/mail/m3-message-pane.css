@@ -52,6 +52,11 @@
  * Loaded AFTER material-tokens.css, about3Pane.css, messenger.css and
  * m3-layout.css so it wins the cascade on equal specificity without
  * !important.
+ *
+ * Everything colour-bearing is guarded by :root:not([lwtheme]) so an installed
+ * lightweight theme still wins, which the rewrite contract requires. See the
+ * note above the first guarded rule for why, and section 4 of the notes
+ * returned with this file for what is deliberately left unguarded.
  */
 
 /* ==========================================================================
@@ -161,7 +166,19 @@ body:is(.layout-classic, .layout-wide) #messagePane {
  * are needed here.
  * ======================================================================== */
 
-conversation-view {
+/* WHY THE :root:not([lwtheme]) GUARD — applies to every guarded rule below.
+ *
+ * When a third-party lightweight theme is installed the platform stamps
+ * [lwtheme] on documentElement and ThemeVariableMap.sys.mjs writes that theme's
+ * palette onto the root as inline custom properties (--lwt-accent-color,
+ * --toolbar-bgcolor, --sidebar-background, …). about3Pane.css consumes those
+ * names, so the user's theme is what paints the 3-pane. Our M3 colours sit at
+ * the same or higher specificity and load later, so without a guard they would
+ * simply out-cascade the theme and the palette would visibly stop at the
+ * <browser> boundary. The guard makes the M3 colours stand down whenever a
+ * theme is present; layout, shape, motion and focus rings stay unguarded
+ * because they are ours either way. Same pattern as m3-chrome.css. */
+:root:not([lwtheme]) conversation-view {
   --color-surface-lower: var(--m3-s2);
   --color-surface-border: var(--m3-outline-variant);
   --color-text-base: var(--m3-on-surface);
@@ -180,13 +197,18 @@ conversation-view {
 
 /* messenger.css paints every findbar with --toolbar-background-color, which
  * resolves to the pre-M3 --layout-background-1 and reads as a foreign slab
- * against --m3-s1. The ID in this selector is what lets it outrank
- * messenger.css's `:root[lwtheme] findbar` rule (one ID beats two classes), so
- * the strip stays on-palette when a lightweight theme is installed; the
- * background-image reset neutralises the lwt accent/header images that rule
- * layers on. Scoped to #messagePane so findbars in other windows are
- * untouched. */
-#messagePane findbar {
+ * against --m3-s1. Scoped to #messagePane so findbars in other windows are
+ * untouched.
+ *
+ * The whole rule is colour and so the whole rule is guarded. That is a
+ * deliberate reversal: this selector used to be spelled with an ID *in order
+ * to* outrank messenger.css's `:root[lwtheme] findbar` and hold the M3 palette
+ * even under a theme, and the background-image reset existed to wipe the lwt
+ * accent/header image that rule layers on. Both were the bug — a themed
+ * Thunderbird is supposed to show the theme's findbar. With the guard in place
+ * messenger.css's lwtheme rule is left to win unopposed, and the ID now only
+ * does the scoping it reads as. */
+:root:not([lwtheme]) #messagePane findbar {
   background-color: var(--m3-s2);
   background-image: none;
   color: var(--m3-on-surface);

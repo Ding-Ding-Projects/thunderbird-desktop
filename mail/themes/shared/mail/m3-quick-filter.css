@@ -96,6 +96,25 @@
 }
 
 /* ==========================================================================
+ * Lightweight themes: why every colour rule below carries :root:not([lwtheme]).
+ *
+ * When a third-party lightweight theme is installed the platform sets
+ * [lwtheme] on documentElement and ThemeVariableMap.sys.mjs writes the theme's
+ * palette onto that same element as inline custom properties
+ * (--lwt-accent-color, --toolbar-bgcolor, --sidebar-background, …).
+ * about3Pane.css and quickFilterBar.css consume those properties, so the user's
+ * theme is what paints this surface.
+ *
+ * Our M3 colours are single-id rules that would tie or beat those consumers and
+ * win on source order, which is how the palette ends up stopping dead at the
+ * <browser> boundary. So every colour-bearing declaration here is guarded and
+ * stands down the moment a theme is installed — same guard, same placement,
+ * same formatting as m3-chrome.css. Layout, sizing, shape, motion,
+ * :focus-visible rings and icon paint are NOT guarded: they must hold with or
+ * without a theme.
+ * ======================================================================== */
+
+/* ==========================================================================
  * Bar shell
  * ======================================================================== */
 
@@ -105,28 +124,39 @@
  * It also keeps this rule at (1,1,0), i.e. BELOW the
  * :root[lwtheme][lwt-tree] override in quickFilterBar.css at (1,3,0), so an
  * installed lightweight theme still wins the tint — which the rewrite
- * contract requires. */
+ * contract requires. The guard on the colour half below now makes that
+ * belt and braces rather than the only defence. */
 #quick-filter-bar:not([hidden]) {
   --button-margin: 0;
   /* Widgets.css draws every focus ring from --focus-outline. Re-pointing the
    * colour once here is what preserves :focus-visible on the field, the chips,
-   * the tag buttons and both icon buttons without restating it per selector. */
+   * the tag buttons and both icon buttons without restating it per selector.
+   * Deliberately unguarded: the focus ring is an accessibility affordance and
+   * must never depend on which theme is installed. */
   --focus-outline-color: var(--m3-primary);
   --focus-outline-offset: 2px;
 
   display: flex;
   flex-direction: column;
+  /* Longhands, not the `border-block-end` shorthand: the shorthand would also
+   * reset border-block-end-color and so strip the themed --sidebar-border that
+   * quickFilterBar.css supplies under [lwtheme]. */
+  border-block-end-width: 1px;
+  border-block-end-style: solid;
+  padding-inline: var(--m3-qfb-gutter);
+  padding-block: var(--m3-qfb-gap) calc(var(--m3-qfb-gap) * 1.5);
+  font-family: var(--m3-font);
+  font-size: var(--m3-font-size);
+}
+
+:root:not([lwtheme]) #quick-filter-bar:not([hidden]) {
   /* Transparent rather than a tonal step: the bar is a child of #threadPane,
    * which m3-layout.css paints --m3-s2, and the design draws the filter rows
    * straight onto the list-pane surface with no seam. Transparency is also
    * what lets the lightweight-theme rule above show through unmodified. */
   background-color: transparent;
   color: var(--m3-on-surface);
-  border-block-end: 1px solid var(--m3-outline-variant);
-  padding-inline: var(--m3-qfb-gutter);
-  padding-block: var(--m3-qfb-gap) calc(var(--m3-qfb-gap) * 1.5);
-  font-family: var(--m3-font);
-  font-size: var(--m3-font-size);
+  border-block-end-color: var(--m3-outline-variant);
 }
 
 /* ==========================================================================
@@ -160,11 +190,6 @@
  * ======================================================================== */
 
 #quick-filter-bar #qfb-qs-textbox {
-  --search-bar-background: transparent;
-  --search-bar-focus-background: transparent;
-  --search-bar-border-color: var(--m3-outline);
-  --search-bar-color: var(--m3-on-surface);
-  --search-field-placeholder: var(--m3-on-surface-variant);
   /* The design's 22px radius on a 44px field is a full pill. */
   --button-border-radius: var(--m3-radius-full);
   --search-outline-offset: var(--focus-outline-offset);
@@ -181,6 +206,16 @@
   font-size: var(--m3-font-size);
 }
 
+/* The shadow root's own colour inputs. Guarded: under a lightweight theme
+ * search-bar.css falls back to the themed --search-bar-* values instead. */
+:root:not([lwtheme]) #quick-filter-bar #qfb-qs-textbox {
+  --search-bar-background: transparent;
+  --search-bar-focus-background: transparent;
+  --search-bar-border-color: var(--m3-outline);
+  --search-bar-color: var(--m3-on-surface);
+  --search-field-placeholder: var(--m3-on-surface-variant);
+}
+
 /* search-bar.css pins the placeholder box at a hardcoded 1ch while the input's
  * own text starts at --search-padding. At the stock 6px the two happen to
  * coincide; at the pill's larger inset they visibly disagree, and the shadow
@@ -194,7 +229,9 @@
   content: var(--icon-search);
   /* The <img> is light DOM slotted into the shadow button, so it inherits from
    * the host and not from the shadow tree's `.button` rule that would
-   * otherwise supply these. */
+   * otherwise supply these. That is also why the icon paint below is NOT
+   * guarded: nothing else in the cascade supplies it, so standing it down for a
+   * lightweight theme would leave the magnifier unpainted rather than themed. */
   -moz-context-properties: fill, stroke;
   fill: color-mix(in srgb, var(--m3-on-surface-variant) 20%, transparent);
   stroke: var(--m3-on-surface-variant);
@@ -221,13 +258,18 @@
   padding: 0;
   border: none;
   border-radius: var(--m3-radius-full);
-  background-color: transparent;
   background-position: center;
   background-size: 20px;
-  box-shadow: none;
-  color: var(--m3-on-surface-variant);
+  /* Both resolve off currentColor, so they follow whichever colour wins below —
+   * ours or the theme's — and are left unguarded on purpose. */
   fill: color-mix(in srgb, currentColor 20%, transparent);
   stroke: currentColor;
+}
+
+:root:not([lwtheme]) #quick-filter-bar :is(#qfb-sticky, #qfd-dropdown) {
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--m3-on-surface-variant);
 }
 
 /* The 4x12 pressed-indicator bar widgets.css draws for .check-button is the
@@ -236,7 +278,7 @@
   content: none;
 }
 
-#quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):enabled:hover {
+:root:not([lwtheme]) #quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):enabled:hover {
   /* The design hovers with `filter: brightness(0.97)`, which is a light-theme
    * trick: on the dark palette it darkens the control toward the background so
    * the hover reads as "less there". An M3 state layer keyed to
@@ -246,17 +288,20 @@
   border-color: transparent;
 }
 
-#quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):enabled:hover:active {
+:root:not([lwtheme]) #quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):enabled:hover:active {
   background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
 }
 
-#quick-filter-bar #qfb-sticky[aria-pressed="true"] {
+/* The [aria-pressed] state selectors are untouched — `is="toggle-button"` still
+ * writes them and quickFilterBar.js still reads them. Only the paint stands
+ * down under a theme; the pressed state itself never does. */
+:root:not([lwtheme]) #quick-filter-bar #qfb-sticky[aria-pressed="true"] {
   background-color: var(--m3-secondary-container);
   color: var(--m3-on-secondary-container);
   box-shadow: none;
 }
 
-#quick-filter-bar #qfb-sticky[aria-pressed="true"]:enabled:hover {
+:root:not([lwtheme]) #quick-filter-bar #qfb-sticky[aria-pressed="true"]:enabled:hover {
   background-color: color-mix(in srgb, var(--m3-on-secondary-container) 8%, var(--m3-secondary-container));
   color: var(--m3-on-secondary-container);
 }
@@ -282,11 +327,14 @@
   gap: var(--m3-qfb-gap);
   margin: 0;
   border: none;
-  background: none;
   /* The group's stacking context existed only to layer the segmented borders;
    * with gaps between free-standing chips it just traps the focus ring. */
   isolation: auto;
   z-index: auto;
+}
+
+:root:not([lwtheme]) #quick-filter-bar .button-group {
+  background: none;
 }
 
 #quick-filter-bar .button-group > .button {
@@ -296,11 +344,11 @@
   min-inline-size: 0;
   margin: 0;
   padding-block: 0;
-  border: 1px solid var(--m3-outline);
+  /* Longhands so the themed border-color from widgets.css survives; only the
+   * hairline's width and shape are ours unconditionally. */
+  border-width: 1px;
+  border-style: solid;
   border-radius: var(--m3-radius-s);
-  background-color: transparent;
-  box-shadow: none;
-  color: var(--m3-on-surface-variant);
   font-family: var(--m3-font);
   font-size: var(--m3-font-size);
   /* M3 label-large is 500. --m3-font-weight (400) is the body ramp and would
@@ -309,7 +357,14 @@
   line-height: 1;
 }
 
-#quick-filter-bar .button-group > .button:enabled:hover {
+:root:not([lwtheme]) #quick-filter-bar .button-group > .button {
+  border-color: var(--m3-outline);
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--m3-on-surface-variant);
+}
+
+:root:not([lwtheme]) #quick-filter-bar .button-group > .button:enabled:hover {
   /* See the icon-button note above for why this is a state layer and not the
    * design's brightness filter. */
   background-color: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
@@ -317,11 +372,14 @@
   border-color: var(--m3-outline);
 }
 
-#quick-filter-bar .button-group > .button:enabled:hover:active {
+:root:not([lwtheme]) #quick-filter-bar .button-group > .button:enabled:hover:active {
   background-color: color-mix(in srgb, var(--m3-on-surface) 12%, transparent);
 }
 
-#quick-filter-bar .button-group > .button[aria-pressed="true"] {
+/* Again: the [aria-pressed] hook stays exactly as it was. Guarded for paint
+ * only, so a themed chip still reads as pressed via widgets.css's own
+ * selected styling. */
+:root:not([lwtheme]) #quick-filter-bar .button-group > .button[aria-pressed="true"] {
   border-color: transparent;
   background-color: var(--m3-secondary-container);
   color: var(--m3-on-secondary-container);
@@ -330,7 +388,7 @@
   box-shadow: none;
 }
 
-#quick-filter-bar .button-group > .button[aria-pressed="true"]:enabled:hover {
+:root:not([lwtheme]) #quick-filter-bar .button-group > .button[aria-pressed="true"]:enabled:hover {
   background-color: color-mix(in srgb, var(--m3-on-secondary-container) 8%, var(--m3-secondary-container));
   color: var(--m3-on-secondary-container);
   border-color: transparent;
@@ -406,10 +464,13 @@
 }
 
 #quick-filter-bar #qfb-qs-label {
-  color: var(--m3-on-surface-variant);
   font-size: var(--m3-qfb-meta-size);
   letter-spacing: 0.4px;
   margin-inline-end: 4px;
+}
+
+:root:not([lwtheme]) #quick-filter-bar #qfb-qs-label {
+  color: var(--m3-on-surface-variant);
 }
 
 #quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button {
@@ -436,18 +497,23 @@
   margin: 0;
   border: none;
   border-radius: 0;
-  background-color: transparent;
+  /* Not the surface, the icon slot: kept unguarded so the tick appears only in
+   * the pressed state, theme or no theme. */
   background-image: none;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 16px;
-  box-shadow: none;
 
   @media (prefers-reduced-motion: no-preference) {
     transition:
       inline-size 0.15s ease,
       margin-inline-end 0.15s ease;
   }
+}
+
+:root:not([lwtheme]) #quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button::before {
+  background-color: transparent;
+  box-shadow: none;
 }
 
 #quick-filter-bar #quick-filter-bar-filter-text-bar .button-group > .button[aria-pressed="true"]::before {
@@ -515,11 +581,17 @@
   /* 8px, matching the chips above, rather than the current 100px pill: the tag
    * row and the filter row read as one family only if they share a shape. */
   border-radius: var(--m3-radius-s);
-  box-shadow: none;
   font-family: var(--m3-font);
   font-size: var(--m3-font-size);
   font-weight: 500;
   line-height: 1;
+}
+
+/* The only paint this rule set is allowed to touch — suppressing widgets.css's
+ * inset pressed shadow. Guarded like the rest; the per-tag runtime colours are
+ * never declared here at all. */
+:root:not([lwtheme]) #quick-filter-bar button.qfb-tag-button {
+  box-shadow: none;
 }
 
 #quick-filter-bar button.qfb-tag-button:focus-visible {
@@ -536,24 +608,29 @@
   margin: 0;
   padding-block: 0;
   padding-inline: 12px 8px;
-  border: 1px solid var(--m3-outline);
+  border-width: 1px;
+  border-style: solid;
   border-radius: var(--m3-radius-s);
-  background-color: transparent;
-  box-shadow: none;
-  color: var(--m3-on-surface-variant);
   font-family: var(--m3-font);
   font-size: var(--m3-font-size);
   font-weight: 500;
   line-height: unset;
 }
 
-#quick-filter-bar #qfb-tag-filter-mode:not([disabled], [open="true"]):hover {
+:root:not([lwtheme]) #quick-filter-bar #qfb-tag-filter-mode {
+  border-color: var(--m3-outline);
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--m3-on-surface-variant);
+}
+
+:root:not([lwtheme]) #quick-filter-bar #qfb-tag-filter-mode:not([disabled], [open="true"]):hover {
   background-color: color-mix(in srgb, var(--m3-on-surface) 8%, transparent);
   border-color: var(--m3-outline);
   color: var(--m3-on-surface);
 }
 
-#quick-filter-bar #qfb-tag-filter-mode[open="true"] {
+:root:not([lwtheme]) #quick-filter-bar #qfb-tag-filter-mode[open="true"] {
   background-color: var(--m3-secondary-container);
   border-color: transparent;
   color: var(--m3-on-secondary-container);
@@ -578,7 +655,11 @@
  * specificity as each other, so the reduced-motion swap at the foot of this
  * file still wins. Only the tint changes: AccentColor is an OS colour that
  * ignores the M3 seed entirely. The `.searching` gate in quickFilterBar.css is
- * left alone — nothing here declares `display` on this node. */
+ * left alone — nothing here declares `display` on this node.
+ *
+ * Icon paint, so unguarded: the fill is the whole point of the restated rule,
+ * and this selector must keep matching the reduced-motion swap at the foot of
+ * the file specificity-for-specificity. */
 #quick-filter-bar:not([hidden]) #qfb-searching-throbber {
   margin-inline-end: 0;
   inline-size: 16px;
@@ -596,11 +677,14 @@
   margin-inline-start: auto;
   align-self: center;
   text-align: end;
-  color: var(--m3-on-surface-variant);
   font-size: var(--m3-qfb-meta-size);
   letter-spacing: 0.4px;
   /* countStyle again: stops the row reflowing every time the count ticks. */
   font-variant-numeric: tabular-nums;
+}
+
+:root:not([lwtheme]) #quick-filter-bar #qfb-results-label {
+  color: var(--m3-on-surface-variant);
 }
 
 /* The design's --m3-error glyph, mapped onto the one error state this surface
@@ -610,8 +694,12 @@
  *
  * Colour only, never `display`: QuickFilterManager writes style.visibility on
  * this node directly, and a display rule would fight it — the label would hold
- * layout space while invisible. */
-#quick-filter-bar #qfb-results-label[data-l10n-id="quick-filter-bar-no-results"] {
+ * layout space while invisible.
+ *
+ * Guarded like every other colour here. Stock Thunderbird tints this label not
+ * at all, so under a theme it simply falls back to the themed text colour and
+ * the Fluent string still says there are no results — no information is lost. */
+:root:not([lwtheme]) #quick-filter-bar #qfb-results-label[data-l10n-id="quick-filter-bar-no-results"] {
   color: var(--m3-error);
 }
 

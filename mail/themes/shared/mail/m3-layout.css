@@ -44,10 +44,6 @@
  * ======================================================================== */
 
 body#paneLayout {
-  /* The design's tabpanel background: the tone that shows through the gutter
-   * between the pane cards. */
-  background-color: var(--m3-s3);
-  color: var(--m3-on-surface);
   font-family: var(--m3-font);
   font-size: var(--m3-font-size);
   font-weight: var(--m3-font-weight);
@@ -74,13 +70,39 @@ body#paneLayout {
 }
 
 /* ==========================================================================
+ * WHY EVERY COLOUR RULE BELOW IS BEHIND :root:not([lwtheme])
+ *
+ * When a third-party lightweight theme is installed the platform sets the
+ * [lwtheme] attribute on documentElement and ThemeVariableMap.sys.mjs writes
+ * the theme's palette onto the same element as INLINE custom properties
+ * (--lwt-accent-color, --toolbar-bgcolor, --sidebar-background, …).
+ * about3Pane.css already consumes those — e.g. `#folderPane { background-color:
+ * var(--sidebar-background) }` — so with no guard our `#folderPane {
+ * background-color: var(--m3-surface) }` ties it at (1,0,0) and wins purely on
+ * source order, and the user's theme visibly stops at the <browser> boundary
+ * while the chrome around it honours it.
+ *
+ * So: our M3 colours must STAND DOWN when a theme is present. Same guard,
+ * same placement and same formatting as m3-chrome.css, which already does this
+ * in eight places. Only colour-bearing declarations are guarded; layout,
+ * sizing, shape, motion, :focus-visible outlines and the forced-colors /
+ * prefers-contrast fallbacks stay unconditional, because a theme must never be
+ * able to break the layout or the accessibility floor.
+ * ======================================================================== */
+
+:root:not([lwtheme]) body#paneLayout {
+  /* The design's tabpanel background: the tone that shows through the gutter
+   * between the pane cards. */
+  background-color: var(--m3-s3);
+  color: var(--m3-on-surface);
+}
+
+/* ==========================================================================
  * Pane surfaces — the design's tonal ramp, applied per pane so it is
  * layout-independent and survives all four grid templates.
  * ======================================================================== */
 
 #folderPane {
-  background-color: var(--m3-surface);
-  color: var(--m3-on-surface);
   /* Design's <aside> gap; density-scaled (1px compact / 2px comfortable /
    * 4px relaxed). */
   gap: var(--m3-gap);
@@ -89,19 +111,35 @@ body#paneLayout {
   border-start-start-radius: var(--m3-radius-l);
 }
 
+:root:not([lwtheme]) #folderPane {
+  /* Stands down for about3Pane.css's var(--sidebar-background), which is the
+   * single most visible surface a lightweight theme paints in the 3-pane. */
+  background-color: var(--m3-surface);
+  color: var(--m3-on-surface);
+}
+
 #threadPane {
-  background-color: var(--m3-s2);
   border-start-start-radius: var(--m3-radius-l);
+}
+
+:root:not([lwtheme]) #threadPane {
+  background-color: var(--m3-s2);
 }
 
 #messagePane {
-  background-color: var(--m3-s1);
   border-start-start-radius: var(--m3-radius-l);
 }
 
-#accountCentralBrowser {
+:root:not([lwtheme]) #messagePane {
   background-color: var(--m3-s1);
+}
+
+#accountCentralBrowser {
   border-start-start-radius: var(--m3-radius-l);
+}
+
+:root:not([lwtheme]) #accountCentralBrowser {
+  background-color: var(--m3-s1);
 }
 
 /* No box-shadow on any of the above: all three panes carry `contain: strict`,
@@ -138,6 +176,15 @@ body#paneLayout {
    * design does not have. Occupied space is unaffected: it is always
    * content-size + margin-size == occupy-size. */
   border-width: 0;
+}
+
+:root:not([lwtheme]) #folderPaneSplitter,
+:root:not([lwtheme]) #messagePaneSplitter {
+  /* Paired with the zeroed border-width above, so nothing paints in either
+   * state; standing it down under a theme simply hands the colour of the
+   * (0px-wide) edge back to splitter.css's --sidebar-border. The
+   * prefers-contrast block further down, which is the only place the border
+   * regains a width, is deliberately NOT guarded. */
   border-color: transparent;
 }
 
@@ -165,10 +212,15 @@ body#paneLayout {
 
 #folderPaneSplitter::after,
 #messagePaneSplitter::after {
-  /* Replaces splitter.css's --selected-item-color. */
-  background-color: var(--m3-primary);
   /* On an 8px-wide/tall bar this clamps to a 4px pill cap. */
   border-radius: var(--m3-radius-full);
+}
+
+:root:not([lwtheme]) #folderPaneSplitter::after,
+:root:not([lwtheme]) #messagePaneSplitter::after {
+  /* Replaces splitter.css's --selected-item-color — but only with no theme
+   * installed, so a theme's own selection colour keeps painting the grab bar. */
+  background-color: var(--m3-primary);
 }
 
 #folderPaneSplitter:not(.splitter-collapsed)::after,
