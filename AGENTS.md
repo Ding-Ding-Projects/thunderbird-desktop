@@ -254,8 +254,8 @@ no `mail/themes/shared/mail/jar.inc.mn`.
 - The six `m3-*.css` sheets: `m3-layout.css`, `m3-folder-pane.css`, `m3-thread-pane.css`,
   `m3-quick-filter.css`, `m3-message-pane.css`, `m3-chrome.css`.
 - The `<link rel="stylesheet">` blocks added to `mail/base/content/about3Pane.xhtml`
-  (lines 35-59: tokens + the five content sheets) and `mail/base/content/messenger.xhtml`
-  (lines 110-117: tokens + `m3-chrome.css`). Those two files' entire delta is `<link>`
+  (lines 35-58: tokens at 39, the five content sheets at 54-58) and
+  `mail/base/content/messenger.xhtml` (lines 110-117: tokens at 116, `m3-chrome.css` at 117). Those two files' entire delta is `<link>`
   elements and comments — nothing else. `material-tokens.css` is deliberately linked in
   **both**: they are separate documents and custom properties do not cross the browser
   boundary.
