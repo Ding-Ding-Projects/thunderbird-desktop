@@ -218,6 +218,28 @@ jobs:
           rustup target add x86_64-pc-windows-msvc
           rustc --version; cargo --version
 
+      - name: Install MozillaBuild
+        shell: pwsh
+        run: |
+          # Windows mach hard-asserts on MozillaBuild's presence:
+          #   AssertionError: MozillaBuild was not found at "C:\mozilla-build".
+          # It is not on hosted runners, and bootstrap cannot install it because
+          # mach refuses to start without it. So it goes in first, from Mozilla's
+          # own FTP, silently.
+          $url = "https://ftp.mozilla.org/pub/mozilla/libraries/win32/MozillaBuildSetup-Latest.exe"
+          $exe = "$env:RUNNER_TEMP\MozillaBuildSetup.exe"
+          Write-Host "Downloading MozillaBuild..."
+          Invoke-WebRequest -Uri $url -OutFile $exe -UseBasicParsing
+          Write-Host ("Downloaded {0:N1} MB" -f ((Get-Item $exe).Length / 1MB))
+          # NSIS installer: /S is silent, /D must be last and unquoted.
+          Start-Process -FilePath $exe -ArgumentList '/S','/D=C:\mozilla-build' -Wait -NoNewWindow
+          if (-not (Test-Path "C:\mozilla-build")) {
+            throw "MozillaBuild did not install to C:\mozilla-build"
+          }
+          "MOZILLABUILD=C:\mozilla-build" >> $env:GITHUB_ENV
+          Write-Host "MozillaBuild installed:"
+          Get-ChildItem "C:\mozilla-build" | Select-Object -First 8 Name | Format-Table -AutoSize
+
       - name: Write mozconfig
         shell: pwsh
         env:
