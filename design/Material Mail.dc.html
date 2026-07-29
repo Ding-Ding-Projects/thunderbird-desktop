@@ -7,7 +7,1526 @@
 </head>
 <body>
 <x-dc>
+<helmet>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Noto+Sans+HK:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <script src="app-data.js"></script>
+  <style>
+    body { margin: 0; background: #F3EDF7; -webkit-font-smoothing: antialiased; }
+    a { color: #6750A4; text-decoration: none; }
+    a:hover { color: #4F378B; text-decoration: underline; }
+    input, textarea, button, select { font-family: inherit; }
+    ::selection { background: #EADDFF; }
+    @keyframes m3-rise { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+    @keyframes m3-fade { from { opacity: 0; } to { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 1ms !important; animation-iteration-count: 1 !important; transition-duration: 1ms !important; }
+    }
+  </style>
+</helmet>
+<div style="{{ rootStyle }} display:flex; flex-direction:column; block-size:100vh; min-block-size:640px; overflow:hidden;">
+
+  <div role="tablist" aria-label="Workspaces" style="flex:0 0 auto; display:flex; align-items:flex-end; gap:4px; padding:8px 12px 0; background:var(--m3-s3, #F3EDF7);">
+    <div style="display:flex; align-items:center; gap:8px; padding:0 12px 10px 4px;">
+      <span style="inline-size:24px; block-size:24px; background:var(--m3-primary, #6750A4); mask:url('icons/mail.svg') center/24px no-repeat;"></span>
+      <span style="font-size:14px; font-weight:500; letter-spacing:0.1px; white-space:nowrap; color:var(--m3-on-surface-variant, #49454F);">{{ appTitle }}</span>
+    </div>
+
+    <div ref="{{ stripRef }}" style="display:flex; align-items:flex-end; gap:4px; flex:1 1 auto; min-inline-size:0; overflow:hidden;">
+      <sc-for list="{{ tabs }}" as="tab" hint-placeholder-count="4">
+        <button type="button" role="tab" aria-selected="{{ tab.selected }}" draggable="true" onClick="{{ tab.onClick }}" onContextMenu="{{ tab.onContext }}" onDragStart="{{ tab.onDragStart }}" onDragOver="{{ tab.onDragOver }}" onDrop="{{ tab.onDrop }}" title="{{ tab.title }}" style="{{ tab.style }}" style-hover="filter:brightness(0.98)" style-focus="outline:3px solid var(--m3-primary, #6750A4); outline-offset:-3px">
+          <span style="inline-size:18px; block-size:18px; flex:0 0 auto; background:{{ tab.iconColor }}; mask-image:{{ tab.mask }}; mask-size:18px; mask-position:center; mask-repeat:no-repeat;"></span>
+          <span style="{{ tab.labelStyle }}">{{ tab.label }}</span>
+          <span style="{{ tab.pinStyle }}"></span>
+          <span style="{{ tab.badgeStyle }}">{{ tab.badge }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:2px; padding-block-end:4px;">
+      <button type="button" onClick="{{ onOpenPalette }}" title="{{ t.commandPalette }}" style="display:inline-flex; align-items:center; gap:8px; block-size:36px; padding-inline:12px; border:1px solid var(--m3-outline-variant, #CAC4D0); border-radius:18px; background:transparent; color:var(--m3-on-surface-variant, #49454F); font-size:13px; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+        <span style="inline-size:16px; block-size:16px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/shortcut.svg') center/16px no-repeat;"></span>
+        <span style="font-family:ui-monospace, monospace;">{{ paletteHint }}</span>
+      </button>
+      <button type="button" onClick="{{ onOpenTabList }}" title="{{ t.searchTabs }}" style="position:relative; inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+        <span style="inline-size:20px; block-size:20px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/nav-down.svg') center/20px no-repeat;"></span>
+        <span style="{{ overflowDotStyle }}"></span>
+      </button>
+      <button type="button" onClick="{{ onToggleTheme }}" title="{{ themeToggleTitle }}" style="inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+        <span style="inline-size:20px; block-size:20px; background:var(--m3-on-surface-variant, #49454F); mask-image:{{ themeToggleMask }}; mask-size:20px; mask-position:center; mask-repeat:no-repeat;"></span>
+      </button>
+      <button type="button" onClick="{{ onOpenNotifications }}" title="{{ t.notifications }}" style="position:relative; inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+        <span style="inline-size:20px; block-size:20px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/info.svg') center/20px no-repeat;"></span>
+        <span style="{{ notifBadgeStyle }}">{{ notifBadge }}</span>
+      </button>
+      <button type="button" onClick="{{ onOpenSettings }}" title="{{ t.settings }}" style="inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+        <span style="inline-size:20px; block-size:20px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/settings.svg') center/20px no-repeat;"></span>
+      </button>
+    </div>
+  </div>
+
+  <div role="tabpanel" style="flex:1 1 auto; min-block-size:0; display:flex; background:var(--m3-s3, #F3EDF7); padding:0 12px 12px;">
+    <div style="flex:1 1 auto; min-inline-size:0; display:flex; flex-direction:column; overflow:hidden; border-radius:16px; background:var(--m3-surface, #FEF7FF);">
+
+      <sc-if value="{{ isMail }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1 1 auto; min-block-size:0; display:flex; flex-direction:column;">
+          <header style="flex:0 0 auto; display:flex; align-items:center; gap:12px; padding:12px 16px;">
+            <button type="button" onClick="{{ onToggleDrawer }}" title="{{ t.folders }}" style="inline-size:48px; block-size:48px; flex:0 0 auto; border:none; border-radius:24px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+              <span style="inline-size:24px; block-size:24px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/app-menu.svg') center/24px no-repeat;"></span>
+            </button>
+            <div style="flex:1 1 auto; max-inline-size:720px;">
+              <dc-import name="SearchField" value="{{ sfMail.value }}" placeholder="{{ sfMail.placeholder }}" label="{{ sfMail.label }}" count="{{ sfMail.count }}" error="{{ sfMail.error }}" scope="{{ sfMail.scope }}" pattern="{{ sfMail.pattern }}" flags="{{ sfMail.flags }}" sample="{{ sfMail.sample }}" regexOn="{{ sfMail.regexOn }}" builderOpen="{{ sfMail.builderOpen }}" onInput="{{ sfMail.onInput }}" onKeyDown="{{ sfMail.onKeyDown }}" onClear="{{ sfMail.onClear }}" onToggleRegex="{{ sfMail.onToggleRegex }}" onOpenBuilder="{{ sfMail.onOpenBuilder }}" onCloseBuilder="{{ sfMail.onCloseBuilder }}" onApply="{{ sfMail.onApply }}" onCopy="{{ sfMail.onCopy }}" onExport="{{ sfMail.onExport }}" inputRef="{{ sfMail.inputRef }}" hint-size="100%,56px"></dc-import>
+            </div>
+            <button type="button" onClick="{{ onCompose }}" style="display:inline-flex; align-items:center; gap:12px; block-size:56px; padding-inline:20px; border:none; border-radius:16px; background:var(--m3-primary-container, #EADDFF); color:var(--m3-on-primary-container, #21005D); font-size:14px; font-weight:500; letter-spacing:0.1px; cursor:pointer; box-shadow:0 1px 3px 1px rgba(0,0,0,0.15);" style-hover="box-shadow:0 2px 6px 2px rgba(0,0,0,0.15)" style-focus="outline:3px solid var(--m3-primary, #6750A4); outline-offset:2px">
+              <span style="inline-size:24px; block-size:24px; background:var(--m3-on-primary-container, #21005D); mask:url('icons/pencil.svg') center/24px no-repeat;"></span>
+              {{ t.compose }}
+            </button>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span style="font-size:13px; line-height:20px; color:var(--m3-on-surface-variant, #49454F);">{{ accountEmail }}</span>
+              <span style="inline-size:40px; block-size:40px; border-radius:20px; background:var(--m3-primary, #6750A4); color:var(--m3-on-primary, #FFFFFF); display:grid; place-items:center; font-size:15px; font-weight:500;">MO</span>
+            </div>
+          </header>
+
+          <div style="flex:1 1 auto; min-block-size:0; display:flex;">
+            <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ true }}">
+              <aside aria-label="{{ t.folders }}" style="flex:0 0 auto; inline-size:272px; display:flex; flex-direction:column; gap:2px; padding:0 12px 16px; overflow-y:auto;">
+                <div style="padding-block-end:8px;">
+                  <dc-import name="SearchField" size="small" filled="{{ false }}" icon="folder" value="{{ sfFolders.value }}" placeholder="{{ sfFolders.placeholder }}" label="{{ sfFolders.label }}" count="{{ sfFolders.count }}" error="{{ sfFolders.error }}" scope="{{ sfFolders.scope }}" pattern="{{ sfFolders.pattern }}" flags="{{ sfFolders.flags }}" sample="{{ sfFolders.sample }}" regexOn="{{ sfFolders.regexOn }}" builderOpen="{{ sfFolders.builderOpen }}" onInput="{{ sfFolders.onInput }}" onKeyDown="{{ sfFolders.onKeyDown }}" onClear="{{ sfFolders.onClear }}" onToggleRegex="{{ sfFolders.onToggleRegex }}" onOpenBuilder="{{ sfFolders.onOpenBuilder }}" onCloseBuilder="{{ sfFolders.onCloseBuilder }}" onApply="{{ sfFolders.onApply }}" onCopy="{{ sfFolders.onCopy }}" onExport="{{ sfFolders.onExport }}" inputRef="{{ sfFolders.inputRef }}" hint-size="100%,44px"></dc-import>
+                </div>
+                <sc-for list="{{ folders }}" as="folder" hint-placeholder-count="6">
+                  <button type="button" onClick="{{ folder.onClick }}" style="{{ folder.rowStyle }}" style-hover="filter:brightness(0.97)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+                    <span style="inline-size:24px; block-size:24px; flex:0 0 auto; background:{{ folder.iconColor }}; mask-image:{{ folder.mask }}; mask-size:24px; mask-position:center; mask-repeat:no-repeat;"></span>
+                    <span style="{{ folder.labelStyle }}">{{ folder.label }}</span>
+                    <span style="{{ folder.badgeStyle }}">{{ folder.badge }}</span>
+                  </button>
+                </sc-for>
+                <div style="block-size:1px; margin:12px 16px; background:var(--m3-outline-variant, #CAC4D0);"></div>
+                <div style="padding:8px 16px 4px; font-size:11px; font-weight:500; letter-spacing:0.5px; text-transform:uppercase; color:var(--m3-on-surface-variant, #49454F);">{{ t.labels }}</div>
+                <sc-for list="{{ labels }}" as="label" hint-placeholder-count="2">
+                  <button type="button" onClick="{{ label.onClick }}" style="{{ label.rowStyle }}" style-hover="filter:brightness(0.97)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+                    <span style="inline-size:12px; block-size:12px; flex:0 0 auto; border-radius:6px; background:{{ label.dot }};"></span>
+                    <span style="{{ label.labelStyle }}">{{ label.label }}</span>
+                    <span style="{{ label.badgeStyle }}">{{ label.badge }}</span>
+                  </button>
+                </sc-for>
+                <sc-if value="{{ foldersEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:16px; text-align:center; font-size:13px; color:var(--m3-on-surface-variant, #49454F);">{{ foldersEmptyText }}</div>
+                </sc-if>
+              </aside>
+            </sc-if>
+
+            <section style="{{ listPaneStyle }}">
+              <div style="flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:8px 8px 8px 16px;">
+                <h1 style="margin:0; flex:1 1 auto; font-size:22px; font-weight:400; line-height:28px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ folderTitle }}</h1>
+                <span style="flex:0 0 auto; font-size:12px; line-height:16px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">{{ countLabel }}</span>
+                <div style="position:relative; flex:0 0 auto;">
+                  <button type="button" onClick="{{ onToggleSortMenu }}" title="{{ t.sort }}" style="inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+                    <span style="inline-size:20px; block-size:20px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/sort.svg') center/20px no-repeat;"></span>
+                  </button>
+                  <sc-if value="{{ sortMenuOpen }}" hint-placeholder-val="{{ false }}">
+                    <div role="menu" style="position:absolute; inset-inline-end:0; inset-block-start:44px; z-index:20; min-inline-size:220px; padding-block:8px; border-radius:4px; background:var(--m3-s4, #ECE6F0); box-shadow:0 4px 8px 3px rgba(0,0,0,0.15); animation:m3-fade 120ms ease;">
+                      <sc-for list="{{ sortItems }}" as="opt" hint-placeholder-count="4">
+                        <button type="button" role="menuitem" onClick="{{ opt.onClick }}" style="{{ opt.style }}" style-hover="background:var(--m3-s5, #E6E0E9)">
+                          <span style="{{ opt.checkStyle }}"></span>
+                          <span>{{ opt.label }}</span>
+                        </button>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+
+              <div style="flex:0 0 auto; padding:0 16px 8px;">
+                <dc-import name="SearchField" size="small" filled="{{ false }}" icon="filter" value="{{ sfList.value }}" placeholder="{{ sfList.placeholder }}" label="{{ sfList.label }}" count="{{ sfList.count }}" error="{{ sfList.error }}" scope="{{ sfList.scope }}" pattern="{{ sfList.pattern }}" flags="{{ sfList.flags }}" sample="{{ sfList.sample }}" regexOn="{{ sfList.regexOn }}" builderOpen="{{ sfList.builderOpen }}" onInput="{{ sfList.onInput }}" onKeyDown="{{ sfList.onKeyDown }}" onClear="{{ sfList.onClear }}" onToggleRegex="{{ sfList.onToggleRegex }}" onOpenBuilder="{{ sfList.onOpenBuilder }}" onCloseBuilder="{{ sfList.onCloseBuilder }}" onApply="{{ sfList.onApply }}" onCopy="{{ sfList.onCopy }}" onExport="{{ sfList.onExport }}" inputRef="{{ sfList.inputRef }}" hint-size="100%,44px"></dc-import>
+              </div>
+
+              <div style="flex:0 0 auto; display:flex; gap:8px; padding:0 16px 12px; flex-wrap:wrap;">
+                <sc-for list="{{ chips }}" as="chip" hint-placeholder-count="4">
+                  <button type="button" onClick="{{ chip.onClick }}" style="{{ chip.style }}" style-hover="filter:brightness(0.97)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+                    <span style="{{ chip.iconStyle }}"></span>
+                    <span>{{ chip.label }}</span>
+                  </button>
+                </sc-for>
+              </div>
+
+              <div role="listbox" aria-label="{{ folderTitle }}" tabindex="0" onKeyDown="{{ onListKeys }}" style="flex:1 1 auto; min-block-size:0; overflow-y:auto; padding-block-end:16px;" style-focus="outline:3px solid var(--m3-primary, #6750A4); outline-offset:-3px">
+                <sc-for list="{{ visible }}" as="msg" hint-placeholder-count="8">
+                  <div role="option" aria-selected="{{ msg.selected }}" onClick="{{ msg.onClick }}" style="{{ msg.rowStyle }}" style-hover="filter:brightness(0.98)">
+                    <span style="{{ msg.avatarStyle }}">{{ msg.initials }}</span>
+                    <div style="flex:1 1 auto; min-inline-size:0; display:flex; flex-direction:column; gap:2px;">
+                      <div style="display:flex; align-items:baseline; gap:8px;">
+                        <span style="{{ msg.senderStyle }}">{{ msg.sender }}</span>
+                        <span style="{{ msg.timeStyle }}">{{ msg.time }}</span>
+                      </div>
+                      <div style="display:flex; align-items:center; gap:6px; min-inline-size:0;">
+                        <span style="{{ msg.dotStyle }}"></span>
+                        <span style="{{ msg.subjectStyle }}">{{ msg.subject }}</span>
+                      </div>
+                      <div style="display:flex; align-items:center; gap:8px; min-inline-size:0;">
+                        <span style="flex:1 1 auto; min-inline-size:0; font-size:13px; line-height:18px; color:var(--m3-on-surface-variant, #49454F); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ msg.preview }}</span>
+                        <span style="{{ msg.attachStyle }}"></span>
+                        <span style="{{ msg.tagStyle }}">{{ msg.tag }}</span>
+                      </div>
+                    </div>
+                    <button type="button" onClick="{{ msg.onStar }}" title="{{ t.star }}" style="inline-size:40px; block-size:40px; flex:0 0 auto; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">
+                      <span style="{{ msg.starStyle }}"></span>
+                    </button>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ listEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex; flex-direction:column; align-items:center; gap:12px; padding:64px 24px; text-align:center; color:var(--m3-on-surface-variant, #49454F);">
+                    <span style="inline-size:48px; block-size:48px; background:var(--m3-outline, #79747E); mask:url('icons/mail.svg') center/48px no-repeat;"></span>
+                    <span style="font-size:16px; line-height:24px; max-inline-size:34ch;">{{ emptyListText }}</span>
+                  </div>
+                </sc-if>
+              </div>
+            </section>
+
+            <section style="{{ detailPaneStyle }}">
+              <sc-if value="{{ hasSelection }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; flex-direction:column; block-size:100%; min-block-size:0;">
+                  <div style="flex:0 0 auto; display:flex; align-items:center; gap:2px; padding:8px 12px; border-block-end:1px solid var(--m3-outline-variant, #CAC4D0);">
+                    <sc-for list="{{ actions }}" as="act" hint-placeholder-count="6">
+                      <button type="button" onClick="{{ act.onClick }}" title="{{ act.label }}" aria-label="{{ act.label }}" style="inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+                        <span style="inline-size:20px; block-size:20px; background:var(--m3-on-surface-variant, #49454F); mask-image:{{ act.mask }}; mask-size:20px; mask-position:center; mask-repeat:no-repeat;"></span>
+                      </button>
+                    </sc-for>
+                    <div style="flex:1 1 auto;"></div>
+                    <button type="button" onClick="{{ onOpenInEditor }}" title="{{ t.openInEditor }}" style="inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)">
+                      <span style="inline-size:20px; block-size:20px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/shortcut.svg') center/20px no-repeat;"></span>
+                    </button>
+                    <button type="button" onClick="{{ onCloseDetail }}" title="{{ t.close }}" style="inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)">
+                      <span style="inline-size:20px; block-size:20px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/close.svg') center/20px no-repeat;"></span>
+                    </button>
+                  </div>
+
+                  <div style="flex:1 1 auto; min-block-size:0; overflow-y:auto; padding:24px 32px 32px;">
+                    <h2 style="margin:0 0 20px; font-size:24px; font-weight:400; line-height:32px;">{{ sel.subject }}</h2>
+                    <div style="display:flex; align-items:flex-start; gap:16px; margin-block-end:20px;">
+                      <span style="{{ sel.avatarStyle }}">{{ sel.initials }}</span>
+                      <div style="flex:1 1 auto; min-inline-size:0;">
+                        <div style="font-size:16px; line-height:24px; font-weight:500;">{{ sel.sender }}</div>
+                        <div style="font-size:13px; line-height:20px; color:var(--m3-on-surface-variant, #49454F);">{{ sel.email }}</div>
+                        <div style="font-size:13px; line-height:20px; color:var(--m3-on-surface-variant, #49454F); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ sel.toLine }}</div>
+                      </div>
+                      <div style="flex:0 0 auto; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:13px; line-height:20px; color:var(--m3-on-surface-variant, #49454F);">{{ sel.fullDate }}</span>
+                        <button type="button" onClick="{{ onStarSelected }}" title="{{ t.star }}" style="inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)">
+                          <span style="{{ sel.starStyle }}"></span>
+                        </button>
+                      </div>
+                    </div>
+                    <sc-if value="{{ sel.hasLabel }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex; gap:8px; margin-block-end:20px;">
+                        <span style="display:inline-flex; align-items:center; gap:6px; block-size:32px; padding-inline:12px; border-radius:8px; background:var(--m3-tertiary-container, #FFD8E4); color:var(--m3-on-tertiary-container, #31111D); font-size:14px;">
+                          <span style="inline-size:16px; block-size:16px; background:var(--m3-on-tertiary-container, #31111D); mask:url('icons/tag.svg') center/16px no-repeat;"></span>
+                          {{ sel.label }}
+                        </span>
+                      </div>
+                    </sc-if>
+                    <div style="font-size:16px; line-height:26px; color:var(--m3-on-surface, #1D1B20);">
+                      <sc-for list="{{ selBody }}" as="para" hint-placeholder-count="3">
+                        <p style="margin:0 0 16px;">{{ para.text }}</p>
+                      </sc-for>
+                    </div>
+                    <sc-if value="{{ sel.hasAttachment }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex; align-items:center; gap:12px; margin-block-start:24px; padding:12px 16px; border:1px solid var(--m3-outline-variant, #CAC4D0); border-radius:12px; background:var(--m3-s2, #F7F2FA);">
+                        <span style="inline-size:24px; block-size:24px; background:var(--m3-primary, #6750A4); mask:url('icons/attachment.svg') center/24px no-repeat;"></span>
+                        <div style="flex:1 1 auto; min-inline-size:0;">
+                          <div style="font-size:14px; line-height:20px;">{{ sel.attachName }}</div>
+                          <div style="font-size:12px; line-height:16px; color:var(--m3-on-surface-variant, #49454F);">{{ sel.attachSize }}</div>
+                        </div>
+                        <button type="button" onClick="{{ onDownloadAttachment }}" style="block-size:40px; padding-inline:20px; border:1px solid var(--m3-outline, #79747E); border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)">{{ t.download }}</button>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{ replyCollapsed }}" hint-placeholder-val="{{ true }}">
+                      <div style="display:flex; gap:12px; margin-block-start:32px; flex-wrap:wrap;">
+                        <button type="button" onClick="{{ onReply }}" style="display:inline-flex; align-items:center; gap:8px; block-size:40px; padding-inline:24px; border:1px solid var(--m3-outline, #79747E); border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)" style-focus="outline:3px solid var(--m3-primary, #6750A4); outline-offset:2px">
+                          <span style="inline-size:18px; block-size:18px; background:var(--m3-primary, #6750A4); mask:url('icons/reply.svg') center/18px no-repeat;"></span>
+                          {{ t.reply }}
+                        </button>
+                        <button type="button" onClick="{{ onReplyAll }}" style="display:inline-flex; align-items:center; gap:8px; block-size:40px; padding-inline:24px; border:1px solid var(--m3-outline, #79747E); border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)">
+                          <span style="inline-size:18px; block-size:18px; background:var(--m3-primary, #6750A4); mask:url('icons/reply-all.svg') center/18px no-repeat;"></span>
+                          {{ t.replyAll }}
+                        </button>
+                        <button type="button" onClick="{{ onForward }}" style="display:inline-flex; align-items:center; gap:8px; block-size:40px; padding-inline:24px; border:1px solid var(--m3-outline, #79747E); border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)">
+                          <span style="inline-size:18px; block-size:18px; background:var(--m3-primary, #6750A4); mask:url('icons/forward.svg') center/18px no-repeat;"></span>
+                          {{ t.forward }}
+                        </button>
+                      </div>
+                    </sc-if>
+
+                    <sc-if value="{{ replyOpen }}" hint-placeholder-val="{{ false }}">
+                      <div style="margin-block-start:24px; border:1px solid var(--m3-outline-variant, #CAC4D0); border-radius:16px; background:var(--m3-s1, #FFFFFF); box-shadow:0 1px 3px 1px rgba(0,0,0,0.08); overflow:hidden;">
+                        <div style="display:flex; align-items:center; gap:8px; padding:12px 16px; background:var(--m3-s2, #F7F2FA);">
+                          <span style="inline-size:20px; block-size:20px; background:var(--m3-primary, #6750A4); mask-image:{{ reply.modeMask }}; mask-size:20px; mask-position:center; mask-repeat:no-repeat;"></span>
+                          <span style="flex:1 1 auto; font-size:14px; font-weight:500;">{{ reply.title }}</span>
+                          <button type="button" onClick="{{ reply.onCycleMode }}" title="{{ reply.cycleTitle }}" style="block-size:32px; padding-inline:12px; border:1px solid var(--m3-outline, #79747E); border-radius:16px; background:transparent; color:var(--m3-on-surface-variant, #49454F); font-size:13px; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)">{{ reply.cycleLabel }}</button>
+                          <button type="button" onClick="{{ reply.onDiscard }}" title="{{ t.discard }}" style="inline-size:36px; block-size:36px; border:none; border-radius:18px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)">
+                            <span style="inline-size:18px; block-size:18px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/close.svg') center/18px no-repeat;"></span>
+                          </button>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-block-end:1px solid var(--m3-outline-variant, #CAC4D0);">
+                          <span style="flex:0 0 auto; font-size:12px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">{{ t.to }}</span>
+                          <input type="text" value="{{ reply.to }}" onInput="{{ reply.onTo }}" aria-label="{{ t.to }}" style="flex:1 1 auto; min-inline-size:0; border:none; outline:none; background:transparent; color:inherit; font-size:14px;" />
+                        </div>
+                        <div style="display:flex; align-items:center; gap:12px; padding:10px 16px; border-block-end:1px solid var(--m3-outline-variant, #CAC4D0);">
+                          <span style="flex:0 0 auto; font-size:12px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">{{ t.subject }}</span>
+                          <input type="text" value="{{ reply.subject }}" onInput="{{ reply.onSubject }}" aria-label="{{ t.subject }}" style="flex:1 1 auto; min-inline-size:0; border:none; outline:none; background:transparent; color:inherit; font-size:14px;" />
+                        </div>
+                        <textarea rows="6" onInput="{{ reply.onBody }}" value="{{ reply.body }}" aria-label="{{ t.message }}" style="display:block; inline-size:100%; padding:14px 16px; border:none; outline:none; background:transparent; color:inherit; font-size:15px; line-height:24px; resize:vertical; box-sizing:border-box;"></textarea>
+                        <div style="padding:0 16px 12px;">
+                          <div style="padding:10px 12px; border-inline-start:2px solid var(--m3-outline-variant, #CAC4D0); font-size:13px; line-height:20px; color:var(--m3-on-surface-variant, #49454F); white-space:pre-wrap;">{{ reply.quote }}</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; padding:12px 16px; border-block-start:1px solid var(--m3-outline-variant, #CAC4D0);">
+                          <button type="button" onClick="{{ reply.onSend }}" style="display:inline-flex; align-items:center; gap:8px; block-size:40px; padding-inline:24px; border:none; border-radius:20px; background:var(--m3-primary, #6750A4); color:var(--m3-on-primary, #FFFFFF); font-size:14px; font-weight:500; cursor:pointer;" style-hover="filter:brightness(1.1)" style-focus="outline:3px solid var(--m3-primary, #6750A4); outline-offset:2px">
+                            <span style="inline-size:18px; block-size:18px; background:var(--m3-on-primary, #FFFFFF); mask:url('icons/sent.svg') center/18px no-repeat;"></span>
+                            {{ t.send }}
+                          </button>
+                          <button type="button" onClick="{{ reply.onSaveDraft }}" style="block-size:40px; padding-inline:16px; border:none; border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)">{{ t.saveDraft }}</button>
+                          <div style="flex:1 1 auto;"></div>
+                          <button type="button" onClick="{{ reply.onDiscard }}" style="block-size:40px; padding-inline:16px; border:none; border-radius:20px; background:transparent; color:var(--m3-error, #B3261E); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-error-container, #F9DEDC)">{{ t.discard }}</button>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ noSelection }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; block-size:100%; padding:48px; text-align:center; color:var(--m3-on-surface-variant, #49454F);">
+                  <span style="inline-size:56px; block-size:56px; background:var(--m3-outline-variant, #CAC4D0); mask:url('icons/mail.svg') center/56px no-repeat;"></span>
+                  <span style="font-size:16px; line-height:24px; max-inline-size:32ch;">{{ t.pickMessage }}</span>
+                </div>
+              </sc-if>
+            </section>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1 1 auto; min-block-size:0; overflow-y:auto; padding:24px 32px 32px;">
+          <h1 style="margin:0 0 16px; font-size:28px; font-weight:400; line-height:36px;">{{ t.settings }}</h1>
+          <div style="max-inline-size:640px; margin-block-end:8px;">
+            <dc-import name="SearchField" value="{{ sfSettings.value }}" placeholder="{{ sfSettings.placeholder }}" label="{{ sfSettings.label }}" count="{{ sfSettings.count }}" error="{{ sfSettings.error }}" scope="{{ sfSettings.scope }}" pattern="{{ sfSettings.pattern }}" flags="{{ sfSettings.flags }}" sample="{{ sfSettings.sample }}" regexOn="{{ sfSettings.regexOn }}" builderOpen="{{ sfSettings.builderOpen }}" onInput="{{ sfSettings.onInput }}" onKeyDown="{{ sfSettings.onKeyDown }}" onClear="{{ sfSettings.onClear }}" onToggleRegex="{{ sfSettings.onToggleRegex }}" onOpenBuilder="{{ sfSettings.onOpenBuilder }}" onCloseBuilder="{{ sfSettings.onCloseBuilder }}" onApply="{{ sfSettings.onApply }}" onCopy="{{ sfSettings.onCopy }}" onExport="{{ sfSettings.onExport }}" inputRef="{{ sfSettings.inputRef }}" hint-size="100%,56px"></dc-import>
+          </div>
+          <div style="font-size:13px; color:var(--m3-on-surface-variant, #49454F); margin-block-end:24px;">{{ settingsHint }}</div>
+
+          <sc-for list="{{ settingsGroups }}" as="group" hint-placeholder-count="4">
+            <section style="margin-block-end:28px; max-inline-size:900px;">
+              <h2 style="margin:0 0 8px; font-size:16px; font-weight:500; letter-spacing:0.1px; color:var(--m3-primary, #6750A4);">{{ group.title }}</h2>
+              <div style="border:1px solid var(--m3-outline-variant, #CAC4D0); border-radius:16px; overflow:hidden;">
+                <sc-for list="{{ group.rows }}" as="row" hint-placeholder-count="3">
+                  <div style="{{ row.style }}">
+                    <div style="flex:1 1 280px; min-inline-size:220px;">
+                      <div style="font-size:15px; line-height:22px;">{{ row.label }}</div>
+                      <div style="font-size:13px; line-height:19px; color:var(--m3-on-surface-variant, #49454F); white-space:pre-line;">{{ row.desc }}</div>
+                    </div>
+                    <div style="flex:0 1 auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                      <sc-if value="{{ row.isSegmented }}" hint-placeholder-val="{{ false }}">
+                        <div role="group" aria-label="{{ row.label }}" style="display:flex; border:1px solid var(--m3-outline, #79747E); border-radius:20px; overflow:hidden;">
+                          <sc-for list="{{ row.options }}" as="opt" hint-placeholder-count="3">
+                            <button type="button" onClick="{{ opt.onClick }}" aria-pressed="{{ opt.pressed }}" style="{{ opt.style }}" style-hover="filter:brightness(0.97)">
+                              <span style="{{ opt.iconStyle }}"></span>
+                              <span>{{ opt.label }}</span>
+                            </button>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ row.isSlider }}" hint-placeholder-val="{{ false }}">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                          <input type="range" min="{{ row.min }}" max="{{ row.max }}" step="{{ row.step }}" value="{{ row.value }}" onInput="{{ row.onInput }}" aria-label="{{ row.label }}" style="inline-size:200px; accent-color:var(--m3-primary, #6750A4);" />
+                          <span style="min-inline-size:120px; font-size:13px; color:var(--m3-on-surface-variant, #49454F);">{{ row.display }}</span>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ row.isSwitch }}" hint-placeholder-val="{{ false }}">
+                        <button type="button" role="switch" aria-checked="{{ row.checked }}" aria-label="{{ row.label }}" onClick="{{ row.onToggle }}" style="{{ row.trackStyle }}" style-focus="outline:3px solid var(--m3-primary, #6750A4); outline-offset:2px">
+                          <span style="{{ row.knobStyle }}"></span>
+                        </button>
+                      </sc-if>
+                      <sc-if value="{{ row.isText }}" hint-placeholder-val="{{ false }}">
+                        <input type="text" value="{{ row.value }}" onInput="{{ row.onInput }}" placeholder="{{ row.placeholder }}" aria-label="{{ row.label }}" style="block-size:44px; inline-size:300px; padding-inline:14px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:transparent; color:inherit; font-size:15px; outline:none; box-sizing:border-box;" style-focus="border-color:var(--m3-primary, #6750A4); border-width:2px" />
+                      </sc-if>
+                      <sc-if value="{{ row.isButton }}" hint-placeholder-val="{{ false }}">
+                        <button type="button" onClick="{{ row.onClick }}" style="block-size:40px; padding-inline:20px; border:1px solid var(--m3-outline, #79747E); border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)">{{ row.buttonLabel }}</button>
+                      </sc-if>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+          </sc-for>
+
+          <sc-if value="{{ settingsEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:48px 16px; text-align:center; font-size:16px; color:var(--m3-on-surface-variant, #49454F);">{{ settingsEmptyText }}</div>
+          </sc-if>
+
+          <div style="max-inline-size:900px; padding:16px; border-radius:16px; background:var(--m3-s2, #F7F2FA); font-size:13px; line-height:20px; color:var(--m3-on-surface-variant, #49454F);">{{ settingsDisclosure }}</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isChangelog }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1 1 auto; min-block-size:0; overflow-y:auto; padding:24px 32px 32px;">
+          <h1 style="margin:0 0 16px; font-size:28px; font-weight:400; line-height:36px;">{{ t.changelog }}</h1>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; margin-block-end:12px;">
+            <div style="flex:1 1 360px; min-inline-size:280px;">
+              <dc-import name="SearchField" value="{{ sfChangelog.value }}" placeholder="{{ sfChangelog.placeholder }}" label="{{ sfChangelog.label }}" count="{{ sfChangelog.count }}" error="{{ sfChangelog.error }}" scope="{{ sfChangelog.scope }}" pattern="{{ sfChangelog.pattern }}" flags="{{ sfChangelog.flags }}" sample="{{ sfChangelog.sample }}" regexOn="{{ sfChangelog.regexOn }}" builderOpen="{{ sfChangelog.builderOpen }}" onInput="{{ sfChangelog.onInput }}" onKeyDown="{{ sfChangelog.onKeyDown }}" onClear="{{ sfChangelog.onClear }}" onToggleRegex="{{ sfChangelog.onToggleRegex }}" onOpenBuilder="{{ sfChangelog.onOpenBuilder }}" onCloseBuilder="{{ sfChangelog.onCloseBuilder }}" onApply="{{ sfChangelog.onApply }}" onCopy="{{ sfChangelog.onCopy }}" onExport="{{ sfChangelog.onExport }}" inputRef="{{ sfChangelog.inputRef }}" hint-size="100%,56px"></dc-import>
+            </div>
+            <label style="display:flex; flex-direction:column; gap:2px;">
+              <span style="font-size:11px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">{{ t.from }}</span>
+              <input type="text" value="{{ cl.typedFrom }}" onInput="{{ cl.onTypedFrom }}" placeholder="YYYY-MM-DD" style="block-size:48px; inline-size:150px; padding-inline:12px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:transparent; color:inherit; font-size:14px; outline:none; box-sizing:border-box;" style-focus="border-color:var(--m3-primary, #6750A4); border-width:2px" />
+            </label>
+            <label style="display:flex; flex-direction:column; gap:2px;">
+              <span style="font-size:11px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">{{ t.dateTo }}</span>
+              <input type="text" value="{{ cl.typedTo }}" onInput="{{ cl.onTypedTo }}" placeholder="YYYY-MM-DD" style="block-size:48px; inline-size:150px; padding-inline:12px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:transparent; color:inherit; font-size:14px; outline:none; box-sizing:border-box;" style-focus="border-color:var(--m3-primary, #6750A4); border-width:2px" />
+            </label>
+            <div style="position:relative;">
+              <button type="button" onClick="{{ cl.onToggleCalendar }}" title="{{ cl.calendarLabel }}" style="inline-size:48px; block-size:48px; border:1px solid var(--m3-outline, #79747E); border-radius:24px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+                <span style="inline-size:22px; block-size:22px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/calendar-today.svg') center/22px no-repeat;"></span>
+              </button>
+              <sc-if value="{{ cl.calendarOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute; inset-block-start:56px; inset-inline-end:0; z-index:30; inline-size:328px; padding:16px; border-radius:16px; background:var(--m3-s4, #ECE6F0); box-shadow:0 8px 12px 6px rgba(0,0,0,0.15); animation:m3-fade 120ms ease;">
+                  <div style="display:flex; align-items:center; gap:8px; margin-block-end:12px;">
+                    <button type="button" onClick="{{ cl.onPrevMonth }}" title="{{ cl.prevLabel }}" style="inline-size:36px; block-size:36px; border:none; border-radius:18px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">
+                      <span style="inline-size:18px; block-size:18px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/nav-left.svg') center/18px no-repeat;"></span>
+                    </button>
+                    <span style="flex:1 1 auto; text-align:center; font-size:15px; font-weight:500;">{{ cl.monthLabel }}</span>
+                    <button type="button" onClick="{{ cl.onNextMonth }}" title="{{ cl.nextLabel }}" style="inline-size:36px; block-size:36px; border:none; border-radius:18px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">
+                      <span style="inline-size:18px; block-size:18px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/nav-right.svg') center/18px no-repeat;"></span>
+                    </button>
+                  </div>
+                  <div style="display:grid; grid-template-columns:repeat(7, 1fr); gap:2px;">
+                    <sc-for list="{{ cl.weekdays }}" as="wd" hint-placeholder-count="7">
+                      <div style="text-align:center; font-size:11px; color:var(--m3-on-surface-variant, #49454F);">{{ wd.label }}</div>
+                    </sc-for>
+                    <sc-for list="{{ cl.days }}" as="day" hint-placeholder-count="35">
+                      <button type="button" onClick="{{ day.onClick }}" style="{{ day.style }}" style-hover="filter:brightness(0.95)">{{ day.label }}</button>
+                    </sc-for>
+                  </div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-block-start:12px;">
+                    <sc-for list="{{ cl.presets }}" as="preset" hint-placeholder-count="4">
+                      <button type="button" onClick="{{ preset.onClick }}" style="block-size:32px; padding-inline:12px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:transparent; color:var(--m3-on-surface-variant, #49454F); font-size:13px; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">{{ preset.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+            <button type="button" onClick="{{ cl.onCopy }}" style="block-size:48px; padding-inline:18px; border:1px solid var(--m3-outline, #79747E); border-radius:24px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)">{{ t.copy }}</button>
+            <button type="button" onClick="{{ cl.onExport }}" style="block-size:48px; padding-inline:18px; border:none; border-radius:24px; background:var(--m3-secondary-container, #E8DEF8); color:var(--m3-on-secondary-container, #1D192B); font-size:14px; font-weight:500; cursor:pointer;" style-hover="filter:brightness(0.96)">{{ t.exportMd }}</button>
+          </div>
+
+          <div style="{{ cl.errorStyle }}">{{ cl.dateError }}</div>
+          <div style="font-size:13px; color:var(--m3-on-surface-variant, #49454F); margin-block-end:20px;">{{ cl.rangeSummary }}</div>
+
+          <sc-for list="{{ cl.releases }}" as="rel" hint-placeholder-count="4">
+            <article style="max-inline-size:900px; margin-block-end:16px; padding:20px 24px; border-radius:16px; background:var(--m3-s2, #F7F2FA);">
+              <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-block-end:12px;">
+                <h2 style="margin:0; font-size:20px; font-weight:500;">{{ rel.version }}</h2>
+                <span style="font-size:13px; color:var(--m3-on-surface-variant, #49454F);">{{ rel.date }}</span>
+                <span style="{{ rel.tagStyle }}">{{ rel.tag }}</span>
+              </div>
+              <sc-for list="{{ rel.sections }}" as="sec" hint-placeholder-count="2">
+                <div style="margin-block-end:10px;">
+                  <div style="display:flex; align-items:center; gap:8px; margin-block-end:4px;">
+                    <span style="{{ sec.dotStyle }}"></span>
+                    <span style="font-size:12px; font-weight:600; letter-spacing:0.4px; text-transform:uppercase; color:var(--m3-on-surface-variant, #49454F);">{{ sec.kind }}</span>
+                  </div>
+                  <ul style="margin:0; padding-inline-start:24px;">
+                    <sc-for list="{{ sec.items }}" as="item" hint-placeholder-count="2">
+                      <li style="font-size:14px; line-height:22px;">{{ item.text }}</li>
+                    </sc-for>
+                  </ul>
+                </div>
+              </sc-for>
+            </article>
+          </sc-for>
+          <sc-if value="{{ cl.empty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:48px 16px; text-align:center; font-size:16px; color:var(--m3-on-surface-variant, #49454F);">{{ cl.emptyText }}</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1 1 auto; min-block-size:0; display:flex; overflow:hidden;">
+          <div style="flex:1 1 42%; max-inline-size:520px; min-block-size:0; display:flex; flex-direction:column; border-inline-end:1px solid var(--m3-outline-variant, #CAC4D0);">
+            <div style="flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:20px 16px 8px 24px;">
+              <h1 style="margin:0; flex:1 1 auto; font-size:22px; font-weight:400;">{{ t.history }}</h1>
+              <button type="button" onClick="{{ hi.onExport }}" title="{{ t.exportHistory }}" style="inline-size:40px; block-size:40px; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s4, #ECE6F0)">
+                <span style="inline-size:20px; block-size:20px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/export.svg') center/20px no-repeat;"></span>
+              </button>
+            </div>
+            <div style="flex:0 0 auto; padding:0 16px 8px;">
+              <dc-import name="SearchField" size="small" filled="{{ false }}" icon="clock" value="{{ sfHistory.value }}" placeholder="{{ sfHistory.placeholder }}" label="{{ sfHistory.label }}" count="{{ sfHistory.count }}" error="{{ sfHistory.error }}" scope="{{ sfHistory.scope }}" pattern="{{ sfHistory.pattern }}" flags="{{ sfHistory.flags }}" sample="{{ sfHistory.sample }}" regexOn="{{ sfHistory.regexOn }}" builderOpen="{{ sfHistory.builderOpen }}" onInput="{{ sfHistory.onInput }}" onKeyDown="{{ sfHistory.onKeyDown }}" onClear="{{ sfHistory.onClear }}" onToggleRegex="{{ sfHistory.onToggleRegex }}" onOpenBuilder="{{ sfHistory.onOpenBuilder }}" onCloseBuilder="{{ sfHistory.onCloseBuilder }}" onApply="{{ sfHistory.onApply }}" onCopy="{{ sfHistory.onCopy }}" onExport="{{ sfHistory.onExport }}" inputRef="{{ sfHistory.inputRef }}" hint-size="100%,44px"></dc-import>
+            </div>
+            <div style="flex:0 0 auto; padding:0 24px 12px; font-size:13px; line-height:20px; color:var(--m3-on-surface-variant, #49454F);">{{ hi.note }}</div>
+            <div style="flex:1 1 auto; min-block-size:0; overflow-y:auto; padding:0 12px 16px;">
+              <sc-for list="{{ hi.revisions }}" as="rev" hint-placeholder-count="4">
+                <button type="button" onClick="{{ rev.onClick }}" style="{{ rev.style }}" style-hover="filter:brightness(0.97)">
+                  <span style="{{ rev.iconStyle }}"></span>
+                  <span style="flex:1 1 auto; min-inline-size:0; text-align:start;">
+                    <span style="display:block; font-size:14px; line-height:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ rev.label }}</span>
+                    <span style="display:block; font-size:12px; line-height:16px; color:var(--m3-on-surface-variant, #49454F);">{{ rev.when }}</span>
+                  </span>
+                </button>
+              </sc-for>
+              <sc-if value="{{ hi.empty }}" hint-placeholder-val="{{ true }}">
+                <div style="padding:32px 16px; text-align:center; font-size:14px; color:var(--m3-on-surface-variant, #49454F);">{{ hi.emptyText }}</div>
+              </sc-if>
+            </div>
+          </div>
+          <div style="flex:1 1 58%; min-block-size:0; overflow-y:auto; padding:24px 32px;">
+            <sc-if value="{{ hi.hasSel }}" hint-placeholder-val="{{ false }}">
+              <div>
+                <h2 style="margin:0 0 4px; font-size:20px; font-weight:500;">{{ hi.sel.label }}</h2>
+                <div style="font-size:13px; color:var(--m3-on-surface-variant, #49454F); margin-block-end:16px;">{{ hi.sel.meta }}</div>
+                <label style="display:flex; flex-direction:column; gap:4px; max-inline-size:420px; margin-block-end:20px;">
+                  <span style="font-size:12px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">{{ t.rename }}</span>
+                  <input type="text" value="{{ hi.sel.label }}" onInput="{{ hi.onRename }}" style="block-size:44px; padding-inline:14px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:transparent; color:inherit; font-size:15px; outline:none; box-sizing:border-box;" style-focus="border-color:var(--m3-primary, #6750A4); border-width:2px" />
+                </label>
+                <div style="border:1px solid var(--m3-outline-variant, #CAC4D0); border-radius:16px; overflow:hidden; margin-block-end:20px;">
+                  <div style="display:flex; background:var(--m3-s3, #F3EDF7); font-size:12px; font-weight:600; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">
+                    <div style="flex:0 0 30%; padding:10px 16px;">{{ t.field }}</div>
+                    <div style="flex:1 1 35%; padding:10px 16px;">{{ t.before }}</div>
+                    <div style="flex:1 1 35%; padding:10px 16px;">{{ t.after }}</div>
+                  </div>
+                  <sc-for list="{{ hi.diff }}" as="d" hint-placeholder-count="3">
+                    <div style="display:flex; border-block-start:1px solid var(--m3-outline-variant, #CAC4D0); font-size:13px; line-height:20px;">
+                      <div style="flex:0 0 30%; padding:10px 16px; font-family:ui-monospace, monospace;">{{ d.field }}</div>
+                      <div style="flex:1 1 35%; padding:10px 16px; color:var(--m3-error, #B3261E); word-break:break-word;">{{ d.before }}</div>
+                      <div style="flex:1 1 35%; padding:10px 16px; color:var(--m3-primary, #6750A4); word-break:break-word;">{{ d.after }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                  <button type="button" onClick="{{ hi.onRestore }}" style="display:inline-flex; align-items:center; gap:8px; block-size:40px; padding-inline:24px; border:none; border-radius:20px; background:var(--m3-primary, #6750A4); color:var(--m3-on-primary, #FFFFFF); font-size:14px; font-weight:500; cursor:pointer;" style-hover="filter:brightness(1.1)">
+                    <span style="inline-size:18px; block-size:18px; background:var(--m3-on-primary, #FFFFFF); mask:url('icons/restore.svg') center/18px no-repeat;"></span>{{ t.restore }}
+                  </button>
+                  <span style="font-size:13px; line-height:20px; color:var(--m3-on-surface-variant, #49454F); max-inline-size:46ch;">{{ hi.restoreNote }}</span>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ hi.noSel }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; block-size:100%; text-align:center; color:var(--m3-on-surface-variant, #49454F);">
+                <span style="inline-size:48px; block-size:48px; background:var(--m3-outline-variant, #CAC4D0); mask:url('icons/clock.svg') center/48px no-repeat;"></span>
+                <span style="font-size:15px; max-inline-size:34ch;">{{ hi.pickText }}</span>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isNotifications }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1 1 auto; min-block-size:0; display:flex; flex-direction:column; padding:24px 32px 24px;">
+          <div style="display:flex; align-items:center; gap:12px; margin-block-end:16px;">
+            <h1 style="margin:0; flex:1 1 auto; font-size:28px; font-weight:400; line-height:36px;">{{ t.notifications }}</h1>
+            <button type="button" onClick="{{ nf.onClear }}" style="block-size:40px; padding-inline:20px; border:1px solid var(--m3-outline, #79747E); border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)">{{ t.clearAll }}</button>
+          </div>
+          <div style="max-inline-size:640px; margin-block-end:16px;">
+            <dc-import name="SearchField" value="{{ sfNotifications.value }}" placeholder="{{ sfNotifications.placeholder }}" label="{{ sfNotifications.label }}" count="{{ sfNotifications.count }}" error="{{ sfNotifications.error }}" scope="{{ sfNotifications.scope }}" pattern="{{ sfNotifications.pattern }}" flags="{{ sfNotifications.flags }}" sample="{{ sfNotifications.sample }}" regexOn="{{ sfNotifications.regexOn }}" builderOpen="{{ sfNotifications.builderOpen }}" onInput="{{ sfNotifications.onInput }}" onKeyDown="{{ sfNotifications.onKeyDown }}" onClear="{{ sfNotifications.onClear }}" onToggleRegex="{{ sfNotifications.onToggleRegex }}" onOpenBuilder="{{ sfNotifications.onOpenBuilder }}" onCloseBuilder="{{ sfNotifications.onCloseBuilder }}" onApply="{{ sfNotifications.onApply }}" onCopy="{{ sfNotifications.onCopy }}" onExport="{{ sfNotifications.onExport }}" inputRef="{{ sfNotifications.inputRef }}" hint-size="100%,56px"></dc-import>
+          </div>
+          <div style="flex:0 0 auto; display:flex; gap:8px; flex-wrap:wrap; margin-block-end:16px;">
+            <sc-for list="{{ nf.filters }}" as="chip" hint-placeholder-count="4">
+              <button type="button" onClick="{{ chip.onClick }}" style="{{ chip.style }}" style-hover="filter:brightness(0.97)">
+                <span style="{{ chip.iconStyle }}"></span>
+                <span>{{ chip.label }}</span>
+              </button>
+            </sc-for>
+          </div>
+          <div style="flex:1 1 auto; min-block-size:0; overflow-y:auto; max-inline-size:900px;">
+            <sc-for list="{{ nf.rows }}" as="row" hint-placeholder-count="4">
+              <div style="display:flex; align-items:flex-start; gap:12px; padding:14px 16px; margin-block-end:8px; border-radius:16px; background:var(--m3-s2, #F7F2FA);">
+                <span style="{{ row.iconStyle }}"></span>
+                <div style="flex:1 1 auto; min-inline-size:0;">
+                  <div style="font-size:14px; line-height:20px; font-weight:500;">{{ row.title }}</div>
+                  <div style="font-size:14px; line-height:21px; color:var(--m3-on-surface-variant, #49454F);">{{ row.body }}</div>
+                </div>
+                <span style="flex:0 0 auto; font-size:12px; color:var(--m3-on-surface-variant, #49454F);">{{ row.when }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ nf.empty }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:48px 16px; text-align:center; font-size:15px; color:var(--m3-on-surface-variant, #49454F);">{{ nf.emptyText }}</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+
+  <sc-if value="{{ paletteOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onClosePalette }}" style="position:fixed; inset:0; z-index:80; background:rgba(0,0,0,0.32); display:flex; justify-content:center; align-items:flex-start; padding-block-start:12vh; animation:m3-fade 100ms ease;">
+      <div role="dialog" aria-label="{{ t.commandPalette }}" onClick="{{ stop }}" style="inline-size:min(680px, calc(100vw - 48px)); max-block-size:70vh; display:flex; flex-direction:column; padding:12px; border-radius:28px; background:var(--m3-s4, #ECE6F0); box-shadow:0 8px 12px 6px rgba(0,0,0,0.15); animation:m3-rise 160ms cubic-bezier(0.05,0.7,0.1,1);">
+        <dc-import name="SearchField" icon="shortcut" value="{{ sfPalette.value }}" placeholder="{{ sfPalette.placeholder }}" label="{{ sfPalette.label }}" count="{{ sfPalette.count }}" error="{{ sfPalette.error }}" scope="{{ sfPalette.scope }}" pattern="{{ sfPalette.pattern }}" flags="{{ sfPalette.flags }}" sample="{{ sfPalette.sample }}" regexOn="{{ sfPalette.regexOn }}" builderOpen="{{ sfPalette.builderOpen }}" onInput="{{ sfPalette.onInput }}" onKeyDown="{{ sfPalette.onKeyDown }}" onClear="{{ sfPalette.onClear }}" onToggleRegex="{{ sfPalette.onToggleRegex }}" onOpenBuilder="{{ sfPalette.onOpenBuilder }}" onCloseBuilder="{{ sfPalette.onCloseBuilder }}" onApply="{{ sfPalette.onApply }}" onCopy="{{ sfPalette.onCopy }}" onExport="{{ sfPalette.onExport }}" inputRef="{{ sfPalette.inputRef }}" hint-size="100%,56px"></dc-import>
+        <div style="flex:1 1 auto; min-block-size:0; overflow-y:auto; margin-block-start:8px;">
+          <sc-for list="{{ paletteResults }}" as="cmd" hint-placeholder-count="6">
+            <button type="button" onClick="{{ cmd.onClick }}" style="{{ cmd.style }}" style-hover="background:var(--m3-s5, #E6E0E9)">
+              <span style="inline-size:20px; block-size:20px; flex:0 0 auto; background:var(--m3-on-surface-variant, #49454F); mask-image:{{ cmd.mask }}; mask-size:20px; mask-position:center; mask-repeat:no-repeat;"></span>
+              <span style="flex:1 1 auto; min-inline-size:0; text-align:start;">
+                <span style="display:block; font-size:15px; line-height:20px;">{{ cmd.label }}</span>
+                <span style="display:block; font-size:12px; line-height:16px; color:var(--m3-on-surface-variant, #49454F);">{{ cmd.group }}</span>
+              </span>
+              <span style="{{ cmd.keysStyle }}">{{ cmd.keys }}</span>
+            </button>
+          </sc-for>
+          <sc-if value="{{ paletteEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:32px 16px; text-align:center; font-size:14px; color:var(--m3-on-surface-variant, #49454F);">{{ paletteEmptyText }}</div>
+          </sc-if>
+        </div>
+        <div style="flex:0 0 auto; display:flex; gap:16px; padding:10px 12px 4px; font-size:12px; color:var(--m3-on-surface-variant, #49454F);">
+          <span>↑ ↓ {{ t.navigate }}</span>
+          <span>⏎ {{ t.run }}</span>
+          <span>esc {{ t.close }}</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ tabListOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseTabList }}" style="position:fixed; inset:0; z-index:50; background:rgba(0,0,0,0.2);">
+      <div onClick="{{ stop }}" style="position:absolute; inset-block-start:56px; inset-inline-end:24px; inline-size:min(440px, calc(100vw - 48px)); max-block-size:70vh; display:flex; flex-direction:column; padding:12px; border-radius:16px; background:var(--m3-s4, #ECE6F0); box-shadow:0 8px 12px 6px rgba(0,0,0,0.15); animation:m3-rise 160ms ease;">
+        <dc-import name="SearchField" size="small" value="{{ sfTabs.value }}" placeholder="{{ sfTabs.placeholder }}" label="{{ sfTabs.label }}" count="{{ sfTabs.count }}" error="{{ sfTabs.error }}" scope="{{ sfTabs.scope }}" pattern="{{ sfTabs.pattern }}" flags="{{ sfTabs.flags }}" sample="{{ sfTabs.sample }}" regexOn="{{ sfTabs.regexOn }}" builderOpen="{{ sfTabs.builderOpen }}" onInput="{{ sfTabs.onInput }}" onKeyDown="{{ sfTabs.onKeyDown }}" onClear="{{ sfTabs.onClear }}" onToggleRegex="{{ sfTabs.onToggleRegex }}" onOpenBuilder="{{ sfTabs.onOpenBuilder }}" onCloseBuilder="{{ sfTabs.onCloseBuilder }}" onApply="{{ sfTabs.onApply }}" onCopy="{{ sfTabs.onCopy }}" onExport="{{ sfTabs.onExport }}" inputRef="{{ sfTabs.inputRef }}" hint-size="100%,44px"></dc-import>
+        <div style="flex:1 1 auto; min-block-size:0; overflow-y:auto; margin-block-start:8px;">
+          <sc-for list="{{ tabResults }}" as="row" hint-placeholder-count="5">
+            <div style="display:flex; align-items:center; gap:4px;">
+              <button type="button" onClick="{{ row.onClick }}" style="{{ row.style }}" style-hover="background:var(--m3-s5, #E6E0E9)">
+                <span style="inline-size:20px; block-size:20px; flex:0 0 auto; background:var(--m3-on-surface-variant, #49454F); mask-image:{{ row.mask }}; mask-size:20px; mask-position:center; mask-repeat:no-repeat;"></span>
+                <span style="flex:1 1 auto; text-align:start;">{{ row.label }}</span>
+                <span style="font-size:12px; color:var(--m3-on-surface-variant, #49454F);">{{ row.hint }}</span>
+              </button>
+              <button type="button" onClick="{{ row.onPin }}" title="{{ row.pinTitle }}" style="inline-size:40px; block-size:40px; flex:0 0 auto; border:none; border-radius:20px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">
+                <span style="{{ row.pinIconStyle }}"></span>
+              </button>
+            </div>
+          </sc-for>
+          <sc-if value="{{ tabResultsEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:24px 16px; text-align:center; font-size:14px; color:var(--m3-on-surface-variant, #49454F);">{{ tabsEmptyText }}</div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ tabMenuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ onCloseTabMenu }}" style="position:fixed; inset:0; z-index:55;">
+      <div role="menu" onClick="{{ stop }}" style="{{ tabMenuStyle }}">
+        <sc-for list="{{ tabMenuItems }}" as="item" hint-placeholder-count="3">
+          <button type="button" role="menuitem" onClick="{{ item.onClick }}" style="{{ item.style }}" style-hover="background:var(--m3-s5, #E6E0E9)">
+            <span style="inline-size:18px; block-size:18px; flex:0 0 auto; background:var(--m3-on-surface-variant, #49454F); mask-image:{{ item.mask }}; mask-size:18px; mask-position:center; mask-repeat:no-repeat;"></span>
+            <span>{{ item.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ composeOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; z-index:60; display:grid; place-items:center; background:rgba(0,0,0,0.32); animation:m3-fade 120ms ease;">
+      <div role="dialog" aria-modal="true" aria-label="{{ composeTitle }}" style="inline-size:min(640px, calc(100vw - 48px)); max-block-size:calc(100vh - 96px); display:flex; flex-direction:column; padding:24px; border-radius:28px; background:var(--m3-s4, #ECE6F0); color:var(--m3-on-surface, #1D1B20); box-shadow:0 8px 12px 6px rgba(0,0,0,0.15); animation:m3-rise 180ms cubic-bezier(0.05,0.7,0.1,1);">
+        <h2 style="margin:0 0 16px; font-size:24px; font-weight:400; line-height:32px;">{{ composeTitle }}</h2>
+        <div style="display:flex; flex-direction:column; gap:16px; overflow-y:auto;">
+          <label style="display:flex; flex-direction:column; gap:4px;">
+            <span style="font-size:12px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">{{ t.to }}</span>
+            <input type="text" value="{{ compose.to }}" onInput="{{ onComposeTo }}" placeholder="name@example.com" style="block-size:48px; padding-inline:16px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:transparent; color:inherit; font-size:16px; outline:none; box-sizing:border-box;" style-focus="border-color:var(--m3-primary, #6750A4); border-width:2px" />
+          </label>
+          <label style="display:flex; flex-direction:column; gap:4px;">
+            <span style="font-size:12px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">{{ t.subject }}</span>
+            <input type="text" value="{{ compose.subject }}" onInput="{{ onComposeSubject }}" style="block-size:48px; padding-inline:16px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:transparent; color:inherit; font-size:16px; outline:none; box-sizing:border-box;" style-focus="border-color:var(--m3-primary, #6750A4); border-width:2px" />
+          </label>
+          <label style="display:flex; flex-direction:column; gap:4px;">
+            <span style="font-size:12px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">{{ t.message }}</span>
+            <textarea rows="7" onInput="{{ onComposeBody }}" value="{{ compose.body }}" style="padding:12px 16px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:transparent; color:inherit; font-size:16px; line-height:24px; outline:none; resize:vertical; box-sizing:border-box;" style-focus="border-color:var(--m3-primary, #6750A4); border-width:2px"></textarea>
+          </label>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-block-start:24px;">
+          <button type="button" onClick="{{ onSaveDraft }}" style="block-size:40px; padding-inline:12px; border:none; border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">{{ t.saveDraft }}</button>
+          <button type="button" onClick="{{ onCancelCompose }}" style="block-size:40px; padding-inline:12px; border:none; border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">{{ t.cancel }}</button>
+          <button type="button" onClick="{{ onSend }}" style="display:inline-flex; align-items:center; gap:8px; block-size:40px; padding-inline:24px; border:none; border-radius:20px; background:var(--m3-primary, #6750A4); color:var(--m3-on-primary, #FFFFFF); font-size:14px; font-weight:500; cursor:pointer;" style-hover="filter:brightness(1.1)">
+            <span style="inline-size:18px; block-size:18px; background:var(--m3-on-primary, #FFFFFF); mask:url('icons/sent.svg') center/18px no-repeat;"></span>
+            {{ t.send }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div aria-live="polite" style="position:fixed; inset-block-end:24px; inset-inline-start:24px; z-index:70; display:flex; flex-direction:column-reverse; gap:8px; max-inline-size:min(520px, calc(100vw - 48px));">
+    <sc-for list="{{ toasts }}" as="toast" hint-placeholder-count="0">
+      <div role="status" style="{{ toast.style }}">
+        <span style="{{ toast.iconStyle }}"></span>
+        <div style="flex:1 1 auto; min-inline-size:0;">
+          <div style="font-size:14px; line-height:20px; font-weight:500;">{{ toast.title }}</div>
+          <div style="font-size:13px; line-height:18px; opacity:0.9;">{{ toast.body }}</div>
+        </div>
+        <sc-if value="{{ toast.hasAction }}" hint-placeholder-val="{{ false }}">
+          <button type="button" onClick="{{ toast.onAction }}" style="flex:0 0 auto; block-size:36px; padding-inline:12px; border:none; border-radius:18px; background:transparent; color:var(--m3-inverse-primary, #D0BCFF); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:rgba(208,188,255,0.12)">{{ toast.actionLabel }}</button>
+        </sc-if>
+        <button type="button" onClick="{{ toast.onDismiss }}" title="{{ t.dismiss }}" style="flex:0 0 auto; inline-size:36px; block-size:36px; border:none; border-radius:18px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:rgba(245,239,247,0.12)">
+          <span style="inline-size:18px; block-size:18px; background:var(--m3-inverse-on-surface, #F5EFF7); mask:url('icons/close.svg') center/18px no-repeat;"></span>
+        </button>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ dimsumOpen }}" hint-placeholder-val="{{ false }}">
+    <div role="status" style="position:fixed; inset-block-end:24px; inset-inline-end:24px; z-index:65; inline-size:300px; padding:12px; border-radius:20px; background:var(--m3-s4, #ECE6F0); box-shadow:0 8px 12px 6px rgba(0,0,0,0.15); animation:m3-rise 200ms ease;">
+      <img src="assets/dimsum/har-gow.svg" srcSet="{{ dimsum.src }}" alt="{{ dimsum.alt }}" style="display:block; inline-size:100%; block-size:auto; border-radius:12px;" />
+      <div style="display:flex; align-items:flex-start; gap:8px; margin-block-start:10px;">
+        <div style="flex:1 1 auto; min-inline-size:0;">
+          <div style="font-size:16px; line-height:22px; font-weight:500;">{{ dimsum.name }}</div>
+          <div style="font-size:13px; line-height:18px; color:var(--m3-on-surface-variant, #49454F);">{{ dimsum.blurb }}</div>
+        </div>
+        <button type="button" onClick="{{ onDismissDimsum }}" title="{{ t.dismiss }}" style="inline-size:36px; block-size:36px; flex:0 0 auto; border:none; border-radius:18px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">
+          <span style="inline-size:18px; block-size:18px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/close.svg') center/18px no-repeat;"></span>
+        </button>
+      </div>
+    </div>
+  </sc-if>
+</div>
 
 </x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accountEmail&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;maya.osei@northmeridian.io&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Account&quot;},&quot;startTab&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;mail&quot;,&quot;settings&quot;,&quot;changelog&quot;,&quot;history&quot;,&quot;notifications&quot;],&quot;default&quot;:&quot;mail&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Layout&quot;}}">
+const STORE = "materialMail.v2";
+const D = () => window.MM_DATA;
+const AV = ["#6750A4", "#7D5260", "#386A20", "#00639B", "#8C4A00", "#6B5778", "#984061"];
+const SURFACES = ["mail", "settings", "changelog", "history", "notifications"];
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const saved = this.load();
+    const blank = { q: "", rx: false, flags: "gi" };
+    this.fields = {};
+    this.actions = {};
+    this.state = {
+      prefs: {
+        theme: "light", seed: "purple", density: "comfortable", font: "roboto", fontScale: 100, fontWeight: 400,
+        lang: "en", funEn: 2, funZh: 4, narrator: false, narratorLang: "en", dimsum: true,
+        editor: "code", editorCustom: "", historyLimit: 60, accountEmail: props.accountEmail ?? "maya.osei@northmeridian.io",
+        ...(saved.prefs || {}),
+      },
+      tabOrder: saved.tabOrder || D().TABS.map(t => t.id),
+      pinned: saved.pinned || ["mail"],
+      tab: saved.tab || props.startTab || "mail",
+      revisions: saved.revisions || [],
+      notifications: saved.notifications || [],
+      messages: saved.messages || D().MESSAGES.map(m => ({ ...m })),
+      folder: "inbox", labelFilter: null, chip: "all", sort: "newest", sortMenuOpen: false,
+      drawerOpen: true, selectedId: 1, reply: null, compose: null,
+      toasts: [], dimsum: null, builderFor: null, sample: "Invoice #20261 arrived, receipt 4471 is attached.",
+      search: { mail: { ...blank }, list: { ...blank }, folders: { ...blank }, settings: { ...blank }, changelog: { ...blank }, history: { ...blank }, notifications: { ...blank }, tabs: { ...blank }, palette: { ...blank } },
+      paletteOpen: false, paletteIndex: 0, tabListOpen: false, tabMenu: null, dragTab: null,
+      clFrom: "", clTo: "", clTypedFrom: "", clTypedTo: "", clDateError: "", clCalendar: false, clMonth: "2026-07",
+      histSel: null, notifFilter: "all", visibleTabs: 5,
+    };
+  }
+
+  /* ---------- storage ---------- */
+  load() { try { return JSON.parse(localStorage.getItem(STORE) || "{}") || {}; } catch (e) { return {}; } }
+  save() {
+    const s = this.state;
+    try {
+      localStorage.setItem(STORE, JSON.stringify({
+        prefs: s.prefs, tabOrder: s.tabOrder, pinned: s.pinned, tab: s.tab,
+        revisions: s.revisions.slice(0, s.prefs.historyLimit), notifications: s.notifications.slice(0, 100), messages: s.messages,
+      }));
+    } catch (e) { /* keep working in memory */ }
+  }
+
+  componentDidMount() {
+    this.measure();
+    this._resize = () => this.measure();
+    window.addEventListener("resize", this._resize);
+    this._keys = e => this.onGlobalKey(e);
+    window.addEventListener("keydown", this._keys);
+    if (this.state.prefs.dimsum && Math.random() < 0.01) this.showDimsum();
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener("resize", this._resize);
+    window.removeEventListener("keydown", this._keys);
+  }
+
+  measure() {
+    const w = Math.max(120, (this.strip ? this.strip.clientWidth : 0) || window.innerWidth - 460);
+    const s = this.state;
+    const order = s.tabOrder.filter(id => D().TABS.some(t => t.id === id));
+    const arranged = [...order.filter(id => s.pinned.includes(id)), ...order.filter(id => !s.pinned.includes(id))];
+    let used = 0, fit = 0;
+    arranged.forEach(id => {
+      const need = (s.pinned.includes(id) ? 56 : 148) + 4;
+      if (used + need <= w) { used += need; fit++; }
+    });
+    this.setState({ visibleTabs: Math.max(1, fit) });
+  }
+
+  activeField() {
+    const s = this.state;
+    if (s.paletteOpen) return "palette";
+    if (s.tabListOpen) return "tabs";
+    return s.tab === "mail" ? "mail" : s.tab;
+  }
+
+  onGlobalKey(e) {
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === "k") { e.preventDefault(); this.openPalette(); return; }
+    if (mod && e.key.toLowerCase() === "f") {
+      e.preventDefault();
+      const id = this.activeField();
+      if (e.shiftKey) { this.setState({ builderFor: id }); return; }
+      const el = this.fields[id];
+      if (el && el.focus) el.focus();
+      return;
+    }
+    if (e.key === "Escape") {
+      const s = this.state;
+      if (s.builderFor) { this.setState({ builderFor: null }); return; }
+      this.setState({ paletteOpen: false, tabListOpen: false, tabMenu: null, sortMenuOpen: false, clCalendar: false, compose: null });
+    }
+  }
+
+  /* ---------- copy ---------- */
+  lvl(lang) { return lang === "zh" ? this.state.prefs.funZh : this.state.prefs.funEn; }
+  label(key) {
+    const c = D().LABEL_COPY[key] || { en: key, zh: key };
+    const m = this.state.prefs.lang;
+    return m === "en" ? c.en : m === "zh" ? c.zh : c.en + " · " + c.zh;
+  }
+  msg(key) {
+    const c = D().MSG_COPY[key];
+    if (!c) return key;
+    const en = c.en[Math.min(4, Math.max(0, this.lvl("en") - 1))];
+    const zh = c.zh[Math.min(4, Math.max(0, this.lvl("zh") - 1))];
+    const m = this.state.prefs.lang;
+    return m === "en" ? en : m === "zh" ? zh : en + " / " + zh;
+  }
+  labelsMap() { const o = {}; Object.keys(D().LABEL_COPY).forEach(k => { o[k] = this.label(k); }); return o; }
+
+  /* ---------- notifications, narrator, history ---------- */
+  notify(key, opts) {
+    const o = opts || {};
+    const body = this.msg(key);
+    const n = { id: "n" + Date.now() + Math.random().toString(36).slice(2, 6), title: this.label("appTitle"), body, kind: o.kind || "info", at: new Date().toISOString(), actionLabel: o.action ? this.label("undo") : "" };
+    if (o.action) this.actions[n.id] = o.action;
+    this.setState(s => ({ toasts: [...s.toasts, n].slice(-4), notifications: [n, ...s.notifications].slice(0, 100) }), () => this.save());
+    this.speak(body);
+    if (n.kind !== "warning" && n.kind !== "error") setTimeout(() => this.dismissToast(n.id), 6000);
+  }
+  dismissToast(id) { this.setState(s => ({ toasts: s.toasts.filter(t => t.id !== id) })); }
+  speak(text) {
+    const p = this.state.prefs;
+    if (!p.narrator || typeof speechSynthesis === "undefined") return;
+    const now = Date.now();
+    if (this._spoke && now - this._spoke < 2500) return;
+    this._spoke = now;
+    speechSynthesis.cancel();
+    const say = (t, lang) => { const u = new SpeechSynthesisUtterance(t); u.lang = lang; speechSynthesis.speak(u); };
+    if (p.narratorLang === "en" || p.narratorLang === "both") say(text, "en-US");
+    if (p.narratorLang === "zh" || p.narratorLang === "both") say(text, "zh-HK");
+  }
+  record(label, kind, before, after) {
+    const rev = { id: "r" + Date.now() + Math.random().toString(36).slice(2, 5), at: new Date().toISOString(), label, kind, before: before || null, after: after || null };
+    this.setState(s => ({ revisions: [rev, ...s.revisions].slice(0, s.prefs.historyLimit) }), () => this.save());
+  }
+
+  /* ---------- mutations ---------- */
+  patch(id, changes, label) {
+    const before = this.state.messages.find(m => m.id === id);
+    this.setState(s => ({ messages: s.messages.map(m => (m.id === id ? { ...m, ...changes } : m)) }), () => this.save());
+    if (label && before) this.record(label, "message", { id, folder: before.folder, unread: before.unread, starred: before.starred }, { id, folder: changes.folder ?? before.folder, unread: changes.unread ?? before.unread, starred: changes.starred ?? before.starred });
+  }
+  move(id, folder, key) {
+    const m = this.state.messages.find(x => x.id === id);
+    if (!m) return;
+    const from = m.folder;
+    this.patch(id, { folder }, `Moved “${m.subject}” from ${from} to ${folder}`);
+    this.setState(s => ({ selectedId: s.selectedId === id ? null : s.selectedId, reply: null }));
+    this.notify(key, { kind: "success", action: () => { this.patch(id, { folder: from }, `Undid move of “${m.subject}”`); this.setState({ selectedId: id }); } });
+  }
+  setPref(key, value, quiet) {
+    const before = this.state.prefs[key];
+    this.setState(s => ({ prefs: { ...s.prefs, [key]: value } }), () => this.save());
+    this.record(`Setting “${key}”: ${String(before)} → ${String(value)}`, "setting", { [key]: before }, { [key]: value });
+    if (!quiet) this.notify("settingSaved", { kind: "success" });
+  }
+
+  /* ---------- reply / compose ---------- */
+  quoteOf(m) { return `On ${m.fullDate}, ${m.name} wrote:\n> ${m.body.join("\n> ")}`; }
+  openReply(mode) {
+    const m = this.state.messages.find(x => x.id === this.state.selectedId);
+    if (!m) return;
+    const to = mode === "forward" ? "" : mode === "replyAll" ? m.email + ", " + m.to : m.email;
+    const subject = mode === "forward" ? (m.subject.startsWith("Fwd:") ? m.subject : "Fwd: " + m.subject) : (m.subject.startsWith("Re:") ? m.subject : "Re: " + m.subject);
+    this.setState({ reply: { mode, to, subject, body: "" } });
+  }
+  sendReply(asDraft) {
+    const s = this.state;
+    const r = s.reply;
+    const m = s.messages.find(x => x.id === s.selectedId);
+    if (!r || !m) return;
+    const id = Math.max(...s.messages.map(x => x.id)) + 1;
+    const out = {
+      id, folder: asDraft ? "drafts" : "sent", name: "Me", email: s.prefs.accountEmail,
+      to: r.to || "(no recipient)", subject: r.subject || "(no subject)", ts: 2000 + id, time: "now", fullDate: "Just now",
+      unread: false, starred: false,
+      body: [(r.body || "").trim() || "(no content)", this.quoteOf(m)],
+    };
+    this.setState(st => ({ messages: [...st.messages, out], reply: null }), () => this.save());
+    this.record(`${asDraft ? "Saved draft" : "Sent"} “${out.subject}” to ${out.to}`, "message", null, { subject: out.subject, to: out.to, folder: out.folder });
+    this.notify(asDraft ? "draftSaved" : "sent", { kind: "success" });
+  }
+  openCompose() { this.setState({ compose: { to: "", subject: "", body: "" }, sortMenuOpen: false, paletteOpen: false }); }
+  sendCompose(asDraft) {
+    const s = this.state, c = s.compose;
+    const id = Math.max(...s.messages.map(m => m.id)) + 1;
+    const out = { id, folder: asDraft ? "drafts" : "sent", name: "Me", email: s.prefs.accountEmail, to: c.to || "(no recipient)", subject: c.subject || "(no subject)", ts: 2000 + id, time: "now", fullDate: "Just now", unread: false, starred: false, body: (c.body || "").trim() ? c.body.trim().split(/\n{2,}/) : ["(no content)"] };
+    this.setState(st => ({ messages: [...st.messages, out], compose: null }), () => this.save());
+    this.record(`${asDraft ? "Saved draft" : "Sent"} “${out.subject}” to ${out.to}`, "message", null, { subject: out.subject, folder: out.folder });
+    this.notify(asDraft ? "draftSaved" : "sent", { kind: "success" });
+  }
+
+  /* ---------- search plumbing ---------- */
+  matcher(id) {
+    const cfg = this.state.search[id];
+    const q = (cfg.q || "").trim();
+    if (!q) return { test: () => true, error: "", active: false };
+    if (!cfg.rx) { const l = q.toLowerCase(); return { test: v => String(v).toLowerCase().includes(l), error: "", active: true }; }
+    if (q.length > 400) return { test: () => true, error: "Pattern longer than 400 characters.", active: false };
+    try { const re = new RegExp(q, (cfg.flags || "i").replace(/[gy]/g, "")); return { test: v => re.test(String(v)), error: "", active: true }; }
+    catch (e) { const l = q.toLowerCase(); return { test: v => String(v).toLowerCase().includes(l), error: e.message, active: true }; }
+  }
+  setSearch(id, patch) {
+    this.setState(s => ({ search: { ...s.search, [id]: { ...s.search[id], ...patch } } }));
+  }
+  sf(id, opts) {
+    const o = opts || {};
+    const cfg = this.state.search[id];
+    const mm = this.matcher(id);
+    return {
+      value: cfg.q, regexOn: cfg.rx, flags: cfg.flags, pattern: cfg.q, sample: o.sample || this.state.sample,
+      placeholder: o.placeholder || this.label("searchMail"), label: o.placeholder || "Search",
+      count: o.count || "", error: mm.error, scope: o.scope || "",
+      builderOpen: this.state.builderFor === id,
+      onInput: e => this.setSearch(id, { q: e.target.value }),
+      onKeyDown: o.onKeyDown || null,
+      onClear: () => this.setSearch(id, { q: "" }),
+      onToggleRegex: () => { const on = !cfg.rx; this.setSearch(id, { rx: on }); if (on && mm.error) this.notify("regexBad", { kind: "warning" }); },
+      onOpenBuilder: () => this.setState(s => ({ builderFor: s.builderFor === id ? null : id })),
+      onCloseBuilder: () => this.setState({ builderFor: null }),
+      onApply: v => { this.setSearch(id, { q: v.pattern, flags: v.flags, rx: true }); this.setState({ builderFor: null }); },
+      onCopy: text => this.copy(text),
+      onExport: json => this.download(`regex-${id}.json`, json, "application/json"),
+      inputRef: el => { this.fields[id] = el; },
+    };
+  }
+
+  /* ---------- utilities ---------- */
+  copy(text) { try { navigator.clipboard.writeText(text); } catch (e) {} this.notify("copied", { kind: "success" }); }
+  download(name, text, type) {
+    const url = URL.createObjectURL(new Blob([text], { type: type || "text/plain;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = name; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    this.notify("exported", { kind: "success" });
+  }
+  showDimsum() {
+    const d = D().DIMSUM[Math.floor(Math.random() * D().DIMSUM.length)];
+    this.setState({ dimsum: d });
+    setTimeout(() => this.setState(s => (s.dimsum === d ? { dimsum: null } : {})), 9000);
+  }
+  openInEditor() {
+    const p = this.state.prefs;
+    const cmds = { code: "code .", subl: "subl .", zed: "zed .", vim: "vim .", custom: p.editorCustom || "" };
+    this.copy(cmds[p.editor] || cmds.code);
+    this.notify("noEditor", { kind: "warning" });
+  }
+  vars() {
+    const p = this.state.prefs;
+    const seed = D().SEEDS[p.seed] || D().SEEDS.purple;
+    const c = seed[p.theme] || seed.light;
+    const n = D().NEUTRALS[p.theme] || D().NEUTRALS.light;
+    const inv = (seed[p.theme === "light" ? "dark" : "light"] || seed.dark).primary;
+    return [`--m3-primary:${c.primary}`, `--m3-on-primary:${c.onPrimary}`, `--m3-primary-container:${c.pc}`, `--m3-on-primary-container:${c.onPc}`,
+      `--m3-secondary-container:${c.sc}`, `--m3-on-secondary-container:${c.onSc}`, `--m3-tertiary-container:${c.tc}`, `--m3-on-tertiary-container:${c.onTc}`,
+      `--m3-surface:${n.surface}`, `--m3-s1:${n.s1}`, `--m3-s2:${n.s2}`, `--m3-s3:${n.s3}`, `--m3-s4:${n.s4}`, `--m3-s5:${n.s5}`,
+      `--m3-on-surface:${n.onSurface}`, `--m3-on-surface-variant:${n.onSurfaceVariant}`, `--m3-outline:${n.outline}`, `--m3-outline-variant:${n.outlineVariant}`,
+      `--m3-inverse-surface:${n.inverse}`, `--m3-inverse-on-surface:${n.onInverse}`, `--m3-inverse-primary:${inv}`,
+      `--m3-error:${n.error}`, `--m3-error-container:${n.errorContainer}`, `--m3-on-error-container:${n.onErrorContainer}`].join("; ") + ";";
+  }
+  avatar(m, size) {
+    const color = AV[(m.name.charCodeAt(0) + m.name.length) % AV.length];
+    return { initials: m.name.split(/\s+/).slice(0, 2).map(w => w[0]).join("").toUpperCase(),
+      style: `inline-size:${size}px; block-size:${size}px; flex:0 0 auto; border-radius:${size / 2}px; background:${color}; color:#FFFFFF; display:grid; place-items:center; font-size:${size > 40 ? 18 : 15}px; font-weight:500;` };
+  }
+  starSt(on, size) { return `display:block; inline-size:${size}px; block-size:${size}px; background:${on ? "#F9A825" : "var(--m3-outline, #79747E)"}; mask-image:url('icons/star.svg'); mask-size:${size}px; mask-position:center; mask-repeat:no-repeat;`; }
+  menuItem() { return "display:flex; align-items:center; gap:12px; inline-size:100%; block-size:48px; padding-inline:16px; border:none; background:transparent; cursor:pointer; text-align:start; font-size:14px; color:var(--m3-on-surface, #1D1B20);"; }
+  chipSt(active) {
+    return "display:inline-flex; align-items:center; gap:8px; block-size:32px; white-space:nowrap; padding-inline:" + (active ? "12px" : "16px") + "; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; box-sizing:border-box; border:" +
+      (active ? "none" : "1px solid var(--m3-outline, #79747E)") + "; background:" + (active ? "var(--m3-secondary-container, #E8DEF8)" : "transparent") + "; color:" + (active ? "var(--m3-on-secondary-container, #1D192B)" : "var(--m3-on-surface-variant, #49454F)") + ";";
+  }
+  checkIcon(on) { return on ? "inline-size:18px; block-size:18px; background:var(--m3-on-secondary-container, #1D192B); mask:url('icons/check.svg') center/18px no-repeat;" : "display:none;"; }
+
+  /* ---------- render ---------- */
+  renderVals() {
+    return Object.assign({ t: this.labelsMap(), stop: e => e.stopPropagation() },
+      this.shellVals(), this.mailVals(), this.settingsVals(), this.changelogVals(), this.historyVals(), this.notifVals(), this.paletteVals());
+  }
+
+  shellVals() {
+    const s = this.state, p = s.prefs, TABS = D().TABS;
+    const order = s.tabOrder.filter(id => TABS.some(t => t.id === id));
+    const arranged = [...order.filter(id => s.pinned.includes(id)), ...order.filter(id => !s.pinned.includes(id))];
+    const shown = arranged.slice(0, s.visibleTabs);
+    const hidden = arranged.slice(s.visibleTabs);
+    const unread = s.messages.filter(m => m.folder === "inbox" && m.unread).length;
+    const badgeFor = id => (id === "mail" ? unread : id === "notifications" ? s.notifications.length : 0);
+
+    const tabs = shown.map(id => {
+      const def = TABS.find(t => t.id === id);
+      const active = s.tab === id, isPinned = s.pinned.includes(id), badge = badgeFor(id);
+      return {
+        label: isPinned ? "" : this.label(id), title: this.label(id), selected: active ? "true" : "false",
+        mask: `url('icons/${def.icon}.svg')`,
+        iconColor: active ? "var(--m3-on-surface, #1D1B20)" : "var(--m3-on-surface-variant, #49454F)",
+        style: "display:flex; align-items:center; gap:8px; block-size:44px; padding-inline:" + (isPinned ? "12px" : "16px") +
+          "; border:none; border-radius:12px 12px 0 0; cursor:pointer; max-inline-size:210px; color:inherit; background:" + (active ? "var(--m3-surface, #FEF7FF)" : "transparent") + ";",
+        labelStyle: isPinned ? "display:none;" : "font-size:14px; letter-spacing:0.1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:" + (active ? "600" : "400") + ";",
+        pinStyle: isPinned ? "inline-size:12px; block-size:12px; background:var(--m3-primary, #6750A4); mask:url('icons/pin.svg') center/12px no-repeat;" : "display:none;",
+        badge: badge ? String(badge) : "",
+        badgeStyle: badge ? "min-inline-size:18px; block-size:18px; padding-inline:5px; border-radius:9px; background:var(--m3-primary, #6750A4); color:var(--m3-on-primary, #FFFFFF); font-size:11px; line-height:18px; font-weight:600; text-align:center; box-sizing:border-box;" : "display:none;",
+        onClick: () => this.setState({ tab: id, tabMenu: null }, () => this.save()),
+        onContext: e => { e.preventDefault(); this.setState({ tabMenu: { id, x: e.clientX, y: e.clientY } }); },
+        onDragStart: () => this.setState({ dragTab: id }),
+        onDragOver: e => e.preventDefault(),
+        onDrop: e => {
+          e.preventDefault();
+          const from = s.dragTab;
+          if (!from || from === id) return;
+          const next = s.tabOrder.filter(x => x !== from);
+          next.splice(next.indexOf(id), 0, from);
+          this.setState({ tabOrder: next, dragTab: null }, () => this.save());
+        },
+      };
+    });
+
+    const tm = this.matcher("tabs");
+    const tabResults = arranged.filter(id => tm.test(this.label(id) + " " + id)).map(id => {
+      const def = TABS.find(t => t.id === id), isPinned = s.pinned.includes(id);
+      return {
+        label: this.label(id), hint: hidden.includes(id) ? this.label("moreTabs") : "", mask: `url('icons/${def.icon}.svg')`,
+        style: "display:flex; align-items:center; gap:12px; flex:1 1 auto; min-inline-size:0; block-size:48px; padding-inline:12px; border:none; border-radius:12px; color:inherit; font-size:14px; cursor:pointer; background:" + (s.tab === id ? "var(--m3-secondary-container, #E8DEF8)" : "transparent") + ";",
+        pinTitle: isPinned ? this.label("unpin") : this.label("pin"),
+        pinIconStyle: "inline-size:18px; block-size:18px; background:" + (isPinned ? "var(--m3-primary, #6750A4)" : "var(--m3-outline, #79747E)") + "; mask:url('icons/pin.svg') center/18px no-repeat;",
+        onClick: () => this.setState({ tab: id, tabListOpen: false }, () => this.save()),
+        onPin: e => { e.stopPropagation(); this.setState(st => ({ pinned: isPinned ? st.pinned.filter(x => x !== id) : [...st.pinned, id] }), () => this.save()); },
+      };
+    });
+
+    const menu = s.tabMenu, mid = menu ? menu.id : null, mp = mid ? s.pinned.includes(mid) : false;
+    const tabMenuItems = menu ? [
+      { label: mp ? this.label("unpin") : this.label("pin"), mask: "url('icons/pin.svg')", onClick: () => this.setState(st => ({ pinned: mp ? st.pinned.filter(x => x !== mid) : [...st.pinned, mid], tabMenu: null }), () => this.save()) },
+      { label: this.label("moveLeft"), mask: "url('icons/nav-left.svg')", onClick: () => this.shiftTab(mid, -1) },
+      { label: this.label("moveRight"), mask: "url('icons/nav-right.svg')", onClick: () => this.shiftTab(mid, 1) },
+    ].map(i => ({ ...i, style: this.menuItem() })) : [];
+
+    const toasts = s.toasts.map(n => ({
+      title: n.title, body: n.body,
+      style: "display:flex; align-items:center; gap:8px; min-block-size:48px; padding:8px 8px 8px 16px; border-radius:8px; background:var(--m3-inverse-surface, #322F35); color:var(--m3-inverse-on-surface, #F5EFF7); box-shadow:0 4px 8px 3px rgba(0,0,0,0.15); animation:m3-rise 160ms ease;",
+      iconStyle: "flex:0 0 auto; inline-size:20px; block-size:20px; background:var(--m3-inverse-on-surface, #F5EFF7); mask-image:url('icons/" + (n.kind === "success" ? "check" : n.kind === "info" ? "info" : "warning") + ".svg'); mask-size:20px; mask-position:center; mask-repeat:no-repeat;",
+      hasAction: !!n.actionLabel, actionLabel: n.actionLabel,
+      onAction: () => { const fn = this.actions[n.id]; if (fn) fn(); this.dismissToast(n.id); },
+      onDismiss: () => this.dismissToast(n.id),
+    }));
+
+    return {
+      rootStyle: this.vars() + ` font-family:${D().FONTS[p.font] || D().FONTS.roboto}; font-size:${Math.round(14 * p.fontScale / 100)}px; font-weight:${p.fontWeight}; background:var(--m3-s3, #F3EDF7); color:var(--m3-on-surface, #1D1B20);`,
+      appTitle: this.label("appTitle"), tabs,
+      stripRef: el => { if (el && el !== this.strip) { this.strip = el; setTimeout(() => this.measure(), 0); } },
+      overflowDotStyle: hidden.length ? "position:absolute; inset-block-start:2px; inset-inline-end:2px; inline-size:8px; block-size:8px; border-radius:4px; background:var(--m3-primary, #6750A4);" : "display:none;",
+      paletteHint: navigator.platform.indexOf("Mac") >= 0 ? "⌘K" : "Ctrl+K",
+      onOpenTabList: () => this.setState({ tabListOpen: true }, () => { const el = this.fields.tabs; if (el) el.focus(); }),
+      onCloseTabList: () => this.setState({ tabListOpen: false }),
+      tabListOpen: s.tabListOpen, tabResults, tabResultsEmpty: tabResults.length === 0, tabsEmptyText: this.msg("noMatch"),
+      sfTabs: this.sf("tabs", { placeholder: this.label("searchTabs"), scope: "Searches every tab, hidden ones included", sample: arranged.map(id => this.label(id)).join("\n"), count: String(tabResults.length) }),
+      tabMenuOpen: !!menu,
+      tabMenuStyle: menu ? `position:fixed; inset-block-start:${menu.y}px; inset-inline-start:${menu.x}px; min-inline-size:200px; padding-block:8px; border-radius:8px; background:var(--m3-s4, #ECE6F0); box-shadow:0 4px 8px 3px rgba(0,0,0,0.15);` : "display:none;",
+      tabMenuItems, onCloseTabMenu: () => this.setState({ tabMenu: null }),
+      onToggleTheme: () => this.setPref("theme", p.theme === "light" ? "dark" : "light", true),
+      themeToggleMask: p.theme === "light" ? "url('icons/eye.svg')" : "url('icons/online.svg')",
+      themeToggleTitle: p.theme === "light" ? this.label("dark") : this.label("light"),
+      onOpenNotifications: () => this.setState({ tab: "notifications" }, () => this.save()),
+      onOpenSettings: () => this.setState({ tab: "settings" }, () => this.save()),
+      notifBadge: s.notifications.length ? String(Math.min(99, s.notifications.length)) : "",
+      notifBadgeStyle: s.notifications.length ? "position:absolute; inset-block-start:2px; inset-inline-end:2px; min-inline-size:16px; block-size:16px; padding-inline:4px; border-radius:8px; background:var(--m3-error, #B3261E); color:#FFFFFF; font-size:10px; line-height:16px; font-weight:600; text-align:center; box-sizing:border-box;" : "display:none;",
+      isMail: s.tab === "mail", isSettings: s.tab === "settings", isChangelog: s.tab === "changelog", isHistory: s.tab === "history", isNotifications: s.tab === "notifications",
+      toasts,
+      dimsumOpen: !!s.dimsum,
+      dimsum: {
+        src: `assets/dimsum/${(s.dimsum || D().DIMSUM[0]).slug}.svg`,
+        alt: `Photo placeholder: ${(s.dimsum || D().DIMSUM[0]).en} (${(s.dimsum || D().DIMSUM[0]).zh})`,
+        name: (s.dimsum || D().DIMSUM[0]).en + " · " + (s.dimsum || D().DIMSUM[0]).zh,
+        blurb: this.msg("dimsum"),
+      },
+      onDismissDimsum: () => this.setState({ dimsum: null }),
+    };
+  }
+
+  shiftTab(id, dir) {
+    const order = [...this.state.tabOrder];
+    const i = order.indexOf(id), j = i + dir;
+    if (i < 0 || j < 0 || j >= order.length) { this.setState({ tabMenu: null }); return; }
+    order.splice(j, 0, order.splice(i, 1)[0]);
+    this.setState({ tabOrder: order, tabMenu: null }, () => this.save());
+  }
+
+  mailVals() {
+    const s = this.state, p = s.prefs, dens = D().DENSITY[p.density] || D().DENSITY.comfortable;
+    const unreadIn = k => s.messages.filter(m => m.folder === k && m.unread).length;
+    const countIn = k => s.messages.filter(m => m.folder === k).length;
+    const fm = this.matcher("folders");
+
+    const folders = D().FOLDERS.filter(f => fm.test(this.label(f.key) + " " + f.key)).map(f => {
+      const active = !s.labelFilter && s.folder === f.key;
+      const n = f.key === "drafts" || f.key === "sent" ? countIn(f.key) : unreadIn(f.key);
+      return {
+        label: this.label(f.key), mask: `url('icons/${f.icon}.svg')`,
+        iconColor: active ? "var(--m3-on-secondary-container, #1D192B)" : f.color,
+        rowStyle: `display:flex; align-items:center; gap:12px; block-size:${dens.control + 8}px; inline-size:100%; padding-inline:16px; border:none; border-radius:28px; box-sizing:border-box; text-align:start; cursor:pointer; color:inherit; background:${active ? "var(--m3-secondary-container, #E8DEF8)" : "transparent"};`,
+        labelStyle: "flex:1 1 auto; min-inline-size:0; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:" + (active ? "500" : "400") + "; color:" + (active ? "var(--m3-on-secondary-container, #1D192B)" : "var(--m3-on-surface-variant, #49454F)") + ";",
+        badge: n ? String(n) : "",
+        badgeStyle: n ? "font-size:12px; font-weight:500; font-variant-numeric:tabular-nums; color:var(--m3-on-surface-variant, #49454F);" : "display:none;",
+        onClick: () => this.setState({ folder: f.key, labelFilter: null, selectedId: null, reply: null, sortMenuOpen: false }),
+      };
+    });
+
+    const labels = D().LABELS.filter(l => fm.test(l.key)).map(l => {
+      const active = s.labelFilter === l.key;
+      const n = s.messages.filter(m => m.label === l.key && m.folder !== "trash").length;
+      return {
+        label: l.key, dot: l.dot,
+        rowStyle: `display:flex; align-items:center; gap:16px; block-size:${dens.control}px; inline-size:100%; padding-inline:20px; border:none; border-radius:24px; box-sizing:border-box; text-align:start; cursor:pointer; color:inherit; background:${active ? "var(--m3-secondary-container, #E8DEF8)" : "transparent"};`,
+        labelStyle: "flex:1 1 auto; font-size:14px; color:" + (active ? "var(--m3-on-secondary-container, #1D192B)" : "var(--m3-on-surface-variant, #49454F)") + ";",
+        badge: n ? String(n) : "", badgeStyle: n ? "font-size:12px; color:var(--m3-on-surface-variant, #49454F);" : "display:none;",
+        onClick: () => this.setState({ labelFilter: active ? null : l.key, selectedId: null, reply: null }),
+      };
+    });
+
+    const mm = this.matcher("mail"), lm = this.matcher("list");
+    let rows = s.messages.filter(m => {
+      if (s.labelFilter) { if (m.label !== s.labelFilter || m.folder === "trash") return false; }
+      else if (m.folder !== s.folder) return false;
+      if (s.chip === "unread" && !m.unread) return false;
+      if (s.chip === "starred" && !m.starred) return false;
+      if (s.chip === "attach" && !m.attach) return false;
+      if (s.search.mail.q.trim() && !mm.test(m.name + " " + m.email + " " + m.subject + " " + m.body.join(" "))) return false;
+      if (s.search.list.q.trim() && !lm.test(m.name + " " + m.subject)) return false;
+      return true;
+    });
+    const sorters = { newest: (a, b) => b.ts - a.ts, oldest: (a, b) => a.ts - b.ts, sender: (a, b) => a.name.localeCompare(b.name), unread: (a, b) => Number(b.unread) - Number(a.unread) || b.ts - a.ts };
+    rows = rows.slice().sort(sorters[s.sort]);
+
+    const visible = rows.map(m => {
+      const av = this.avatar(m, dens.avatar), selected = m.id === s.selectedId;
+      return {
+        initials: av.initials, avatarStyle: av.style,
+        sender: m.folder === "sent" || m.folder === "drafts" ? this.label("to") + ": " + m.to : m.name,
+        subject: m.subject, preview: m.body[0], time: m.time, tag: m.label || "", selected: selected ? "true" : "false",
+        rowStyle: `display:flex; align-items:flex-start; gap:16px; margin:${dens.gap}px 8px; padding:${dens.row}; border-radius:16px; cursor:pointer; background:${selected ? "var(--m3-secondary-container, #E8DEF8)" : m.unread ? "var(--m3-s2, #F7F2FA)" : "transparent"};`,
+        senderStyle: "flex:1 1 auto; min-inline-size:0; font-size:14px; line-height:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--m3-on-surface, #1D1B20); font-weight:" + (m.unread ? "700" : "500") + ";",
+        timeStyle: "flex:0 0 auto; font-size:12px; color:var(--m3-on-surface-variant, #49454F); font-weight:" + (m.unread ? "600" : "400") + ";",
+        subjectStyle: "flex:1 1 auto; min-inline-size:0; font-size:14px; line-height:20px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--m3-on-surface, #1D1B20); font-weight:" + (m.unread ? "600" : "400") + ";",
+        dotStyle: m.unread ? "flex:0 0 auto; inline-size:8px; block-size:8px; border-radius:4px; background:var(--m3-primary, #6750A4);" : "display:none;",
+        attachStyle: m.attach ? "flex:0 0 auto; inline-size:16px; block-size:16px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/attachment.svg') center/16px no-repeat;" : "display:none;",
+        tagStyle: m.label ? "flex:0 0 auto; block-size:20px; padding-inline:8px; border-radius:6px; background:var(--m3-tertiary-container, #FFD8E4); color:var(--m3-on-tertiary-container, #31111D); font-size:11px; line-height:20px; font-weight:500;" : "display:none;",
+        starStyle: this.starSt(m.starred, 20),
+        onClick: () => { this.setState({ selectedId: m.id, reply: null, sortMenuOpen: false }); if (m.unread) this.patch(m.id, { unread: false }); },
+        onStar: e => { e.stopPropagation(); this.patch(m.id, { starred: !m.starred }, `${m.starred ? "Unstarred" : "Starred"} “${m.subject}”`); },
+      };
+    });
+
+    const chips = [["all", "all"], ["unread", "unread"], ["starred", "starred"], ["attach", "hasAttachment"]].map(([key, lbl]) => {
+      const active = s.chip === key;
+      return { label: this.label(lbl), style: this.chipSt(active), iconStyle: this.checkIcon(active), onClick: () => this.setState({ chip: active && key !== "all" ? "all" : key }) };
+    });
+
+    const sortItems = [["newest", "newest"], ["oldest", "oldest"], ["sender", "bySender"], ["unread", "unreadFirst"]].map(([key, lbl]) => ({
+      label: this.label(lbl), style: this.menuItem(),
+      checkStyle: "inline-size:18px; block-size:18px; flex:0 0 auto; " + (s.sort === key ? "background:var(--m3-primary, #6750A4); mask:url('icons/check.svg') center/18px no-repeat;" : "background:transparent;"),
+      onClick: () => this.setState({ sort: key, sortMenuOpen: false }),
+    }));
+
+    const sel = s.messages.find(m => m.id === s.selectedId) || null;
+    const selAv = sel ? this.avatar(sel, 48) : null;
+    const actions = sel ? [
+      { label: this.label("reply"), mask: "url('icons/reply.svg')", onClick: () => this.openReply("reply") },
+      { label: this.label("replyAll"), mask: "url('icons/reply-all.svg')", onClick: () => this.openReply("replyAll") },
+      { label: this.label("forward"), mask: "url('icons/forward.svg')", onClick: () => this.openReply("forward") },
+      { label: this.label("archive"), mask: "url('icons/archive.svg')", onClick: () => this.move(sel.id, "archive", "archived") },
+      { label: this.label("markSpam"), mask: "url('icons/spam.svg')", onClick: () => this.move(sel.id, "spam", "spammed") },
+      { label: this.label("delete"), mask: "url('icons/trash.svg')", onClick: () => this.move(sel.id, "trash", "deleted") },
+      { label: this.label("markUnread"), mask: "url('icons/unread.svg')", onClick: () => { this.patch(sel.id, { unread: true }, `Marked “${sel.subject}” unread`); this.setState({ selectedId: null, reply: null }); this.notify("markedUnread", { kind: "info" }); } },
+      { label: this.label("print"), mask: "url('icons/print.svg')", onClick: () => window.print() },
+    ] : [];
+
+    const r = s.reply;
+    const modeLabel = { reply: this.label("reply"), replyAll: this.label("replyAll"), forward: this.label("forward") };
+    const nextMode = { reply: "replyAll", replyAll: "forward", forward: "reply" };
+
+    return {
+      drawerOpen: s.drawerOpen, onToggleDrawer: () => this.setState(st => ({ drawerOpen: !st.drawerOpen })),
+      accountEmail: p.accountEmail, folders, labels, chips, sortItems,
+      foldersEmpty: folders.length === 0 && labels.length === 0, foldersEmptyText: this.msg("noMatch"),
+      sortMenuOpen: s.sortMenuOpen, onToggleSortMenu: () => this.setState(st => ({ sortMenuOpen: !st.sortMenuOpen })),
+      folderTitle: s.labelFilter || this.label(s.folder),
+      countLabel: rows.length === 0 ? "" : `${rows.filter(m => m.unread).length} ${this.label("unread")} · ${rows.length}`,
+      sfMail: this.sf("mail", { placeholder: this.label("searchMail"), scope: "Searches sender, address, subject and body in every folder", sample: s.messages.slice(0, 6).map(m => `${m.name} <${m.email}> — ${m.subject}`).join("\n"), count: s.search.mail.q ? String(rows.length) : "" }),
+      sfFolders: this.sf("folders", { placeholder: this.label("filterFolders"), scope: "Filters the folder and label list", sample: D().FOLDERS.map(f => this.label(f.key)).join("\n") + "\n" + D().LABELS.map(l => l.key).join("\n") }),
+      sfList: this.sf("list", { placeholder: this.label("filterList"), scope: "Filters sender and subject inside this folder only", sample: rows.slice(0, 6).map(m => `${m.name} — ${m.subject}`).join("\n"), count: s.search.list.q ? String(rows.length) : "" }),
+      visible, listEmpty: rows.length === 0,
+      emptyListText: s.search.mail.q.trim() || s.search.list.q.trim() ? this.msg("noMatch") : this.msg("emptyList"),
+      onListKeys: e => {
+        if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+        e.preventDefault();
+        const i = rows.findIndex(m => m.id === s.selectedId);
+        const nx = rows[Math.min(rows.length - 1, Math.max(0, (i < 0 ? 0 : i) + (e.key === "ArrowDown" ? 1 : -1)))];
+        if (nx) { this.setState({ selectedId: nx.id, reply: null }); if (nx.unread) this.patch(nx.id, { unread: false }); }
+      },
+      listPaneStyle: "display:flex; flex-direction:column; min-inline-size:336px; min-block-size:0; flex:1 1 40%; max-inline-size:560px; background:var(--m3-s2, #F7F2FA); border-radius:16px 0 0 0;",
+      detailPaneStyle: "flex:1 1 60%; min-inline-size:0; min-block-size:0; overflow:hidden; background:var(--m3-s1, #FFFFFF); border-start-start-radius:16px; margin-inline-start:8px;",
+      hasSelection: !!sel, noSelection: !sel,
+      onCloseDetail: () => this.setState({ selectedId: null, reply: null }),
+      sel: sel ? {
+        subject: sel.subject, sender: sel.name, email: sel.email, toLine: this.label("to") + ": " + sel.to, fullDate: sel.fullDate,
+        initials: selAv.initials, avatarStyle: selAv.style, starStyle: this.starSt(sel.starred, 22),
+        hasLabel: !!sel.label, label: sel.label || "",
+        hasAttachment: !!sel.attach, attachName: sel.attach ? sel.attach.name : "", attachSize: sel.attach ? sel.attach.size : "",
+      } : {},
+      selBody: sel ? sel.body.map(text => ({ text })) : [],
+      actions,
+      onStarSelected: () => sel && this.patch(sel.id, { starred: !sel.starred }, `${sel.starred ? "Unstarred" : "Starred"} “${sel.subject}”`),
+      onDownloadAttachment: () => sel && sel.attach && this.download(sel.attach.name.replace(/\.[a-z]+$/, "") + ".txt", `${sel.subject}\n\n${sel.body.join("\n\n")}\n`),
+      onOpenInEditor: () => this.openInEditor(),
+      replyCollapsed: !!sel && !r, replyOpen: !!sel && !!r,
+      reply: r ? {
+        title: modeLabel[r.mode], modeMask: `url('icons/${r.mode === "forward" ? "forward" : r.mode === "replyAll" ? "reply-all" : "reply"}.svg')`,
+        cycleLabel: modeLabel[nextMode[r.mode]], cycleTitle: modeLabel[nextMode[r.mode]],
+        to: r.to, subject: r.subject, body: r.body, quote: sel ? this.quoteOf(sel) : "",
+        onTo: e => this.setState(st => ({ reply: { ...st.reply, to: e.target.value } })),
+        onSubject: e => this.setState(st => ({ reply: { ...st.reply, subject: e.target.value } })),
+        onBody: e => this.setState(st => ({ reply: { ...st.reply, body: e.target.value } })),
+        onCycleMode: () => this.openReply(nextMode[r.mode]),
+        onSend: () => this.sendReply(false),
+        onSaveDraft: () => this.sendReply(true),
+        onDiscard: () => { this.setState({ reply: null }); this.notify("replyDiscarded", { kind: "info" }); },
+      } : {},
+      onReply: () => this.openReply("reply"), onReplyAll: () => this.openReply("replyAll"), onForward: () => this.openReply("forward"),
+      onCompose: () => this.openCompose(),
+      composeOpen: !!s.compose, composeTitle: this.label("compose"), compose: s.compose || { to: "", subject: "", body: "" },
+      onComposeTo: e => this.setState(st => ({ compose: { ...st.compose, to: e.target.value } })),
+      onComposeSubject: e => this.setState(st => ({ compose: { ...st.compose, subject: e.target.value } })),
+      onComposeBody: e => this.setState(st => ({ compose: { ...st.compose, body: e.target.value } })),
+      onCancelCompose: () => this.setState({ compose: null }),
+      onSaveDraft: () => this.sendCompose(true), onSend: () => this.sendCompose(false),
+    };
+  }
+
+  seg(value, options, onPick) {
+    return options.map(o => {
+      const active = value === o.key;
+      return {
+        label: o.label, pressed: active ? "true" : "false",
+        style: "display:inline-flex; align-items:center; gap:6px; block-size:40px; padding-inline:16px; border:none; border-inline-end:1px solid var(--m3-outline-variant, #CAC4D0); font-size:14px; font-weight:500; cursor:pointer; background:" +
+          (active ? "var(--m3-secondary-container, #E8DEF8)" : "transparent") + "; color:" + (active ? "var(--m3-on-secondary-container, #1D192B)" : "var(--m3-on-surface-variant, #49454F)") + ";",
+        iconStyle: active ? "inline-size:16px; block-size:16px; background:var(--m3-on-secondary-container, #1D192B); mask:url('icons/check.svg') center/16px no-repeat;" : "display:none;",
+        onClick: () => onPick(o.key),
+      };
+    });
+  }
+
+  switchStyles(on) {
+    return {
+      trackStyle: `position:relative; inline-size:52px; block-size:32px; border-radius:16px; border:2px solid ${on ? "transparent" : "var(--m3-outline, #79747E)"}; background:${on ? "var(--m3-primary, #6750A4)" : "var(--m3-s5, #E6E0E9)"}; cursor:pointer; padding:0;`,
+      knobStyle: `position:absolute; inset-block-start:50%; inset-inline-start:${on ? "26px" : "6px"}; transform:translateY(-50%); inline-size:${on ? 24 : 16}px; block-size:${on ? 24 : 16}px; border-radius:50%; background:${on ? "var(--m3-on-primary, #FFFFFF)" : "var(--m3-outline, #79747E)"}; transition:inset-inline-start 120ms ease;`,
+    };
+  }
+
+  settingsVals() {
+    const s = this.state, p = s.prefs;
+    const rowStyle = "display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:16px 20px; border-block-end:1px solid var(--m3-outline-variant, #CAC4D0); background:var(--m3-s1, #FFFFFF);";
+    const base = { style: rowStyle, isSegmented: false, isSlider: false, isSwitch: false, isText: false, isButton: false, options: [], min: 0, max: 100, step: 1, value: "", display: "", checked: "false", trackStyle: "", knobStyle: "", placeholder: "", buttonLabel: "", onInput: null, onToggle: null, onClick: null };
+    const L = k => this.label(k);
+    const seg = (value, opts, pick) => ({ isSegmented: true, options: this.seg(value, opts, pick) });
+    const sw = (on, toggle) => Object.assign({ isSwitch: true, checked: on ? "true" : "false", onToggle: toggle }, this.switchStyles(on));
+
+    const groups = [
+      { title: L("appearance"), rows: [
+        Object.assign({}, base, { label: L("theme"), desc: "Light and dark schemes use the full M3 role set.", key: "theme" }, seg(p.theme, [{ key: "light", label: L("light") }, { key: "dark", label: L("dark") }], v => this.setPref("theme", v, true))),
+        Object.assign({}, base, { label: L("accent"), desc: "Seed colour for primary, secondary and tertiary roles.", key: "accent" }, seg(p.seed, [{ key: "purple", label: "Purple" }, { key: "blue", label: "Blue" }, { key: "green", label: "Green" }, { key: "orange", label: "Orange" }], v => this.setPref("seed", v, true))),
+        Object.assign({}, base, { label: L("density"), desc: "Row height and list spacing.", key: "density" }, seg(p.density, [{ key: "compact", label: L("compactD") }, { key: "comfortable", label: L("comfortableD") }, { key: "relaxed", label: L("relaxedD") }], v => this.setPref("density", v, true))),
+        Object.assign({}, base, { label: L("fontFamily"), desc: "Noto Sans HK keeps Cantonese copy legible.", key: "font" }, seg(p.font, [{ key: "roboto", label: "Roboto" }, { key: "notohk", label: "Noto Sans HK" }, { key: "system", label: "System" }, { key: "serif", label: "Serif" }], v => this.setPref("font", v, true))),
+        Object.assign({}, base, { label: L("fontSize"), desc: "Scales every text size in the app.", key: "fontScale", isSlider: true, min: 80, max: 160, step: 5, value: p.fontScale, display: p.fontScale + "%", onInput: e => this.setPref("fontScale", Number(e.target.value), true) }),
+        Object.assign({}, base, { label: L("fontWeight"), desc: "Base weight for interface text.", key: "fontWeight", isSlider: true, min: 300, max: 700, step: 100, value: p.fontWeight, display: String(p.fontWeight), onInput: e => this.setPref("fontWeight", Number(e.target.value), true) }),
+      ] },
+      { title: L("languageHumour"), rows: [
+        Object.assign({}, base, { label: L("languageMode"), desc: "Bilingual mode shows English first, Cantonese second.", key: "lang" }, seg(p.lang, [{ key: "en", label: L("english") }, { key: "zh", label: L("cantonese") }, { key: "both", label: L("both") }], v => this.setPref("lang", v, true))),
+        Object.assign({}, base, { label: L("funEn"), desc: "1 is fully serious, 5 is maximum playfulness. Styles every message, errors and warnings included — the facts never change.", key: "funEn", isSlider: true, min: 1, max: 5, step: 1, value: p.funEn, display: "Level " + p.funEn, onInput: e => this.setPref("funEn", Number(e.target.value), true) }),
+        Object.assign({}, base, { label: L("funZh"), desc: "獨立控制廣東話嘅幽默程度，1 最正經，5 最搞笑。", key: "funZh", isSlider: true, min: 1, max: 5, step: 1, value: p.funZh, display: "程度 " + p.funZh, onInput: e => this.setPref("funZh", Number(e.target.value), true) }),
+        Object.assign({}, base, { label: L("livePreview"), desc: "EN L" + p.funEn + ": " + D().MSG_COPY.deleted.en[p.funEn - 1] + "\nZH L" + p.funZh + ": " + D().MSG_COPY.deleted.zh[p.funZh - 1], key: "preview" }),
+      ] },
+      { title: L("narrator"), rows: [
+        Object.assign({}, base, { label: L("narratorOn"), desc: "Off by default. Utterances are serialized, rate limited, and never overlap.", key: "narrator" }, sw(p.narrator, () => this.setPref("narrator", !p.narrator, true))),
+        Object.assign({}, base, { label: L("narratorLang"), desc: "Both speaks English first, then Cantonese.", key: "narratorLang" }, seg(p.narratorLang, [{ key: "en", label: L("english") }, { key: "zh", label: L("cantonese") }, { key: "both", label: L("both") }], v => this.setPref("narratorLang", v, true))),
+      ] },
+      { title: L("delight"), rows: [
+        Object.assign({}, base, { label: L("dimsumSetting"), desc: "A 1% chance at startup of one dim sum dish, named in both languages. Bundled local images, never during first run or an error.", key: "dimsum" }, sw(p.dimsum, () => this.setPref("dimsum", !p.dimsum, true))),
+        Object.assign({}, base, { label: L("dimsumPreview"), desc: "Preview the surface without waiting for the 1% draw.", key: "dimsumPreview", isButton: true, buttonLabel: L("dimsumPreview"), onClick: () => this.showDimsum() }),
+      ] },
+      { title: L("editorGroup"), rows: [
+        Object.assign({}, base, { label: L("editorChoice"), desc: "Used by the open-in-editor action on a message.", key: "editor" }, seg(p.editor, [{ key: "code", label: "VS Code" }, { key: "subl", label: "Sublime" }, { key: "zed", label: "Zed" }, { key: "vim", label: "Vim" }, { key: "custom", label: "Custom" }], v => this.setPref("editor", v, true))),
+        Object.assign({}, base, { label: L("editorCustom"), desc: "Command run when Custom is selected.", key: "editorCustom", isText: true, value: p.editorCustom, placeholder: "e.g. nvim .", onInput: e => this.setPref("editorCustom", e.target.value, true) }),
+      ] },
+      { title: L("historyGroup"), rows: [
+        Object.assign({}, base, { label: L("retention"), desc: "History is append-only; restoring is recorded as a new revision.", key: "historyLimit", isSlider: true, min: 20, max: 200, step: 20, value: p.historyLimit, display: p.historyLimit + " revisions", onInput: e => this.setPref("historyLimit", Number(e.target.value), true) }),
+        Object.assign({}, base, { label: L("exportHistory"), desc: "Download every recorded revision as JSON.", key: "exportHistory", isButton: true, buttonLabel: L("exportHistory"), onClick: () => this.download("material-mail-history.json", JSON.stringify(s.revisions, null, 2), "application/json") }),
+      ] },
+      { title: L("accountGroup"), rows: [
+        Object.assign({}, base, { label: L("accountAddress"), desc: "Shown in the mail header and used as the sender address.", key: "accountEmail", isText: true, value: p.accountEmail, placeholder: "you@example.com", onInput: e => this.setPref("accountEmail", e.target.value, true) }),
+      ] },
+    ];
+
+    const sm = this.matcher("settings");
+    const filtered = groups.map(g => ({ title: g.title, rows: g.rows.filter(r => sm.test(r.label + " " + r.desc + " " + r.key + " " + String(r.value))) })).filter(g => g.rows.length);
+    const shown = filtered.reduce((n, g) => n + g.rows.length, 0);
+
+    return {
+      sfSettings: this.sf("settings", { placeholder: this.label("searchSettings"), scope: "Searches every setting label, description and current value on this page", sample: groups.map(g => g.title + ": " + g.rows.map(r => r.label).join(", ")).join("\n"), count: s.search.settings.q ? String(shown) : "" }),
+      settingsGroups: filtered, settingsEmpty: filtered.length === 0, settingsEmptyText: this.msg("noMatch"),
+      settingsHint: "Every value is saved on change and restored on the next launch. Plain-text search is the default; the .* chip switches this bar to regular expressions and the tools button opens the builder anchored right here.",
+      settingsDisclosure: "The funny-level sliders style all copy, including errors, warnings and destructive confirmations — voice only. What happened, what is affected, and what you can do next is always stated in plain words at every level.",
+    };
+  }
+
+  changelogVals() {
+    const s = this.state;
+    const cm = this.matcher("changelog");
+    const parse = v => {
+      const t = (v || "").trim();
+      if (!t) return { ok: true, value: "" };
+      let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t);
+      if (m) return { ok: true, value: `${m[1]}-${m[2]}-${m[3]}` };
+      m = /^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})$/.exec(t);
+      if (m) return { ok: true, value: `${m[3]}-${String(m[2]).padStart(2, "0")}-${String(m[1]).padStart(2, "0")}` };
+      return { ok: false, value: "" };
+    };
+    const pf = parse(s.clTypedFrom), pt = parse(s.clTypedTo);
+    const from = pf.ok ? pf.value : "", to = pt.ok ? pt.value : "";
+    const dateError = (!pf.ok || !pt.ok) ? "Use YYYY-MM-DD or DD/MM/YYYY. Your text is kept so you can fix it." : "";
+
+    const releases = D().CHANGELOG.filter(r => {
+      if (from && r.date < from) return false;
+      if (to && r.date > to) return false;
+      const hay = r.version + " " + r.date + " " + r.sections.map(x => x.kind + " " + x.items.join(" ")).join(" ");
+      return cm.test(hay);
+    });
+
+    const kindColor = { added: "#386A20", fixed: "#0B57D0", changed: "#8C4A00", security: "#B3261E" };
+    const monthDate = new Date(s.clMonth + "-01T00:00:00");
+    const y = monthDate.getFullYear(), mo = monthDate.getMonth();
+    const first = new Date(y, mo, 1), start = (first.getDay() + 6) % 7, dim = new Date(y, mo + 1, 0).getDate();
+    const days = [];
+    for (let i = 0; i < start; i++) days.push({ label: "", style: "block-size:40px; border:none; background:transparent;", onClick: () => {} });
+    for (let d = 1; d <= dim; d++) {
+      const iso = `${y}-${String(mo + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+      const inRange = (from && to && iso >= from && iso <= to) || iso === from || iso === to;
+      const hasRelease = D().CHANGELOG.some(r => r.date === iso);
+      days.push({
+        label: String(d),
+        style: `block-size:40px; border:none; border-radius:20px; cursor:pointer; font-size:13px; font-weight:${hasRelease ? "700" : "400"}; background:${inRange ? "var(--m3-primary, #6750A4)" : hasRelease ? "var(--m3-primary-container, #EADDFF)" : "transparent"}; color:${inRange ? "var(--m3-on-primary, #FFFFFF)" : "var(--m3-on-surface, #1D1B20)"};`,
+        onClick: () => {
+          if (!s.clTypedFrom || (s.clTypedFrom && s.clTypedTo)) this.setState({ clTypedFrom: iso, clTypedTo: "" });
+          else this.setState(st => (iso < st.clTypedFrom ? { clTypedFrom: iso, clTypedTo: st.clTypedFrom } : { clTypedTo: iso }));
+        },
+      });
+    }
+    const monthName = monthDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
+    const shift = n => {
+      const d = new Date(y, mo + n, 1);
+      this.setState({ clMonth: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}` });
+    };
+    const presetRange = days => {
+      const end = new Date("2026-07-29T00:00:00");
+      const st2 = new Date(end.getTime() - days * 86400000);
+      const iso = d => d.toISOString().slice(0, 10);
+      this.setState({ clTypedFrom: iso(st2), clTypedTo: iso(end) });
+    };
+    const mdOf = () => {
+      const head = `# Material Mail changelog\n\nRange: ${from || "earliest"} → ${to || "latest"}${s.search.changelog.q ? `\nSearch: ${s.search.changelog.q}${s.search.changelog.rx ? " (regex)" : ""}` : ""}\n\n`;
+      return head + releases.map(r => `## ${r.version} — ${r.date}\n` + r.sections.map(sec => `\n### ${sec.kind}\n` + sec.items.map(i => `- ${i}`).join("\n")).join("\n") + "\n").join("\n");
+    };
+
+    return {
+      sfChangelog: this.sf("changelog", { placeholder: this.label("searchChangelog"), scope: "Searches version numbers, dates and every entry; composes with the date range", sample: D().CHANGELOG.slice(0, 3).map(r => `${r.version} — ${r.date}: ${r.sections[0].items[0]}`).join("\n"), count: String(releases.length) }),
+      cl: {
+        typedFrom: s.clTypedFrom, typedTo: s.clTypedTo,
+        onTypedFrom: e => this.setState({ clTypedFrom: e.target.value }),
+        onTypedTo: e => this.setState({ clTypedTo: e.target.value }),
+        dateError, errorStyle: dateError ? "max-inline-size:900px; margin-block-end:12px; padding:10px 14px; border-radius:8px; background:var(--m3-error-container, #F9DEDC); color:var(--m3-on-error-container, #410E0B); font-size:13px;" : "display:none;",
+        rangeSummary: `${releases.length} of ${D().CHANGELOG.length} releases · ${from || "earliest"} → ${to || "latest"}`,
+        calendarOpen: s.clCalendar, calendarLabel: "Calendar", prevLabel: "Previous month", nextLabel: "Next month",
+        onToggleCalendar: () => this.setState(st => ({ clCalendar: !st.clCalendar })),
+        onPrevMonth: () => shift(-1), onNextMonth: () => shift(1),
+        monthLabel: monthName,
+        weekdays: ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(label => ({ label })),
+        days,
+        presets: [{ label: "7 days", d: 7 }, { label: "30 days", d: 30 }, { label: "90 days", d: 90 }, { label: "All", d: null }].map(x => ({
+          label: x.label, onClick: () => (x.d ? presetRange(x.d) : this.setState({ clTypedFrom: "", clTypedTo: "" })),
+        })),
+        onCopy: () => this.copy(mdOf()), onExport: () => this.download("material-mail-changelog.md", mdOf(), "text/markdown"),
+        releases: releases.map(r => ({
+          version: r.version, date: r.date, tag: r.tag ? r.tag : "",
+          tagStyle: r.tag ? "block-size:22px; padding-inline:10px; border-radius:6px; background:var(--m3-primary-container, #EADDFF); color:var(--m3-on-primary-container, #21005D); font-size:11px; line-height:22px; font-weight:600; text-transform:uppercase;" : "display:none;",
+          sections: r.sections.map(sec => ({
+            kind: sec.kind,
+            dotStyle: `inline-size:10px; block-size:10px; border-radius:5px; background:${kindColor[sec.kind] || "#6750A4"};`,
+            items: sec.items.map(text => ({ text })),
+          })),
+        })),
+        empty: releases.length === 0, emptyText: this.msg("noMatch"),
+      },
+    };
+  }
+
+  historyVals() {
+    const s = this.state;
+    const hm = this.matcher("history");
+    const revs = s.revisions.filter(r => hm.test(r.label + " " + r.kind));
+    const sel = revs.find(r => r.id === s.histSel) || s.revisions.find(r => r.id === s.histSel) || null;
+    const fields = sel ? Array.from(new Set([...Object.keys(sel.before || {}), ...Object.keys(sel.after || {})])) : [];
+    const fmt = v => (v === undefined || v === null ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v));
+
+    return {
+      sfHistory: this.sf("history", { placeholder: this.label("searchHistory"), scope: "Searches revision labels and kinds", sample: s.revisions.slice(0, 6).map(r => r.label).join("\n") || "Starred a message\nSetting “theme”: light → dark", count: String(revs.length) }),
+      hi: {
+        note: "Every change to a message or a setting is snapshotted here. History is append-only: restoring writes a new revision instead of rewriting the old one, so an undo can itself be undone.",
+        revisions: revs.map(r => ({
+          label: r.label, when: new Date(r.at).toLocaleString(),
+          style: "display:flex; align-items:center; gap:12px; inline-size:100%; padding:10px 12px; margin-block-end:4px; border:none; border-radius:12px; cursor:pointer; color:inherit; background:" + (sel && sel.id === r.id ? "var(--m3-secondary-container, #E8DEF8)" : "transparent") + ";",
+          iconStyle: `inline-size:20px; block-size:20px; flex:0 0 auto; background:${r.kind === "setting" ? "var(--m3-primary, #6750A4)" : "var(--m3-on-surface-variant, #49454F)"}; mask-image:url('icons/${r.kind === "setting" ? "settings" : r.kind === "restore" ? "restore" : "mail"}.svg'); mask-size:20px; mask-position:center; mask-repeat:no-repeat;`,
+          onClick: () => this.setState({ histSel: r.id }),
+        })),
+        empty: revs.length === 0,
+        emptyText: s.search.history.q ? this.msg("noMatch") : "No revisions yet. Star a message, move one, or change a setting and it will appear here.",
+        hasSel: !!sel, noSel: !sel,
+        pickText: "Select a revision to see exactly what changed and to restore it.",
+        sel: sel ? { label: sel.label, meta: new Date(sel.at).toLocaleString() + " · " + sel.kind } : {},
+        diff: sel ? fields.map(f => ({ field: f, before: fmt((sel.before || {})[f]), after: fmt((sel.after || {})[f]) })) : [],
+        onRename: e => {
+          const v = e.target.value;
+          this.setState(st => ({ revisions: st.revisions.map(r => (r.id === sel.id ? { ...r, label: v } : r)) }), () => this.save());
+        },
+        onRestore: () => {
+          if (!sel) return;
+          if (sel.kind === "setting" && sel.before) {
+            const key = Object.keys(sel.before)[0];
+            const value = sel.before[key];
+            const current = this.state.prefs[key];
+            this.setState(st => ({ prefs: { ...st.prefs, [key]: value } }), () => this.save());
+            this.record(`Restored setting “${key}” to ${String(value)}`, "restore", { [key]: current }, { [key]: value });
+          } else if (sel.before && sel.before.id != null) {
+            const id = sel.before.id;
+            const current = this.state.messages.find(m => m.id === id);
+            const target = { folder: sel.before.folder, unread: sel.before.unread, starred: sel.before.starred };
+            this.setState(st => ({ messages: st.messages.map(m => (m.id === id ? { ...m, ...target } : m)) }), () => this.save());
+            this.record(`Restored message ${id} to an earlier state`, "restore", current ? { folder: current.folder, unread: current.unread, starred: current.starred } : null, target);
+          }
+          this.notify("restored", { kind: "success" });
+        },
+        restoreNote: "Restoring appends a new revision recording the state you are leaving, so this restore can itself be undone.",
+        onExport: () => this.download("material-mail-history.json", JSON.stringify(s.revisions, null, 2), "application/json"),
+      },
+    };
+  }
+
+  notifVals() {
+    const s = this.state;
+    const nm = this.matcher("notifications");
+    const rows = s.notifications.filter(n => (s.notifFilter === "all" || n.kind === s.notifFilter) && nm.test(n.title + " " + n.body + " " + n.kind));
+    const filters = [["all", "all"], ["success", "success"], ["info", "info"], ["warning", "warning"]].map(([key, lbl]) => {
+      const active = s.notifFilter === key;
+      return { label: key === "all" ? this.label("all") : lbl, style: this.chipSt(active), iconStyle: this.checkIcon(active), onClick: () => this.setState({ notifFilter: key }) };
+    });
+    return {
+      sfNotifications: this.sf("notifications", { placeholder: this.label("searchNotifications"), scope: "Searches every notification kept in the centre", sample: s.notifications.slice(0, 6).map(n => n.kind + ": " + n.body).join("\n") || "success: Message sent.\nwarning: No external editor can be launched from a browser.", count: String(rows.length) }),
+      nf: {
+        filters,
+        rows: rows.map(n => ({
+          title: n.title, body: n.body, when: new Date(n.at).toLocaleString(),
+          iconStyle: `inline-size:22px; block-size:22px; flex:0 0 auto; background:${n.kind === "warning" ? "var(--m3-error, #B3261E)" : "var(--m3-primary, #6750A4)"}; mask-image:url('icons/${n.kind === "success" ? "check" : n.kind === "warning" ? "warning" : "info"}.svg'); mask-size:22px; mask-position:center; mask-repeat:no-repeat;`,
+        })),
+        empty: rows.length === 0,
+        emptyText: s.notifications.length ? this.msg("noMatch") : "Nothing yet. Every toast the app shows is kept here so a dismissed message is never lost.",
+        onClear: () => this.setState({ notifications: [] }, () => this.save()),
+      },
+    };
+  }
+
+  openPalette() {
+    this.setState({ paletteOpen: true, paletteIndex: 0 }, () => { const el = this.fields.palette; if (el) el.focus(); });
+  }
+
+  paletteVals() {
+    const s = this.state, p = s.prefs;
+    const cmds = [];
+    const G = { nav: "Go to", mail: "Mail", view: "Appearance", lang: "Language", tool: "Tools" };
+    D().TABS.forEach(t => cmds.push({ label: this.label(t.id), group: G.nav, mask: `url('icons/${t.icon}.svg')`, run: () => this.setState({ tab: t.id, paletteOpen: false }, () => this.save()) }));
+    cmds.push({ label: this.label("compose"), group: G.mail, keys: "", mask: "url('icons/pencil.svg')", run: () => this.openCompose() });
+    cmds.push({ label: this.label("reply"), group: G.mail, mask: "url('icons/reply.svg')", run: () => { this.setState({ paletteOpen: false, tab: "mail" }); this.openReply("reply"); } });
+    cmds.push({ label: this.label("replyAll"), group: G.mail, mask: "url('icons/reply-all.svg')", run: () => { this.setState({ paletteOpen: false, tab: "mail" }); this.openReply("replyAll"); } });
+    cmds.push({ label: this.label("forward"), group: G.mail, mask: "url('icons/forward.svg')", run: () => { this.setState({ paletteOpen: false, tab: "mail" }); this.openReply("forward"); } });
+    cmds.push({ label: this.label("archive") + " — " + this.label("mail"), group: G.mail, mask: "url('icons/archive.svg')", run: () => { const id = s.selectedId; this.setState({ paletteOpen: false }); if (id) this.move(id, "archive", "archived"); } });
+    cmds.push({ label: this.label("delete") + " — " + this.label("mail"), group: G.mail, mask: "url('icons/trash.svg')", run: () => { const id = s.selectedId; this.setState({ paletteOpen: false }); if (id) this.move(id, "trash", "deleted"); } });
+    cmds.push({ label: this.label("markUnread"), group: G.mail, mask: "url('icons/unread.svg')", run: () => { const id = s.selectedId; this.setState({ paletteOpen: false }); if (id) { this.patch(id, { unread: true }, "Marked unread from the palette"); this.notify("markedUnread", { kind: "info" }); } } });
+    cmds.push({ label: `${this.label("theme")}: ${p.theme === "light" ? this.label("dark") : this.label("light")}`, group: G.view, mask: "url('icons/eye.svg')", run: () => { this.setPref("theme", p.theme === "light" ? "dark" : "light", true); this.setState({ paletteOpen: false }); } });
+    ["purple", "blue", "green", "orange"].forEach(seed => cmds.push({ label: `${this.label("accent")}: ${seed}`, group: G.view, mask: "url('icons/paint-brush.svg')", run: () => { this.setPref("seed", seed, true); this.setState({ paletteOpen: false }); } }));
+    ["compact", "comfortable", "relaxed"].forEach(d => cmds.push({ label: `${this.label("density")}: ${d}`, group: G.view, mask: `url('icons/density-${d === "comfortable" ? "default" : d === "relaxed" ? "relaxed" : "compact"}.svg')`, run: () => { this.setPref("density", d, true); this.setState({ paletteOpen: false }); } }));
+    [["en", "english"], ["zh", "cantonese"], ["both", "both"]].forEach(([k, lbl]) => cmds.push({ label: `${this.label("languageMode")}: ${this.label(lbl)}`, group: G.lang, mask: "url('icons/id.svg')", run: () => { this.setPref("lang", k, true); this.setState({ paletteOpen: false }); } }));
+    [1, 2, 3, 4, 5].forEach(n => cmds.push({ label: `${this.label("funEn")}: ${n}`, group: G.lang, mask: "url('icons/heart.svg')", run: () => { this.setPref("funEn", n, true); this.setState({ paletteOpen: false }); } }));
+    [1, 2, 3, 4, 5].forEach(n => cmds.push({ label: `${this.label("funZh")}: ${n}`, group: G.lang, mask: "url('icons/heart.svg')", run: () => { this.setPref("funZh", n, true); this.setState({ paletteOpen: false }); } }));
+    cmds.push({ label: `${this.label("narratorOn")}: ${p.narrator ? "off" : "on"}`, group: G.lang, mask: "url('icons/online.svg')", run: () => { this.setPref("narrator", !p.narrator, true); this.setState({ paletteOpen: false }); } });
+    cmds.push({ label: this.label("openBuilder"), group: G.tool, keys: "Ctrl+Shift+F", mask: "url('icons/tools.svg')", run: () => this.setState({ paletteOpen: false, builderFor: this.activeField() === "palette" ? "mail" : this.activeField() }) });
+    cmds.push({ label: this.label("searchMail"), group: G.tool, keys: "Ctrl+F", mask: "url('icons/search.svg')", run: () => this.setState({ paletteOpen: false, tab: "mail" }, () => { const el = this.fields.mail; if (el) el.focus(); }) });
+    cmds.push({ label: this.label("dimsumPreview"), group: G.tool, mask: "url('icons/heart.svg')", run: () => { this.setState({ paletteOpen: false }); this.showDimsum(); } });
+    cmds.push({ label: this.label("exportHistory"), group: G.tool, mask: "url('icons/export.svg')", run: () => { this.setState({ paletteOpen: false }); this.download("material-mail-history.json", JSON.stringify(s.revisions, null, 2), "application/json"); } });
+    cmds.push({ label: this.label("openInEditor"), group: G.tool, mask: "url('icons/shortcut.svg')", run: () => { this.setState({ paletteOpen: false }); this.openInEditor(); } });
+
+    const pm = this.matcher("palette");
+    const results = cmds.filter(c => pm.test(c.label + " " + c.group));
+    const idx = Math.min(s.paletteIndex, Math.max(0, results.length - 1));
+
+    return {
+      paletteOpen: s.paletteOpen,
+      onOpenPalette: () => this.openPalette(),
+      onClosePalette: () => this.setState({ paletteOpen: false }),
+      sfPalette: this.sf("palette", {
+        placeholder: this.label("typeCommand"), scope: this.label("commandPalette"), count: String(results.length),
+        onKeyDown: e => {
+          if (e.key === "ArrowDown") { e.preventDefault(); this.setState({ paletteIndex: Math.min(results.length - 1, idx + 1) }); }
+          else if (e.key === "ArrowUp") { e.preventDefault(); this.setState({ paletteIndex: Math.max(0, idx - 1) }); }
+          else if (e.key === "Enter") { e.preventDefault(); const c = results[idx]; if (c) c.run(); }
+        },
+      }),
+      paletteResults: results.slice(0, 40).map((c, i) => ({
+        label: c.label, group: c.group, mask: c.mask, keys: c.keys || "",
+        keysStyle: c.keys ? "flex:0 0 auto; font-family:ui-monospace, monospace; font-size:12px; padding:2px 8px; border-radius:6px; background:var(--m3-s5, #E6E0E9); color:var(--m3-on-surface-variant, #49454F);" : "display:none;",
+        style: "display:flex; align-items:center; gap:12px; inline-size:100%; padding:10px 12px; border:none; border-radius:12px; cursor:pointer; color:inherit; background:" + (i === idx ? "var(--m3-secondary-container, #E8DEF8)" : "transparent") + ";",
+        onClick: () => c.run(),
+      })),
+      paletteEmpty: results.length === 0, paletteEmptyText: this.msg("noMatch"),
+    };
+  }
+}
+
+</script>
 </body>
 </html>
