@@ -1,0 +1,222 @@
+# Builds a Windows Thunderbird installer from this comm checkout and publishes it
+# as a non-draft GitHub Release.
+#
+# This repo is the *comm* tree only — no mach, no mozconfig, no mozilla/. Per
+# README.md it must sit at comm/ inside a mozilla-central checkout, so this
+# workflow clones mozilla-firefox/firefox and drops this repo in at comm/.
+#
+# Build mode defaults to FULL: everything compiled from source, so the installer
+# is self-contained and does not depend on upstream prebuilt binaries lining up
+# with this fork. That costs hours, which is accepted. `artifact` mode remains
+# selectable via workflow_dispatch as a fast fallback for frontend-only changes
+# (and is the escape hatch if a full build runs out of disk on a hosted runner).
+#
+# Dependencies install automatically: `mach bootstrap --no-interactive` fetches
+# the Mozilla toolchains, with rustup as belt-and-braces. Nothing prompts.
+
+name: Windows installer
+
+on:
+  push:
+    branches:
+      - main
+      - 'design-import/**'
+  workflow_dispatch:
+    inputs:
+      build_mode:
+        description: 'full = compile everything (hours). artifact = frontend only (minutes).'
+        type: choice
+        default: full
+        options: [full, artifact]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    # GitHub caps a hosted job at 6h. Use nearly all of it for a full build.
+    timeout-minutes: 355
+
+    env:
+      MOZBUILD_STATE_PATH: C:\mozbuild
+      MOZ_AUTOMATION: '1'
+      GECKO_DIR: C:\gecko
+      BUILD_MODE: ${{ github.event.inputs.build_mode || 'full' }}
+
+    steps:
+      - name: Disk space (before)
+        shell: pwsh
+        run: Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}} | Format-Table
+
+      - name: Reclaim disk space
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          # A full mozilla-central build needs ~40 GB. Hosted runners ship many GB
+          # of toolchains this build never touches; removing them is what makes a
+          # full build fit at all. Disk — not time — is the binding constraint here.
+          $targets = @(
+            "$env:ProgramFiles\dotnet",
+            "${env:ProgramFiles(x86)}\Android",
+            "$env:ProgramFiles\Microsoft SDKs\Android",
+            "$env:ProgramFiles\Google\Chrome",
+            "${env:ProgramFiles(x86)}\Google",
+            "$env:ProgramFiles\Microsoft\jdk",
+            "$env:ProgramFiles\PostgreSQL",
+            "$env:ProgramFiles\MySQL",
+            "$env:ProgramFiles\MongoDB",
+            "$env:ProgramFiles\R",
+            "$env:AGENT_TOOLSDIRECTORY\Ruby",
+            "$env:AGENT_TOOLSDIRECTORY\go",
+            "$env:AGENT_TOOLSDIRECTORY\CodeQL",
+            "$env:AGENT_TOOLSDIRECTORY\node",
+            "$env:LOCALAPPDATA\Android",
+            "C:\hostedtoolcache\windows\Java*",
+            "C:\Program Files\Unity"
+          )
+          foreach ($t in $targets) {
+            if (Test-Path $t) {
+              $sz = 0
+              try { $sz = (Get-ChildItem $t -Recurse -File -EA SilentlyContinue | Measure-Object Length -Sum).Sum/1GB } catch {}
+              Remove-Item -Recurse -Force $t -EA SilentlyContinue
+              Write-Host ("Removed {0} ({1:N1} GB)" -f $t, $sz)
+            }
+          }
+          Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}} | Format-Table
+
+      - name: Check out comm (this repo)
+        uses: actions/checkout@v4
+        with:
+          path: comm-src
+          fetch-depth: 1
+
+      - name: Clone mozilla-central (gecko)
+        shell: pwsh
+        run: |
+          # Shallow clone: we build tip, matching .gecko_rev.yml (GECKO_HEAD_REF: default).
+          git clone --depth 1 https://github.com/mozilla-firefox/firefox.git "$env:GECKO_DIR"
+          Write-Host "gecko rev: $(git -C $env:GECKO_DIR rev-parse HEAD)"
+
+      - name: Place comm inside gecko
+        shell: pwsh
+        run: |
+          Move-Item -Path "${{ github.workspace }}\comm-src" -Destination "$env:GECKO_DIR\comm"
+          if (-not (Test-Path "$env:GECKO_DIR\comm\mail\config\version.txt")) {
+            throw "comm/ not placed correctly - mail/config/version.txt missing"
+          }
+          Write-Host "Thunderbird version: $(Get-Content "$env:GECKO_DIR\comm\mail\config\version.txt")"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Rust toolchain
+        shell: pwsh
+        run: |
+          # mach bootstrap installs this too; doing it up front makes a failure
+          # here obvious instead of surfacing as a confusing bootstrap error.
+          rustup set profile minimal
+          rustup default stable
+          rustup target add x86_64-pc-windows-msvc
+          rustc --version; cargo --version
+
+      - name: Write mozconfig
+        shell: pwsh
+        run: |
+          $lines = @(
+            'ac_add_options --enable-project=comm/mail',
+            'ac_add_options --enable-optimize',
+            'ac_add_options --disable-debug',
+            'ac_add_options --disable-tests',
+            'mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-tb',
+            'mk_add_options AUTOCLOBBER=1'
+          )
+          if ($env:BUILD_MODE -eq 'artifact') {
+            $lines += 'ac_add_options --enable-artifact-builds'
+          }
+          $lines -join "`n" | Set-Content -Encoding ascii "$env:GECKO_DIR\mozconfig"
+          Write-Host "--- mozconfig (mode: $env:BUILD_MODE) ---"
+          Get-Content "$env:GECKO_DIR\mozconfig"
+
+      - name: Bootstrap build environment (auto-install deps)
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          # --no-interactive installs every Mozilla-managed toolchain without prompting.
+          python mach --no-interactive bootstrap --application-choice=browser
+
+      - name: Build
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: python mach build
+
+      - name: Package installer
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: python mach package
+
+      - name: Locate installer
+        id: find
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          $exe = Get-ChildItem -Path "obj-tb\dist\install" -Recurse -Filter "*.exe" -EA SilentlyContinue |
+                 Where-Object { $_.Name -match 'installer|setup' } |
+                 Sort-Object Length -Descending | Select-Object -First 1
+          if (-not $exe) {
+            Write-Host "No installer found. obj-tb\dist contents:"
+            Get-ChildItem -Path "obj-tb\dist" -Recurse -Depth 3 -EA SilentlyContinue |
+              Select-Object FullName | Format-Table -AutoSize
+            throw "mach package produced no installer .exe"
+          }
+          Write-Host ("Installer: {0} ({1:N1} MB)" -f $exe.FullName, ($exe.Length/1MB))
+          "installer=$($exe.FullName)" >> $env:GITHUB_OUTPUT
+          "version=$(Get-Content comm\mail\config\version_display.txt)" >> $env:GITHUB_OUTPUT
+
+      - name: Publish release
+        shell: pwsh
+        env:
+          # Per shared instructions: optional repo PAT, then org token, then the
+          # ephemeral workflow token as last fallback.
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          $sha = "${{ github.sha }}".Substring(0,7)
+          # run_number is monotonic per workflow, so tags never collide or recycle.
+          $tag = "tb-${{ steps.find.outputs.version }}-b${{ github.run_number }}-$sha"
+          $title = "Thunderbird ${{ steps.find.outputs.version }} (unofficial fork build ${{ github.run_number }})"
+          $notes = @"
+          Unofficial Windows build from ``${{ github.ref_name }}`` @ ``${{ github.sha }}``.
+
+          **Not an official Mozilla Thunderbird release.** Built from a fork for the
+          Material Mail 3-pane rewrite. Do not treat it as an upstream Thunderbird build.
+
+          - Build mode: ``$env:BUILD_MODE``
+          - Gecko: mozilla-central tip
+          - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          "@
+          gh release create "$tag" "${{ steps.find.outputs.installer }}" `
+            --repo "${{ github.repository }}" `
+            --title "$title" `
+            --notes "$notes"
+          Write-Host "Published $tag"
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            C:\gecko\obj-tb\config.log
+            C:\gecko\obj-tb\.mozconfig.json
+          if-no-files-found: ignore
+
+      - name: Disk space (after)
+        if: always()
+        shell: pwsh
+        run: Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}} | Format-Table
