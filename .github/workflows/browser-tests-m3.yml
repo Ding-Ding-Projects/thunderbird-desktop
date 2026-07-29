@@ -112,10 +112,25 @@ name: Browser tests (Material Mail)
 #
 # So: nightly, plus on demand. A schedule cannot be superseded by a developer
 # push, which is the whole point.
+#
+# HONEST CAVEAT about the schedule below: GitHub runs scheduled workflows only
+# from the DEFAULT branch, and this workflow exists only on
+# design-import/thunderbird-3pane - `git ls-tree origin/main -- .github/workflows/`
+# is empty. So the cron CANNOT fire today. It is kept because it is the correct
+# configuration the moment this branch reaches the default branch (a merge this
+# project has deliberately not made - see AGENTS.md 5.1), and because a
+# schedule that fires is the right long-term answer.
+#
+# The trigger that actually works right now is workflow_dispatch, and it works
+# even from a non-default branch - verified, not assumed:
+#   gh workflow run browser-tests-m3.yml --ref design-import/thunderbird-3pane -f suite=all
+# returned run 30498533920. The "workflow must be on the default branch" rule
+# applies to the Actions UI button, not to this API path.
 on:
   schedule:
     # 04:07 UTC. Not on the hour - every cron in the world fires at :00, and an
-    # off-minute costs nothing and queues faster.
+    # off-minute costs nothing and queues faster. Inert until this workflow lands
+    # on the default branch; see the caveat above.
     - cron: '7 4 * * *'
   workflow_dispatch:
     inputs:
