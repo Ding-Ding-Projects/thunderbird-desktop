@@ -183,8 +183,9 @@ body#paneLayout {
   /* Paired with the zeroed border-width above, so nothing paints in either
    * state; standing it down under a theme simply hands the colour of the
    * (0px-wide) edge back to splitter.css's --sidebar-border. The
-   * prefers-contrast block further down, which is the only place the border
-   * regains a width, is deliberately NOT guarded. */
+   * prefers-contrast block further down splits width from colour precisely so
+   * that the WIDTH comes back for themed and unthemed users alike, and only
+   * the colour defers to the theme. See the note there. */
   border-color: transparent;
 }
 
@@ -258,28 +259,47 @@ body#paneLayout {
 }
 
 @media (prefers-contrast) {
-  /* Prefixed with the same :root:not([lwtheme]) guard as the rule it overrides.
+  /* WIDTH AND COLOUR ARE SPLIT ON PURPOSE — each half is guarded exactly like
+   * the declaration it has to beat, and no further.
    *
-   * A media query contributes NO specificity. Once the base rule was guarded it
-   * went to (1,2,0) while this fallback stayed at (1,1,0), so the fallback lost
-   * outright: the splitter kept border-width: 1px from here and border-color:
-   * transparent from the guard — a 1px invisible border costing 2px of content
-   * box for nothing.
+   * A media query contributes NO specificity, so each half has to out-rank its
+   * own competitor by selector alone:
    *
-   * With the prefix the pair is equal-specificity again and this wins on source
-   * order, exactly as it did before the guard existed. Under [lwtheme] neither
-   * matches, which is correct: the M3 colours have stood down and about3Pane.css
-   * runs its own contrast fallbacks. Same precedent as m3-chrome.css:511. */
+   *   border-width  competes with the UNGUARDED `border-width: 0` above,
+   *                 (1,0,0). So this rule must stay UNGUARDED, at (1,1,0).
+   *                 Guarding it too — which an earlier pass did, to fix the
+   *                 border-color half — silently deleted the high-contrast
+   *                 hairline for anyone with a lightweight theme installed:
+   *                 `border-width: 0` is unconditional, so under [lwtheme] the
+   *                 M3 tonal step stood down AND the fallback that replaces it
+   *                 stopped matching, leaving no pane boundary at all in high
+   *                 contrast. A theme install must never be able to remove an
+   *                 accessibility affordance (see the header note above).
+   *
+   *   border-color  competes with the GUARDED `border-color: transparent`
+   *                 above, (1,2,0), so it must carry the same guard and lands
+   *                 at (1,3,0). Without the guard the pair was (1,1,0) vs
+   *                 (1,2,0) and lost outright: a 1px *invisible* border costing
+   *                 2px of content box for nothing. Under [lwtheme] neither
+   *                 matches and the colour falls back to splitter.css's
+   *                 var(--sidebar-border) — the theme-aware hairline upstream
+   *                 draws, which is the right answer, not an M3 token painted
+   *                 over someone's theme. Same precedent as m3-chrome.css:511.
+   *
+   * Excluded while collapsed in both halves: there upstream's border-width
+   * resolves to var(--splitter-occupy-size) == 0px, and a collapsed splitter
+   * must not paint a boundary for a pane that is not on screen. */
+  #folderPaneSplitter:not(.splitter-collapsed),
+  #messagePaneSplitter:not(.splitter-collapsed) {
+    /* A tonal step alone is not a reliable boundary in high contrast, so put
+     * the hairline back. Occupied space is unchanged (box-sizing is border-box
+     * and the occupied extent is driven by occupy-size plus margin-size, not by
+     * border-width), so this causes no layout shift. */
+    border-width: 1px;
+  }
+
   :root:not([lwtheme]) #folderPaneSplitter:not(.splitter-collapsed),
   :root:not([lwtheme]) #messagePaneSplitter:not(.splitter-collapsed) {
-    /* A tonal step alone is not a reliable boundary in high contrast, so put
-     * the hairline back. Occupied space is unchanged (it is driven by
-     * occupy-size, not border-width), so this causes no layout shift.
-     *
-     * Excluded while collapsed: there upstream's border-width resolves to
-     * var(--splitter-occupy-size) == 0px, and a collapsed splitter must not
-     * paint a boundary for a pane that is not on screen. */
-    border-width: 1px;
     border-color: var(--m3-outline);
   }
 

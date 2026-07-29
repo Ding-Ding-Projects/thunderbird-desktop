@@ -745,7 +745,15 @@
       border-block-end-color: var(--sidebar-border);
     }
 
-    #folderPaneWriteMessage {
+    /* The hover and press rules above carry `:enabled:hover` and
+     * `:enabled:hover:active` ON TOP of the guard — (1,4,0) and (1,5,0) — so a
+     * bare `#folderPaneWriteMessage` (1,2,0) never reached them. The button
+     * stood down at rest and then snapped back to --m3-primary-container with
+     * its drop shadow the moment the pointer touched it, which is precisely the
+     * thing this block claims to remove. Matched state for state instead. */
+    #folderPaneWriteMessage,
+    #folderPaneWriteMessage:enabled:hover,
+    #folderPaneWriteMessage:enabled:hover:active {
       background-color: var(--selected-item-color);
       color: var(--selected-item-text-color);
       box-shadow: none;
@@ -762,10 +770,15 @@
       outline-offset: -2px;
     }
 
+    /* The `:focus-within` drop-target variant is listed separately because the
+     * guarded rule ships it as its own selector at (1,6,1); folded into the list
+     * below it would still be (1,6,1), but keeping it explicit documents that
+     * omitting it left the M3 fill standing on every drag over a focused tree. */
     #folderTree li.selected > .container,
     #folderTree:focus-within li.selected > .container,
     #folderTree li.selected > .container:hover,
-    #folderTree li[role="treeitem"].drop-target > .container {
+    #folderTree li[role="treeitem"].drop-target > .container,
+    #folderTree:focus-within li[role="treeitem"].drop-target > .container {
       background-color: var(--treeitem-background-active);
       color: var(--treeitem-text-active);
     }
@@ -787,6 +800,27 @@
     #folderTree li.selected > .container > .unread-count {
       background-color: var(--folderpane-unread-count-text);
       color: var(--treeitem-background-active);
+    }
+
+    /* The outlined collapsed-parent badge is (1,8,2) / (1,9,2) — `.children`,
+     * `.collapsed` and a :has() on top of the guard — so neither of the two
+     * rules above (1,5,1) could reach it and it kept --m3-primary as its text
+     * AND its border. On a selected row that put a fixed M3 purple on the
+     * high-contrast selection fill, the one combination this block exists to
+     * prevent. Re-stated at matching specificity; only the palette hands back,
+     * the outlined shape that distinguishes a non-local count is preserved. */
+    #folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
+    #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+      background-color: transparent;
+      color: var(--folderpane-unread-count-background);
+      border-color: var(--folderpane-unread-count-background);
+    }
+
+    #folderTree li.selected.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
+    #folderTree li.selected.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+      background-color: var(--folderpane-unread-count-text);
+      color: var(--treeitem-background-active);
+      border-color: var(--treeitem-background-active);
     }
 
     #folderTree .container > .total-count {
@@ -812,7 +846,16 @@
       outline-color: CanvasText;
     }
 
-    #folderTree li.selected > .container {
+    /* All three selectors the M3 selection fill ships as, not just the first.
+     * Listing only `#folderTree li.selected > .container` (1,4,1) left the
+     * `:focus-within` and `:hover` variants (1,5,1) unbeaten, and in forced
+     * colors a non-system background-color is rewritten to Canvas — so a
+     * selected row in a focused tree (the normal case while navigating) lost
+     * its highlight entirely and was left marked only by list-container.css's
+     * 1px SelectedItemText outline sitting on the Canvas ground. */
+    #folderTree li.selected > .container,
+    #folderTree:focus-within li.selected > .container,
+    #folderTree li.selected > .container:hover {
       background-color: SelectedItem;
       color: SelectedItemText;
     }

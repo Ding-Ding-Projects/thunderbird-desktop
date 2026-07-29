@@ -1106,12 +1106,45 @@
     color: CanvasText;
   }
 
+  /* The card selector must not only be prefixed, it must also carry
+   * [rows="thread-card"] and .card-container. Its competitor is the nested
+   * `& .card-container { & .sender { color: var(--m3-on-surface) } }` inside
+   * `:root:not([lwtheme]) #threadPane #threadTree[rows="thread-card"]`, which
+   * expands to (2,5,0). The bare `#threadPane #threadTree .card-container
+   * :is(...)` this replaces was only (2,2,0) — and even a plain guard would
+   * have reached just (2,4,0), still losing. It lost, so sender/subject/date
+   * kept a token colour, forced-colors flattened that token to CanvasText, and
+   * the element's own declaration beat the SelectedItemText that
+   * tree-listbox.css:266-270 puts on .card-container for the focused
+   * current+selected card — CanvasText on SelectedItem. Matching (2,5,0) and
+   * arriving later restores the inherit.
+   *
+   * .thread-replies is in the list for the same reason: its guarded rule is
+   * (2,4,0) and it sits inside the same card. `[data-properties~="hasUnread"]`
+   * is deliberately left out — that rule is (2,6,1) and still wins, but its
+   * upstream competitor paints --unread-color, which tree-listbox.css only
+   * defines inside `not (forced-colors)`, so upstream flattens to CanvasText
+   * there too and there is nothing to restore. */
   :root:not([lwtheme]) #threadPane #threadPaneFolderName.list-header-title,
   :root:not([lwtheme]) #threadPane .thread-pane-count-info,
-  #threadPane #threadTree .card-container :is(.sender, .subject, .date),
-  :root:not([lwtheme]) #threadPane #threadTree[rows="thread-row"] tbody tr.table-layout {
+  :root:not([lwtheme]) #threadPane #threadTree[rows="thread-card"] .card-container :is(.sender, .subject, .date, .thread-replies) {
     color: inherit;
   }
+
+  /* There is deliberately NO `... [rows="thread-row"] tbody tr.table-layout {
+   * color: inherit }` here. An earlier revision had one, and it had no
+   * competitor to undo: this file sets no `color` on tr.table-layout at all
+   * (see the comment at the top of section 6, which explains why). All it did
+   * was land a (2,4,2) colour on the row, beating threadPane.css:186-190
+   *   &:focus .table-layout.selected {
+   *     background-color: var(--tag-color, var(--listbox-focused-selected-bg));
+   *     color: var(--tag-contrast-color, var(--listbox-selected-color)); }
+   * at (0,3,0). In forced-colors that background is SelectedItem and that
+   * colour is SelectedItemText, while `inherit` resolves to --tree-view-color,
+   * i.e. CanvasText — so every selected row in table view painted CanvasText on
+   * SelectedItem, and tagged rows lost --tag-contrast-color on top of that.
+   * The rule this file's own section 6 comment warns against, reintroduced
+   * inside a media query. */
 
   :root:not([lwtheme]) #threadPane #threadPaneSelectedCount {
     background-color: SelectedItem;

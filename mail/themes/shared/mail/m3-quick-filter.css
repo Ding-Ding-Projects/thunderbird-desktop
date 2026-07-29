@@ -344,10 +344,24 @@
   min-inline-size: 0;
   margin: 0;
   padding-block: 0;
-  /* Longhands so the themed border-color from widgets.css survives; only the
-   * hairline's width and shape are ours unconditionally. */
+  /* Longhands, so the [aria-pressed] and hover border-colors below stay in
+   * charge of the colour; only the hairline's width and shape are ours
+   * unconditionally.
+   *
+   * The colour cannot be left to widgets.css here, unlike the tag buttons and
+   * the tag-mode menulist. widgets.css:331 `.button-group & :is(.button, input)
+   * { border: none }` at (0,2,0) is the LAST word on border-color for a .button
+   * inside a .button-group — it beats the base `.button` rule's
+   * `var(--button-border-color)` at (0,1,0) and resets the colour to
+   * currentColor. Upstream never notices because it also zeroes the width; we
+   * put the width back unguarded, so under a lightweight theme (where the
+   * guarded --m3-outline below stands down) all nine chips would draw a
+   * full-strength text-coloured box. Restated at 20% currentColor — widgets.css's
+   * own hairline idiom, theme-following by construction, and out-ranked by the
+   * guarded rule below whenever no theme is installed. */
   border-width: 1px;
   border-style: solid;
+  border-color: color-mix(in srgb, currentColor 20%, transparent);
   border-radius: var(--m3-radius-s);
   font-family: var(--m3-font);
   font-size: var(--m3-font-size);
@@ -818,6 +832,52 @@
 
   #quick-filter-bar:not([hidden]) #qfb-searching-throbber {
     content: url("chrome://messenger/skin/icons/hourglass.svg");
+  }
+}
+
+/* ==========================================================================
+ * High contrast / forced colors.
+ *
+ * This file replaced widgets.css's `.check-button::before` pressed-indicator
+ * bar with M3 paint: `content: none` at #qfb-sticky and at
+ * `.quickFilterButtons > .button`, plus `border: none` on the round icon
+ * buttons. Both removals are UNGUARDED, so they apply with a lightweight theme
+ * installed too, while the fill that replaces them
+ * (--m3-secondary-container, 1.17:1 against the pane) is guarded AND is a
+ * token, i.e. exactly the kind of value forced-colors flattens.
+ *
+ * Net effect before this block: `is="toggle-button"` still wrote aria-pressed
+ * and quickFilterBar.js still read it, but in forced-colors #qfb-sticky had no
+ * remaining visual state cue at all, and the chip rows had only the *absence*
+ * of a border — inverted from the platform convention. The five filter chips
+ * keep their leading check glyph above 999px, but the narrow-pane block puts
+ * the semantic icon back below it, so that cue is not available at every width
+ * either. m3-thread-pane.css solves the same problem the other way for
+ * #threadPaneQuickFilterButton, by recolouring the bar instead of deleting it.
+ *
+ * Deliberately UNPREFIXED and !important, following the precedent set by the
+ * `--icon-color: currentColor !important` rule in m3-folder-pane.css's
+ * prefers-contrast block. Unprefixed because the two removals above are
+ * unguarded, so the state has to be handed back with or without a theme;
+ * !important because the rules to out-rank are the guarded (1,5,0)/(1,6,0)
+ * pressed fills, and matching that on specificity alone would need a prefix
+ * this block must not carry. System colours, not tokens, so the cue survives
+ * the forced-colors adjustment — same reasoning as the #threadPaneSelectedCount
+ * rule in m3-thread-pane.css's forced-colors block.
+ *
+ * The per-tag .qfb-tag-button colours are untouched on purpose: they come from
+ * quickFilterBar.css's runtime --tag-color, nothing here removed a cue from
+ * them, and flattening them to one system colour would lose information.
+ * ======================================================================== */
+
+/* One query list, not two blocks: the declarations are identical, and while
+ * forced-colors already implies a prefers-contrast match, prefers-contrast can
+ * be set on its own and must get the same cue. */
+@media (prefers-contrast), (forced-colors) {
+  #quick-filter-bar #qfb-sticky[aria-pressed="true"],
+  #quick-filter-bar .button-group > .button[aria-pressed="true"] {
+    background-color: SelectedItem !important;
+    color: SelectedItemText !important;
   }
 }
 
