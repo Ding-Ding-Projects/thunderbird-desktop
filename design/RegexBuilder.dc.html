@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div role="dialog" aria-label="Regular expression builder" style="inline-size:440px; max-inline-size:calc(100vw - 48px); max-block-size:min(70vh, 620px); overflow-y:auto; padding:16px; border-radius:20px; background:var(--m3-s4, #ECE6F0); color:var(--m3-on-surface, #1D1B20); box-shadow:0 8px 12px 6px rgba(0,0,0,0.15), 0 4px 4px rgba(0,0,0,0.3); animation:m3-rise 140ms cubic-bezier(0.05,0.7,0.1,1);">
+
+  <div style="display:flex; align-items:center; gap:8px; margin-block-end:4px;">
+    <span style="inline-size:20px; block-size:20px; flex:0 0 auto; background:var(--m3-primary, #6750A4); mask:url('icons/tools.svg') center/20px no-repeat;"></span>
+    <div style="flex:1 1 auto; min-inline-size:0;">
+      <div style="font-size:16px; line-height:22px; font-weight:500;">{{ title }}</div>
+      <div style="font-size:12px; line-height:16px; color:var(--m3-on-surface-variant, #49454F);">{{ scope }}</div>
+    </div>
+    <button type="button" onClick="{{ close }}" title="Close" style="inline-size:36px; block-size:36px; flex:0 0 auto; border:none; border-radius:18px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">
+      <span style="inline-size:18px; block-size:18px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/close.svg') center/18px no-repeat;"></span>
+    </button>
+  </div>
+
+  <label style="display:flex; flex-direction:column; gap:4px; margin-block:12px 8px;">
+    <span style="font-size:11px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">Pattern</span>
+    <input type="text" value="{{ pattern }}" onInput="{{ onPattern }}" spellcheck="false" aria-label="Pattern" style="block-size:48px; padding-inline:14px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:var(--m3-s1, #FFFFFF); color:inherit; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:15px; outline:none; box-sizing:border-box;" style-focus="border-color:var(--m3-primary, #6750A4); border-width:2px" />
+  </label>
+  <div style="{{ errorStyle }}">{{ error }}</div>
+
+  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-block-end:12px;">
+    <sc-for list="{{ flagChips }}" as="flag" hint-placeholder-count="6">
+      <button type="button" onClick="{{ flag.onClick }}" title="{{ flag.title }}" style="{{ flag.style }}" style-hover="filter:brightness(0.97)">{{ flag.label }}</button>
+    </sc-for>
+  </div>
+
+  <div style="font-size:11px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F); margin-block-end:6px;">Insert</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-block-end:14px;">
+    <sc-for list="{{ tokens }}" as="tok" hint-placeholder-count="10">
+      <button type="button" onClick="{{ tok.onClick }}" title="{{ tok.desc }}" style="display:flex; flex-direction:column; gap:1px; padding:8px 10px; border:1px solid var(--m3-outline-variant, #CAC4D0); border-radius:10px; background:var(--m3-s1, #FFFFFF); color:inherit; text-align:start; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)" style-focus="outline:3px solid var(--m3-primary, #6750A4)">
+        <span style="font-family:ui-monospace, monospace; font-size:12px; color:var(--m3-primary, #6750A4);">{{ tok.snippet }}</span>
+        <span style="font-size:11px; line-height:15px; color:var(--m3-on-surface-variant, #49454F);">{{ tok.desc }}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <label style="display:flex; flex-direction:column; gap:4px; margin-block-end:12px;">
+    <span style="font-size:11px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F);">Sample text</span>
+    <textarea rows="4" onInput="{{ onSample }}" value="{{ sample }}" spellcheck="false" aria-label="Sample text" style="padding:10px 12px; border:1px solid var(--m3-outline, #79747E); border-radius:8px; background:var(--m3-s1, #FFFFFF); color:inherit; font-family:ui-monospace, monospace; font-size:13px; line-height:20px; outline:none; resize:vertical; box-sizing:border-box;" style-focus="border-color:var(--m3-primary, #6750A4); border-width:2px"></textarea>
+  </label>
+
+  <div style="padding:12px; border-radius:12px; background:var(--m3-s2, #F7F2FA); margin-block-end:12px;">
+    <div style="display:flex; align-items:center; gap:8px; margin-block-end:6px;">
+      <span style="{{ resultIconStyle }}"></span>
+      <span style="font-size:14px; font-weight:500;">{{ resultTitle }}</span>
+    </div>
+    <sc-for list="{{ matches }}" as="m" hint-placeholder-count="2">
+      <div style="padding-block:6px; border-block-start:1px solid var(--m3-outline-variant, #CAC4D0);">
+        <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+          <span style="font-family:ui-monospace, monospace; font-size:13px; padding:2px 6px; border-radius:4px; background:var(--m3-primary-container, #EADDFF); color:var(--m3-on-primary-container, #21005D); word-break:break-all;">{{ m.text }}</span>
+          <span style="font-size:11px; color:var(--m3-on-surface-variant, #49454F);">{{ m.at }}</span>
+        </div>
+        <div style="{{ m.groupsStyle }}">{{ m.groups }}</div>
+      </div>
+    </sc-for>
+    <sc-if value="{{ noMatches }}" hint-placeholder-val="{{ false }}">
+      <div style="font-size:13px; color:var(--m3-on-surface-variant, #49454F);">{{ noMatchText }}</div>
+    </sc-if>
+  </div>
+
+  <div style="font-size:11px; line-height:16px; color:var(--m3-on-surface-variant, #49454F); margin-block-end:12px;">{{ engineNote }}</div>
+
+  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+    <button type="button" onClick="{{ apply }}" style="display:inline-flex; align-items:center; gap:8px; block-size:40px; padding-inline:20px; border:none; border-radius:20px; background:var(--m3-primary, #6750A4); color:var(--m3-on-primary, #FFFFFF); font-size:14px; font-weight:500; cursor:pointer;" style-hover="filter:brightness(1.1)" style-focus="outline:3px solid var(--m3-primary, #6750A4); outline-offset:2px">
+      <span style="inline-size:18px; block-size:18px; background:var(--m3-on-primary, #FFFFFF); mask:url('icons/check.svg') center/18px no-repeat;"></span>{{ applyLabel }}
+    </button>
+    <button type="button" onClick="{{ onCopy }}" style="block-size:40px; padding-inline:14px; border:1px solid var(--m3-outline, #79747E); border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)">Copy</button>
+    <button type="button" onClick="{{ onExport }}" style="block-size:40px; padding-inline:14px; border:1px solid var(--m3-outline, #79747E); border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s3, #F3EDF7)">Export</button>
+    <button type="button" onClick="{{ onClear }}" style="block-size:40px; padding-inline:12px; border:none; border-radius:20px; background:transparent; color:var(--m3-primary, #6750A4); font-size:14px; font-weight:500; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">Clear</button>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:472,&quot;height&quot;:700},&quot;pattern&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;(invoice|receipt)\\s*#?\\d+&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;flags&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;gi&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;sample&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Invoice #20261 arrived, receipt 4471 is attached.&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;scope&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Applies to this search field&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;applyLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Use in search&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onApply&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v: {pattern: string, flags: string}) =&gt; void&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onCopy&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(text: string) =&gt; void&quot;},&quot;onExport&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(json: string) =&gt; void&quot;}}">
+const FLAGS = [
+  ["i", "ignore case"],
+  ["g", "global — find every match"],
+  ["m", "^ and $ match each line"],
+  ["s", ". also matches newlines"],
+  ["u", "unicode escapes"],
+  ["y", "sticky — match at lastIndex"],
+];
+
+const TOKENS = [
+  { snippet: "\\d+", desc: "one or more digits" },
+  { snippet: "\\w+", desc: "word characters" },
+  { snippet: "\\s*", desc: "optional whitespace" },
+  { snippet: "[a-z]", desc: "character class" },
+  { snippet: "[^,]+", desc: "negated class" },
+  { snippet: "^", desc: "start anchor" },
+  { snippet: "$", desc: "end anchor" },
+  { snippet: "\\b", desc: "word boundary" },
+  { snippet: "(…)", desc: "capture group" },
+  { snippet: "(?<name>…)", desc: "named group" },
+  { snippet: "(?:…)", desc: "non-capturing group" },
+  { snippet: "a|b", desc: "alternation" },
+  { snippet: "?", desc: "optional (0 or 1)" },
+  { snippet: "{2,4}", desc: "between 2 and 4" },
+  { snippet: "+?", desc: "lazy one or more" },
+  { snippet: "\\.", desc: "escaped literal dot" },
+];
+
+const MAX_PATTERN = 400;
+const MAX_SAMPLE = 20000;
+const MAX_MATCHES = 200;
+
+class Component extends DCLogic {
+  state = { pattern: null, flags: null, sample: null };
+
+  get pattern() { return this.state.pattern ?? this.props.pattern ?? ""; }
+  get flags() { return this.state.flags ?? this.props.flags ?? "gi"; }
+  get sample() { return this.state.sample ?? this.props.sample ?? ""; }
+
+  insert(snippet) {
+    const clean = snippet.replace("…", "");
+    this.setState({ pattern: this.pattern + clean });
+  }
+
+  compile() {
+    const p = this.pattern;
+    if (!p) return { re: null, error: "" };
+    if (p.length > MAX_PATTERN) return { re: null, error: `Pattern is longer than ${MAX_PATTERN} characters.` };
+    try {
+      const flags = this.flags.includes("g") ? this.flags : this.flags + "g";
+      return { re: new RegExp(p, flags), error: "" };
+    } catch (e) {
+      return { re: null, error: e.message };
+    }
+  }
+
+  results() {
+    const { re, error } = this.compile();
+    if (error || !re) return { matches: [], error, count: 0 };
+    const text = this.sample.slice(0, MAX_SAMPLE);
+    const out = [];
+    let guard = 0;
+    let m;
+    re.lastIndex = 0;
+    while ((m = re.exec(text)) !== null) {
+      out.push(m);
+      if (m[0] === "") re.lastIndex++;
+      if (++guard >= MAX_MATCHES) break;
+    }
+    return { matches: out, error: "", count: out.length };
+  }
+
+  renderVals() {
+    const { matches, error, count } = this.results();
+    const pattern = this.pattern;
+    const flags = this.flags;
+
+    return {
+      title: "Regex builder",
+      scope: this.props.scope ?? "Applies to this search field",
+      pattern,
+      sample: this.sample,
+      onPattern: e => this.setState({ pattern: e.target.value }),
+      onSample: e => this.setState({ sample: e.target.value }),
+      error,
+      errorStyle: error
+        ? "margin-block-end:10px; padding:8px 12px; border-radius:8px; background:var(--m3-error-container, #F9DEDC); color:var(--m3-on-error-container, #410E0B); font-size:12px; line-height:18px;"
+        : "display:none;",
+      flagChips: FLAGS.map(([f, title]) => {
+        const on = flags.includes(f);
+        return {
+          label: f, title,
+          style: "inline-size:36px; block-size:32px; border-radius:8px; font-family:ui-monospace, monospace; font-size:13px; font-weight:600; cursor:pointer; border:" +
+            (on ? "none" : "1px solid var(--m3-outline, #79747E)") + "; background:" + (on ? "var(--m3-secondary-container, #E8DEF8)" : "transparent") +
+            "; color:" + (on ? "var(--m3-on-secondary-container, #1D192B)" : "var(--m3-on-surface-variant, #49454F)") + ";",
+          onClick: () => this.setState({ flags: on ? flags.replace(f, "") : flags + f }),
+        };
+      }),
+      tokens: TOKENS.map(t => ({ snippet: t.snippet, desc: t.desc, onClick: () => this.insert(t.snippet) })),
+      matches: matches.slice(0, 8).map(m => {
+        const groups = m.slice(1).map((g, i) => `$${i + 1}=${g === undefined ? "—" : g}`).join("  ");
+        const named = m.groups ? Object.keys(m.groups).map(k => `${k}=${m.groups[k]}`).join("  ") : "";
+        const all = [groups, named].filter(Boolean).join("  ");
+        return {
+          text: m[0] === "" ? "(empty match)" : m[0],
+          at: "at " + m.index,
+          groups: all,
+          groupsStyle: all ? "margin-block-start:4px; font-family:ui-monospace, monospace; font-size:11px; color:var(--m3-on-surface-variant, #49454F); word-break:break-all;" : "display:none;",
+        };
+      }),
+      noMatches: !error && count === 0,
+      noMatchText: pattern ? "No matches in the sample text." : "Type a pattern to see live matches.",
+      resultTitle: error ? "Pattern is not valid" : count === 0 ? "0 matches" : count >= MAX_MATCHES ? `${MAX_MATCHES}+ matches (capped)` : `${count} match${count === 1 ? "" : "es"}` + (matches.length > 8 ? " — first 8 shown" : ""),
+      resultIconStyle: "inline-size:18px; block-size:18px; background:" + (error ? "var(--m3-error, #B3261E)" : "var(--m3-primary, #6750A4)") +
+        "; mask-image:url('icons/" + (error ? "warning" : "check") + ".svg'); mask-size:18px; mask-position:center; mask-repeat:no-repeat;",
+      engineNote: "Engine: JavaScript RegExp (ECMAScript). Escape with a backslash; forward slashes need no escaping. Evaluated locally — nothing is sent anywhere. Pattern ≤ " + MAX_PATTERN + " chars, sample ≤ " + MAX_SAMPLE / 1000 + "k chars, matches capped at " + MAX_MATCHES + " to stay safe from runaway backtracking.",
+      applyLabel: this.props.applyLabel ?? "Use in search",
+      apply: () => { const fn = this.props.onApply; if (fn) fn({ pattern, flags }); },
+      close: () => { const fn = this.props.onClose; if (fn) fn(); },
+      onCopy: () => { const fn = this.props.onCopy; if (fn) fn(`/${pattern}/${flags}`); },
+      onExport: () => {
+        const fn = this.props.onExport;
+        const payload = JSON.stringify({ engine: "JavaScript RegExp (ECMAScript)", pattern, flags, sample: this.sample, matches: matches.map(m => ({ text: m[0], index: m.index, groups: m.slice(1) })) }, null, 2);
+        if (fn) fn(payload);
+      },
+      onClear: () => this.setState({ pattern: "" }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

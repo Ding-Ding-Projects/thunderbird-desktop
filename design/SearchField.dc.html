@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<div style="position:relative; inline-size:100%;">
+  <div style="{{ barStyle }}">
+    <span style="inline-size:22px; block-size:22px; flex:0 0 auto; background:var(--m3-on-surface-variant, #49454F); mask-image:{{ leadingMask }}; mask-size:22px; mask-position:center; mask-repeat:no-repeat;"></span>
+    <input type="text" ref="{{ inputRef }}" value="{{ value }}" onInput="{{ onInput }}" onKeyDown="{{ onKeyDown }}" placeholder="{{ placeholder }}" aria-label="{{ label }}" spellcheck="false" style="{{ inputStyle }}" />
+    <span style="{{ errorStyle }}" title="{{ error }}"></span>
+    <span style="{{ countStyle }}">{{ count }}</span>
+    <sc-if value="{{ hasValue }}" hint-placeholder-val="{{ false }}">
+      <button type="button" onClick="{{ onClear }}" title="Clear" style="inline-size:36px; block-size:36px; flex:0 0 auto; border:none; border-radius:18px; background:transparent; display:grid; place-items:center; cursor:pointer;" style-hover="background:var(--m3-s5, #E6E0E9)">
+        <span style="inline-size:18px; block-size:18px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/close.svg') center/18px no-repeat;"></span>
+      </button>
+    </sc-if>
+    <button type="button" onClick="{{ onToggleRegex }}" title="Use regular expression" aria-pressed="{{ regexPressed }}" style="{{ regexChipStyle }}" style-hover="filter:brightness(0.97)">.*</button>
+    <button type="button" onClick="{{ onOpenBuilder }}" title="Open regex builder" style="{{ builderButtonStyle }}" style-hover="background:var(--m3-s5, #E6E0E9)">
+      <span style="inline-size:18px; block-size:18px; background:var(--m3-on-surface-variant, #49454F); mask:url('icons/tools.svg') center/18px no-repeat;"></span>
+    </button>
+  </div>
+
+  <sc-if value="{{ builderOpen }}" hint-placeholder-val="{{ false }}">
+    <dc-import name="RegexBuilder" pattern="{{ pattern }}" flags="{{ flags }}" sample="{{ sample }}" scope="{{ scope }}" onApply="{{ onApply }}" onClose="{{ onCloseBuilder }}" onCopy="{{ onCopy }}" onExport="{{ onExport }}" style="position:absolute; inset-block-start:calc(100% + 8px); inset-inline-end:0; z-index:45;" hint-size="440px,560px"></dc-import>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:560,&quot;height&quot;:96},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;placeholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Search&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;regexPlaceholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;/pattern/flags&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Search&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;search&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;small&quot;,&quot;large&quot;],&quot;default&quot;:&quot;large&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;filled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;regexOn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;builderOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;count&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;error&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;scope&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Applies to this search field&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;pattern&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;flags&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;gi&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;sample&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onInput&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(e: Event) =&gt; void&quot;},&quot;onKeyDown&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(e: KeyboardEvent) =&gt; void&quot;},&quot;onClear&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onToggleRegex&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onOpenBuilder&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onCloseBuilder&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;},&quot;onApply&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(v: {pattern: string, flags: string}) =&gt; void&quot;},&quot;onCopy&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(t: string) =&gt; void&quot;},&quot;onExport&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(j: string) =&gt; void&quot;},&quot;inputRef&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(el: HTMLInputElement) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const size = p.size ?? "large";
+    const h = size === "small" ? 44 : 56;
+    const value = p.value ?? "";
+    const regexOn = !!p.regexOn;
+    return {
+      barStyle: `display:flex; align-items:center; gap:6px; block-size:${h}px; inline-size:100%; padding-inline:14px 6px; border-radius:${h / 2}px; background:${p.filled === false ? "transparent" : "var(--m3-s4, #ECE6F0)"}; border:${p.filled === false ? "1px solid var(--m3-outline, #79747E)" : "none"}; box-sizing:border-box;`,
+      leadingMask: `url('icons/${p.icon ?? "search"}.svg')`,
+      inputStyle: `flex:1 1 auto; min-inline-size:0; border:none; outline:none; background:transparent; color:var(--m3-on-surface, #1D1B20); font-size:${size === "small" ? 14 : 16}px; line-height:24px;`,
+      inputRef: p.inputRef ?? null,
+      value,
+      hasValue: value.length > 0,
+      placeholder: regexOn ? (p.regexPlaceholder ?? "/pattern/flags") : (p.placeholder ?? "Search"),
+      label: p.label ?? p.placeholder ?? "Search",
+      onInput: p.onInput ?? null,
+      onKeyDown: p.onKeyDown ?? null,
+      onClear: p.onClear ?? null,
+      onToggleRegex: p.onToggleRegex ?? null,
+      onOpenBuilder: p.onOpenBuilder ?? null,
+      regexPressed: regexOn ? "true" : "false",
+      regexChipStyle:
+        "flex:0 0 auto; block-size:32px; min-inline-size:38px; padding-inline:8px; border-radius:8px; font-family:ui-monospace, monospace; font-size:13px; font-weight:600; cursor:pointer; border:" +
+        (regexOn ? "none" : "1px solid var(--m3-outline, #79747E)") + "; background:" + (regexOn ? "var(--m3-primary, #6750A4)" : "transparent") +
+        "; color:" + (regexOn ? "var(--m3-on-primary, #FFFFFF)" : "var(--m3-on-surface-variant, #49454F)") + ";",
+      builderButtonStyle: `inline-size:${h - 20}px; block-size:${h - 20}px; flex:0 0 auto; border:none; border-radius:${(h - 20) / 2}px; background:${p.builderOpen ? "var(--m3-secondary-container, #E8DEF8)" : "transparent"}; display:grid; place-items:center; cursor:pointer;`,
+      error: p.error ?? "",
+      errorStyle: p.error
+        ? "flex:0 0 auto; inline-size:20px; block-size:20px; background:var(--m3-error, #B3261E); mask:url('icons/warning.svg') center/20px no-repeat;"
+        : "display:none;",
+      count: p.count ?? "",
+      countStyle: p.count
+        ? "flex:0 0 auto; font-size:12px; letter-spacing:0.4px; color:var(--m3-on-surface-variant, #49454F); font-variant-numeric:tabular-nums;"
+        : "display:none;",
+      builderOpen: !!p.builderOpen,
+      pattern: p.pattern ?? value,
+      flags: p.flags ?? "gi",
+      sample: p.sample ?? "",
+      scope: p.scope ?? "Applies to this search field",
+      onApply: p.onApply ?? null,
+      onCloseBuilder: p.onCloseBuilder ?? null,
+      onCopy: p.onCopy ?? null,
+      onExport: p.onExport ?? null,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
