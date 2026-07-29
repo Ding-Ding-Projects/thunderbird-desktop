@@ -1,0 +1,3 @@
+[submodule "vendor/agent-global-memory"]
+	path = vendor/agent-global-memory
+	url = https://github.com/Ding-Ding-Projects/agent-global-memory.git
