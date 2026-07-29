@@ -371,8 +371,6 @@ jobs:
             # which is the sole trigger for artifacts.py picking
             # ThunderbirdJobConfiguration over the Gecko one.
             'ac_add_options --enable-project=comm/mail',
-            'ac_add_options --enable-optimize',
-            'ac_add_options --disable-debug',
             'ac_add_options --disable-tests',
             # Fetch Mozilla's own nsis, 7zz and upx into MOZBUILD_STATE_PATH.
             # `mach package` on Windows runs the NSIS installer target, and
@@ -395,6 +393,17 @@ jobs:
             # Implies --disable-compile-environment (mozilla moz.configure
             # imply_disable_compile_environment), so no MSVC toolchain checks run.
             $lines += 'ac_add_options --enable-artifact-builds'
+          } else {
+            # ONLY for a full build. Both of these live behind the compile
+            # environment, so under --enable-artifact-builds configure rejects
+            # them outright:
+            #   InvalidOptionError: --enable-optimize is not available in this
+            #   configuration
+            # Observed on a real run - it fails at configure, after bootstrap has
+            # already downloaded the toolchains, so the cost is paid before the
+            # error appears.
+            $lines += 'ac_add_options --enable-optimize'
+            $lines += 'ac_add_options --disable-debug'
           }
           New-Item -ItemType Directory -Force -Path (Split-Path -Parent $env:MOZCONFIG) | Out-Null
           $lines -join "`n" | Set-Content -Encoding ascii $env:MOZCONFIG
