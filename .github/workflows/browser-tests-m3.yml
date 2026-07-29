@@ -98,20 +98,25 @@
 
 name: Browser tests (Material Mail)
 
+# NOT on `push`, and this is CI blocker #10 - see AGENTS.md. This job needs a
+# FULL build (timeout-minutes: 330 below) and this repository's own rules mandate
+# pushing frequently, so a push trigger meant every run was superseded minutes in
+# and the suite never reached a single assertion. Run 30495182348 on f85b5d7 was
+# cancelled 6m33s in at `Bootstrap build environment`, five seconds after the next
+# push started run #2; fifteen steps had succeeded and all six suites were
+# skipped. The FIRST run ever to reach an assertion (30495583685) only did so
+# because no further push happened to land during it.
+#
+# A `pull_request` trigger is deliberately absent for the same arithmetic: it
+# would spend five hours of Windows runner per PR synchronize.
+#
+# So: nightly, plus on demand. A schedule cannot be superseded by a developer
+# push, which is the whole point.
 on:
-  push:
-    branches:
-      - main
-      - 'design-import/**'
-    # Documentation-only pushes cannot change what these tests observe, and this
-    # job costs a Windows runner for the better part of an hour. Anything under
-    # mail/ - which is the entire restyle - still triggers it.
-    paths-ignore:
-      - 'design/**'
-      - '**/*.md'
-      - '.github/workflows/windows-installer.yml'
-      - '.github/workflows/lint-m3.yml'
-  pull_request:
+  schedule:
+    # 04:07 UTC. Not on the hour - every cron in the world fires at :00, and an
+    # off-minute costs nothing and queues faster.
+    - cron: '7 4 * * *'
   workflow_dispatch:
     inputs:
       suite:
@@ -133,14 +138,25 @@ on:
 permissions:
   contents: read
 
-# Scoped by a name nothing else uses. The installer workflow declares no
-# concurrency group at all - deliberately, because of CI blocker #3: a QUEUED run
-# is superseded the moment a newer one joins its group, which silently cost
-# releases twice. So it cannot be a member of this group. Cancelling an in-flight
-# *test* run is safe: unlike the installer it produces no artefact anyone needs.
-concurrency:
-  group: m3-browser-tests-${{ github.ref }}
-  cancel-in-progress: true
+# NO concurrency group, deliberately - same as windows-installer.yml, and for a
+# reason this file learned the hard way.
+#
+# The previous version declared `group: m3-browser-tests-<ref>` with
+# `cancel-in-progress: true`, defending it on the grounds that "cancelling an
+# in-flight *test* run is safe: unlike the installer it produces no artefact
+# anyone needs." That reasoning was wrong, and it reproduced CI blocker #3 in the
+# very file whose comment was reasoning about CI blocker #3.
+#
+# This run's artefact IS the thing someone needs. The accessibility box in
+# design/REWRITE-CONTRACT.md cannot close on static proof - `aria-level` does not
+# exist until a screen reader runs, because `_setRowAriaAttributes` short-circuits
+# unless `Services.appinfo.accessibilityEnabled` - so a green run of this suite is
+# the only evidence that can ever tick it. A group that cancels the run guarantees
+# the box stays open forever.
+#
+# The general rule, which is the part worth carrying to the next workflow: a
+# cancelling group is only safe when the run's output is genuinely disposable. Ask
+# what depends on the output, not what the job is called.
 
 jobs:
   browser-tests:
