@@ -62,13 +62,26 @@
           <tbody>
             <tr><th>Design</th><td><span class="pill ok">complete</span> <code>a334d745c32a7ab3</code> · 140,780 bytes</td></tr>
             <tr><th>M3 token layer</th><td><span class="pill ok">landed</span> <code>material-tokens.css</code> — 24 tokens, 4 seeds × light/dark</td></tr>
-            <tr><th>Feature parity</th><td><span class="pill">verification in progress</span> — boxes ticked only with named evidence</td></tr>
-            <tr><th>Windows installer</th><td><span class="pill ok">green</span> — <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b18-char-siu-bao">🍞 Char Siu Bao · 叉燒包</a>, 81 MB, built by CI</td></tr>
+            <tr><th>Section stylesheets</th><td><span class="pill ok">landed</span> — six <code>m3-*.css</code> files, 4,062 lines</td></tr>
+            <tr><th>Feature parity</th><td><span class="pill">32 / 38</span> boxes ticked in <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/design-import/thunderbird-3pane/design/REWRITE-CONTRACT.md">REWRITE-CONTRACT.md</a> — was 38 / 38; an independent audit revoked six</td></tr>
+            <tr><th>Windows installer</th><td><span class="pill ok">green</span> — 7 releases published, latest <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b24-pai-gwat">🍖 Pai Gwat · 豉汁排骨</a>, 85,211,580 bytes, built by CI</td></tr>
+            <tr><th>Lint CI</th><td><span class="pill ok">green</span> — stylelint + eslint, and its known-bad-file self-test passes</td></tr>
+            <tr><th>Run-time verification</th><td><span class="pill">not done</span> — no build has been installed and launched</td></tr>
             <tr><th>Platform</th><td>Windows only — macOS/Linux paths untouched, not deleted</td></tr>
-            <tr><th>Scope</th><td>~18,450 lines · 137 <code>cmd_*</code> commands, all to be preserved</td></tr>
+            <tr><th>Scope</th><td>~18,450 lines · 167 <code>cmd_*</code> commands, all to be preserved</td></tr>
           </tbody>
         </table>
       </div>
+      <p class="secondary">32 / 38 is a <strong>static-evidence</strong> result, and it used to read 38 / 38.
+        Eleven independent audit agents re-derived every box from primary sources and an adversarial
+        reviewer attacked both the ticks and the challenges; <strong>six ticks did not survive</strong>.
+        Every remaining tick names a file, a selector, and the DOM element or attribute it styles. Nobody
+        has installed a build and clicked through the interface. Green CI means the installer was produced
+        and uploaded — not that it has been run.</p>
+      <p class="secondary zh" lang="zh-HK">32 / 38 係<strong>靜態證據</strong>嚟嘅,而且佢本來寫住 38 / 38。
+        十一個獨立審計 agent 由原始碼逐格重新推導,再有一個踢館嘅反過來拆晒啲結論同挑戰,
+        <strong>六個剔頂唔住</strong>。淨低嘅每個剔都指名邊個檔案、邊條 selector、改緊邊粒 DOM 元素或者屬性。
+        但係冇人真係裝過個 build 撳過。CI 綠嘅意思係「砌到同上載到」,唔等於有人開過。</p>
     </div>
 
     <div class="grid">

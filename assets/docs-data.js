@@ -59,8 +59,8 @@ export const CATEGORIES = [
           { list: [
             { en: "No stock markup is carried over. The rewrite is genuine, not a reskin.",
               zh: "舊 markup 一件都唔留。係真重寫,唔係換膚。" },
-            { en: "Every existing feature must survive. ~18,450 lines and 137 cmd_* commands are in scope, and a checkbox is only ticked when the feature is genuinely wired.",
-              zh: "所有現有功能都要保住。~18,450 行同 137 個 cmd_* 指令全部喺範圍內,真係駁通咗先剔。" },
+            { en: "Every existing feature must survive. ~18,450 lines and 167 cmd_* commands are in scope, and a checkbox is only ticked when the feature is genuinely wired.",
+              zh: "所有現有功能都要保住。~18,450 行同 167 個 cmd_* 指令全部喺範圍內,真係駁通咗先剔。" },
           ]},
           { callout: { kind: "warn", text: {
             en: "Unofficial fork. Not affiliated with, endorsed by, or released by MZLA Technologies Corporation. Builds published here are not official Thunderbird releases.",
@@ -86,11 +86,17 @@ export const CATEGORIES = [
             rows: [
               [{ en: "Design", zh: "設計" }, "complete — a334d745c32a7ab3, 140,780 bytes"],
               [{ en: "M3 token layer", zh: "M3 色彩變數層" }, "landed — material-tokens.css"],
-              [{ en: "Section stylesheets", zh: "各段樣式" }, { en: "six landed — 3,219 lines", zh: "六個做起咗 —— 3,219 行" }],
-              [{ en: "Feature parity", zh: "功能對等" }, { en: "verification in progress — a box is ticked only with named evidence", zh: "驗證緊 —— 要有實證先剔得" }],
-              [{ en: "Windows installer CI", zh: "Windows 安裝檔 CI" }, { en: "green — tb-155.0a1-b18-char-siu-bao, 81 MB", zh: "綠燈 —— tb-155.0a1-b18-char-siu-bao,81 MB" }],
+              [{ en: "Section stylesheets", zh: "各段樣式" }, { en: "six landed — 4,062 lines across the six m3-*.css files", zh: "六個做起咗 —— 六個 m3-*.css 合共 4,062 行" }],
+              [{ en: "Feature parity", zh: "功能對等" }, { en: "32 / 38 boxes ticked in design/REWRITE-CONTRACT.md — down from 38 / 38 after an independent audit revoked six", zh: "design/REWRITE-CONTRACT.md 38 格剔咗 32 格 —— 本來 38 / 38,獨立審計除咗六個牌" }],
+              [{ en: "Windows installer CI", zh: "Windows 安裝檔 CI" }, { en: "green — 7 releases published, latest tb-155.0a1-b24-pai-gwat, 85,211,580 bytes", zh: "綠燈 —— 出咗 7 個 release,最新 tb-155.0a1-b24-pai-gwat,85,211,580 bytes" }],
+              [{ en: "Lint CI", zh: "Lint CI" }, { en: "green — stylelint + eslint, and its known-bad-file self-test passes", zh: "綠燈 —— stylelint + eslint,連「攞壞檔案考自己」嗰個自我測試都過到" }],
+              [{ en: "Run-time verification", zh: "實機驗證" }, { en: "not done — no build has been installed and launched", zh: "未做 —— 未試過裝咗個 build 再開嚟睇" }],
             ],
           }},
+          { callout: { kind: "warn", text: {
+            en: "32 / 38 is a static-evidence result, and it used to say 38 / 38. Eleven independent audit agents re-derived every box from primary sources, then an adversarial reviewer attacked both the ticks and the challenges; six ticks did not survive. Every remaining tick names a file, a selector, and the DOM element or attribute it styles, and argues why the styling cannot reach the behaviour. Nobody has installed a build and clicked through the interface. Static evidence and a running application are not the same claim, and this page does not pretend otherwise.",
+            zh: "32 / 38 係靜態證據嚟嘅,而且佢本來寫住 38 / 38。十一個獨立審計 agent 由原始碼逐格重新推導,再有一個踢館嘅反過來拆晒啲結論同挑戰,結果六個剔頂唔住。淨低嘅每個剔都指名邊個檔案、邊條 selector、改緊邊粒 DOM 元素或者屬性,再講明點解改個樣掂唔到行為。但係冇人真係裝過個 build 撳過。睇碼睇到冇問題,同真係行得起,係兩回事,呢版唔會扮佢哋一樣。",
+          }}},
           { p: {
             en: [
               "Progress is reported against evidence. A build is not described as green until it is green, and a feature is not described as preserved until it is wired.",
@@ -109,8 +115,8 @@ export const CATEGORIES = [
           }},
         ],
         verify: {
-          en: "Live status is in the rolling Discussion, updated on every push and CI verdict.",
-          zh: "即時狀態喺 Discussion 度,每次 push 同 CI 出結果都會更新。",
+          en: "Contract state read from design/REWRITE-CONTRACT.md (32 of 38); installer state read from the published releases, the newest being tb-155.0a1-b24-pai-gwat at 85,211,580 bytes; lint state read from the workflow's own run, including the self-test step that deliberately lints a broken file and demands a red result. Live status is in the rolling Discussion, updated on every push and CI verdict.",
+          zh: "契約狀態係睇 design/REWRITE-CONTRACT.md(38 格剔咗 32 格);installer 狀態係睇已出嘅 release,最新嗰個 tb-155.0a1-b24-pai-gwat,85,211,580 bytes;lint 狀態係睇個 workflow 自己嗰次 run,包括嗰個特登拎個壞檔案去 lint、要求出紅先算過嘅自我測試。即時狀態喺 Discussion 度,每次 push 同 CI 出結果都會更新。",
         },
       },
     ],
@@ -216,6 +222,56 @@ export const CATEGORIES = [
         ],
         verify: { en: "Recorded in design/REWRITE-CONTRACT.md under 'Known conflicts'.", zh: "寫喺 design/REWRITE-CONTRACT.md 嘅 Known conflicts 度。" },
       },
+      {
+        id: "lwtheme-guard",
+        title: { en: "The lightweight-theme guard, and the specificity trap under it", zh: "lwtheme 護欄,同埋下面嗰個特異度陷阱" },
+        body: [
+          { p: {
+            en: [
+              "Thunderbird supports lightweight themes. When one is installed, the root element carries an lwtheme attribute and the theme supplies its own colours. Every colour rule the rewrite adds is therefore written as :root:not([lwtheme]) { ... }, so an installed theme wins and the M3 palette applies only when no theme is present.",
+              "Thunderbird supports lightweight themes. With one installed the root element carries an lwtheme attribute and the theme supplies its own colours, so every colour rule the rewrite adds is written as :root:not([lwtheme]) { ... }. The theme wins; the M3 palette applies only when no theme is present.",
+              "Thunderbird lets users install lightweight themes. When one is on, the root element gets an lwtheme attribute. So every colour rule we add is wrapped in :root:not([lwtheme]) — the user's theme wins, and our palette only shows up when there is no theme to argue with.",
+              "Users can install lightweight themes, and when they do the root element gets an lwtheme attribute. Every colour rule we add sits inside :root:not([lwtheme]), which is a polite way of saying: if the user picked a theme, we shut up.",
+              "Install a lightweight theme and the root element grows an lwtheme attribute. Every colour we paint hides behind :root:not([lwtheme]) — the user's theme is the boss, and our palette only speaks when nobody else is in the room.",
+            ],
+            zh: [
+              "Thunderbird 支援輕量主題。裝咗之後根元素會有 lwtheme 屬性,顏色由主題話事。所以重寫加嘅每一條顏色規則都寫成 :root:not([lwtheme]) { ... },有主題就主題贏,冇主題先用 M3 色盤。",
+              "Thunderbird 支援輕量主題。裝咗之後根元素會有 lwtheme 屬性,顏色由主題出。所以我哋加嘅每條顏色規則都包住 :root:not([lwtheme]):主題贏,冇主題先輪到 M3 色盤。",
+              "用家可以裝輕量主題,一裝根元素就有 lwtheme 屬性。所以我哋每條顏色規則都收埋喺 :root:not([lwtheme]) 入面 —— 人哋揀咗主題,我哋就唔出聲。",
+              "用家裝咗輕量主題,根元素就會多咗個 lwtheme 屬性。我哋每條顏色都匿喺 :root:not([lwtheme]) 後面,講白啲即係:你揀咗主題,我哋收聲。",
+              "一裝輕量主題,根元素即刻長出個 lwtheme 屬性。我哋啲顏色全部匿喺 :root:not([lwtheme]) 後面 —— 主題大晒,冇人喺度我哋先敢開聲。",
+            ],
+          }},
+          { h: { en: "The trap: a media query adds no specificity", zh: "陷阱:media query 一分特異度都唔加" } },
+          { p: {
+            en: "Adding :not([lwtheme]) to :root raises a rule's specificity by (0,2,0) — one for the attribute selector, one for the negated simple selector inside it. Wrapping a rule in @media adds nothing at all; a media query is a condition, not a selector. So the moment the base rules were guarded, every accessibility fallback that existed to override them — @media (prefers-contrast) and @media (forced-colors) — was outranked by the very rules it was written to undo, while still looking completely correct in the source.",
+            zh: "喺 :root 加 :not([lwtheme]) 會令條規則特異度升 (0,2,0):屬性選擇器一分,入面被否定嗰個簡單選擇器一分。但係用 @media 包住就一分都唔加 —— media query 係條件,唔係選擇器。所以基本規則一加咗護欄,啲本來用嚟蓋過佢哋嘅無障礙 fallback(@media (prefers-contrast) 同 @media (forced-colors))即刻打唔贏自己要蓋嘅嗰啲規則,但係睇個 source 又完全似係啱嘅。",
+          }},
+          { h: { en: "Failure modes actually observed", zh: "真係撞過嘅出事情況" } },
+          { list: [
+            { en: "Most losses degrade quietly, because the user agent's own forced-colors adjustment re-forces the losing token anyway — which is exactly what makes the bug hard to notice.",
+              zh: "大部分打輸咗都靜靜雞冇乜表徵,因為瀏覽器引擎自己嗰套 forced-colors 調整照樣會夾硬改返個 token —— 咁就正正係最難察覺嗰種 bug。" },
+            { en: "Two did not degrade quietly, because a system colour survives forced-colors and a token does not. #threadPaneSelectedCount lost SelectedItem / SelectedItemText, so the 'N selected' pill became indistinguishable from the header bar behind it.",
+              zh: "有兩個唔係靜靜雞,因為系統色捱得過 forced-colors,而 token 捱唔過。#threadPaneSelectedCount 輸咗 SelectedItem / SelectedItemText,個「已選 N 封」標記同後面條標題列變到一模一樣,睇唔到。" },
+            { en: "thread-card-tags[tags] lost background-color: transparent to a color-mix() that IS forced, painting an opaque box over the row.",
+              zh: "thread-card-tags[tags] 嗰句 background-color: transparent 輸咗畀一個真係會被 forced 嘅 color-mix(),結果喺成行上面糊咗個唔透明嘅方格。" },
+            { en: "Over-guarding is a bug of exactly the same size. Focus rings, !important rules and fallbacks that have no guarded competitor must stay UNPREFIXED — guard the keyboard focus ring and installing a theme silently deletes an accessibility affordance.",
+              zh: "包過龍一樣係 bug,而且一樣咁大。焦點框、!important、同埋根本冇對手要蓋嘅 fallback 一定唔可以加護欄 —— 你包住個鍵盤焦點框,人哋一裝主題就靜靜哋冇咗個無障礙功能。" },
+          ]},
+          { callout: { kind: "note", text: {
+            en: "The rule of thumb the files follow: guard what a theme should be allowed to replace (colour), never guard what a theme must not be allowed to remove (focus rings, forced-colors and prefers-contrast fallbacks that have no guarded competitor). Every prefixed block in the tree carries a comment saying which guarded rule it exists to out-rank.",
+            zh: "啲檔案跟嘅原則:主題有權換嘅嘢(顏色)先加護欄;主題唔准剷走嘅嘢(焦點框,同埋冇對手要蓋嘅 forced-colors / prefers-contrast fallback)一律唔加。樹入面每一個加咗護欄嘅 block 都寫低咗佢係為咗贏邊條有護欄嘅規則而存在。",
+          }}},
+        ],
+        security: {
+          en: "This is an accessibility-integrity issue, not a cosmetic one. Both directions of the mistake are silent: an under-guarded fallback loses to its own base rule, and an over-guarded focus ring vanishes the moment a theme is installed. Neither throws, neither logs, and neither is visible in the default configuration a developer usually looks at — no theme installed, no high-contrast mode on.",
+          zh: "呢個係無障礙嘅完整性問題,唔係靚唔靚嘅問題。兩邊做錯都唔會出聲:護欄唔夠嗰個會打唔贏自己要蓋嘅規則,包過龍嗰個一裝主題就冇咗個焦點框。兩樣都唔會拋錯、唔會寫 log,而且喺開發者平時嗰個預設環境(冇裝主題、冇開高對比)根本睇唔到。",
+        },
+        verify: {
+          en: "Counted per file, comment-stripped and in selector position: m3-layout 11 guards, m3-folder-pane 56, m3-thread-pane 30, m3-quick-filter 21, m3-message-pane 3, m3-chrome 9, material-tokens 0 (by design — the token layer defines the palette rather than applying it). This page previously published 15 / 61 / 42 / 25 / 10 / 11, which was grep -c lwtheme — a raw substring count that also caught every sentence of the comments explaining the guards. The guards were always real and correctly spelled; only the arithmetic was wrong. An earlier wave found and fixed three fallbacks that lost to the rule they existed to undo; the 2026-07-29 audit found five more, plus two of the opposite shape — one over-guarded fallback where installing a theme deleted the only pane boundary in high contrast, and one sheet with no contrast fallback at all, where a toggle button's pressed state measured 1.17:1 in the default light path. The surviving prefixed blocks, such as the forced-colors block in m3-folder-pane.css and the prefers-contrast block in m3-chrome.css, each open with :root:not([lwtheme]) inside the @media and a comment naming the rules they override.",
+          zh: "逐個檔案數過,剝走註釋、淨計 selector 位置:m3-layout 11 個護欄、m3-folder-pane 56、m3-thread-pane 30、m3-quick-filter 21、m3-message-pane 3、m3-chrome 9、material-tokens 0(故意嘅 —— token 層係定義色盤,唔係塗色)。呢版之前寫住 15 / 61 / 42 / 25 / 10 / 11,嗰個係 grep -c lwtheme —— 純粹數字串,連註釋入面解釋緊護欄嗰啲句子都當咗係護欄。護欄本身一直冇事、寫得啱,係把算盤唔啱。之前一個 wave 搵到三個「輸咗畀佢想撤銷嗰條 rule」嘅 fallback 並且改咗;2026-07-29 嗰次審計再搵到五個,另外仲有兩個相反方向嘅 —— 一個護欄加過龍,裝咗主題就會剷走高對比度下唯一嘅分隔線;另一個係成個檔案根本冇 contrast fallback,一個 toggle 掣撳咗之後對比度得 1.17:1。其餘加咗護欄嗰啲,例如 m3-folder-pane.css 嘅 forced-colors block 同 m3-chrome.css 嘅 prefers-contrast block,都係喺 @media 入面即刻寫 :root:not([lwtheme]),仲有註解寫明佢要蓋邊啲規則。",
+        },
+      },
     ],
   },
 
@@ -254,8 +310,8 @@ export const CATEGORIES = [
           { t: "MozillaBuild", d: { en: "mach hard-asserts on MozillaBuild at C:\\mozilla-build. A catch-22: bootstrap installs dependencies, but bootstrap runs via mach, and mach will not start without it. Install it first, silently, from Mozilla's FTP.", zh: "mach 硬性要 C:\\mozilla-build。死結:bootstrap 負責裝嘢,但 bootstrap 要 mach 行,而 mach 冇佢就唔開機。所以要最頭靜靜哋裝好佢。" }},
         ],
         verify: {
-          en: "Every fix is confirmed from the runner log, not assumed. core.longpaths=true and the MozillaBuild install both appear as successful steps. As of writing there is still no green build and no published installer.",
-          zh: "每個修正都係睇 runner log 確認,唔係估。core.longpaths=true 同 MozillaBuild 安裝都見到成功。寫呢刻仲係未綠過,亦未出過 installer。",
+          en: "Every fix is confirmed from the runner log, not assumed. core.longpaths=true and the MozillaBuild install both appear as successful steps. The pipeline is now green and has published seven releases with a real installer attached; the newest is tb-155.0a1-b24-pai-gwat at 85,211,580 bytes. Green means the installer was produced and uploaded — it does not mean anyone has installed and launched it.",
+          zh: "每個修正都係睇 runner log 確認,唔係估。core.longpaths=true 同 MozillaBuild 安裝都見到成功。而家條 pipeline 綠咗,已經出咗七個 release,個個都連埋真 installer,最新係 tb-155.0a1-b24-pai-gwat,85,211,580 bytes。不過綠嘅意思係「砌到同上載到」,唔等於有人裝過同開過。",
         },
       },
       {
@@ -274,6 +330,59 @@ export const CATEGORIES = [
         security: {
           en: "Every release states on its face that it is an unofficial fork build and not an official Thunderbird release. The token chain is RELEASE_TOKEN, then ORG_TOKEN, then the ephemeral workflow token; none is ever printed or logged.",
           zh: "每個 release 都寫明係非官方 fork build,唔係官方 Thunderbird。Token 順序係 RELEASE_TOKEN → ORG_TOKEN → workflow token,一律唔會印出嚟或者寫入 log。",
+        },
+        verify: {
+          en: "Seven releases published so far, the newest being tb-155.0a1-b24-pai-gwat — 🍖 pai gwat, black-bean spare ribs — with an 85,211,580-byte installer attached.",
+          zh: "到而家出咗七個 release,最新係 tb-155.0a1-b24-pai-gwat(🍖 豉汁排骨),連住一個 85,211,580 bytes 嘅 installer。",
+        },
+      },
+      {
+        id: "lint",
+        title: { en: "The lint workflow", zh: "Lint workflow" },
+        body: [
+          { p: {
+            en: [
+              "A second workflow, .github/workflows/lint-m3.yml, runs stylelint over the six m3-*.css files and material-tokens.css, and eslint over about3Pane.xhtml. It is deliberately separate from the installer workflow: it shares no job, no needs:, no concurrency group and no permissions, so it cannot make the installer fail, cancel it, or change what it publishes.",
+              "A second workflow, .github/workflows/lint-m3.yml, runs stylelint over the six m3-*.css files plus material-tokens.css, and eslint over about3Pane.xhtml. It is deliberately separate from the installer: no shared job, no needs:, no shared concurrency group, no shared permissions — it cannot break, cancel or alter a release.",
+              "lint-m3.yml lints the seven CSS files the rewrite adds, plus about3Pane.xhtml through eslint. It is kept well away from the installer workflow — no shared job, no shared concurrency, no shared permissions — so a lint problem can never cost you a release.",
+              "lint-m3.yml checks the seven stylesheets we added and runs eslint on about3Pane.xhtml. It lives at arm's length from the installer on purpose: no shared job, no shared concurrency group, no shared permissions. Lint may complain; it may not take the release down with it.",
+              "lint-m3.yml is the workflow that reads our seven stylesheets back to us, plus eslint on about3Pane.xhtml. It is kept in a separate room from the installer — nothing shared, not a job, not a concurrency group, not a permission — so it can grumble all it likes without ever costing a release.",
+            ],
+            zh: [
+              "第二個 workflow,.github/workflows/lint-m3.yml,用 stylelint 檢查六個 m3-*.css 同 material-tokens.css,再用 eslint 檢查 about3Pane.xhtml。佢刻意同 installer workflow 完全分開:唔共用 job、唔用 needs:、唔同一個 concurrency group、權限亦唔同,所以佢冇可能搞垮、取消、或者改到 installer 出嘅嘢。",
+              "第二個 workflow .github/workflows/lint-m3.yml 用 stylelint 睇六個 m3-*.css 加 material-tokens.css,再用 eslint 睇 about3Pane.xhtml。佢同 installer 刻意分家:冇共用 job、冇 needs:、冇同一個 concurrency group、權限都唔同,所以整唔停亦改唔到 release。",
+              "lint-m3.yml 負責 lint 重寫加嘅七個 CSS 檔,同埋用 eslint 睇 about3Pane.xhtml。佢同 installer workflow 隔到好開 —— 冇共用 job、冇共用 concurrency、冇共用權限 —— lint 出事都唔會累到你冇 release。",
+              "lint-m3.yml 專門睇我哋加嘅七個 stylesheet,再 eslint 一下 about3Pane.xhtml。佢同 installer 特登保持距離:job、concurrency group、權限一律唔共用。Lint 可以喺度嘈,但唔准拖冧個 release。",
+              "lint-m3.yml 就係嗰個會將我哋七個 stylesheet 逐隻讀返出嚟嘅 workflow,順手 eslint 埋 about3Pane.xhtml。佢同 installer 分房瞓 —— job、concurrency group、權限一樣都唔共用 —— 佢想點嘈都得,總之唔准整冇個 release。",
+            ],
+          }},
+          { h: { en: "Why it needs gecko at all", zh: "點解 lint 都要攞 gecko" } },
+          { p: {
+            en: "This repository is the comm tree only: no mach, no mozlint, no node_modules. The linter configuration that governs these files lives here (comm/.stylelintrc.js, comm/eslint.config.mjs, comm/tools/lint/*.yml) but the machinery that reads it lives in mozilla-central. So the workflow fetches the same pinned gecko revision the installer uses, assembles gecko/comm, and runs ./mach commlint. `mach commlint`, not `mach lint` — commlint is what inserts comm/tools/lint into mozlint's config paths, and plain `mach lint` would silently apply Firefox's rules instead.",
+            zh: "呢個 repo 淨係得 comm 一半:冇 mach、冇 mozlint、冇 node_modules。管住呢啲檔案嘅 linter 設定係喺呢度(comm/.stylelintrc.js、comm/eslint.config.mjs、comm/tools/lint/*.yml),但係讀嗰啲設定嘅機器喺 mozilla-central。所以個 workflow 會攞同 installer 一樣嗰個釘死咗嘅 gecko revision,砌好 gecko/comm,再行 ./mach commlint。要用 commlint,唔係 mach lint —— commlint 先會將 comm/tools/lint 塞入 mozlint 嘅設定路徑,行 mach lint 會靜靜哋用咗 Firefox 嗰套規則。",
+          }},
+          { h: { en: "It proves it is actually checking something", zh: "佢會證明自己真係有喺度檢查" } },
+          { p: {
+            en: "A green lint run means nothing on its own: it is indistinguishable from a run where mozlint skipped every path or the setup failed open. So before the real lint, the job writes a file containing `colour: red` — not a CSS property, and comm/.stylelintrc.js enables property-no-unknown explicitly — lints it, and fails the job if stylelint passes it. There is a matching check on the input side: if the m3-*.css glob matches nothing, the job errors out rather than going green over an empty set.",
+            zh: "Lint 綠燈本身講明唔到嘢:同「mozlint 咩路徑都冇 lint 過」或者「setup 靜靜哋掛咗」睇落一模一樣。所以喺真正 lint 之前,個 job 會寫一個含住 colour: red 嘅檔案 —— colour 唔係 CSS 屬性,而 comm/.stylelintrc.js 特登開咗 property-no-unknown —— 拎去 lint,如果 stylelint 竟然話佢過到,個 job 就當失敗。入口嗰邊都有同款檢查:如果 m3-*.css 個 glob 一個都夾唔到,個 job 會報錯,唔會對住個空集合扮綠。",
+          }},
+        ],
+        failures: [
+          { t: { en: "Empty expression in a run-script comment", zh: "註解入面嗰個空 expression" },
+            d: { en: "A comment inside a `run:` block explained why the step expands the glob in bash instead of through a workflow expression — and spelled the expression syntax out literally to do so. GitHub evaluates workflow expressions ANYWHERE in the file, including inside run-script comments, and an empty one is invalid, so the workflow was rejected by the parser before a single step ran. The comment describing why the step avoids expressions was the thing that broke it. It now describes the braces in words and never writes them.",
+              zh: "有段喺 run: 入面嘅註解,解釋緊點解要喺 bash 度展開個 glob 而唔用 workflow expression,順手就將 expression 嘅寫法原原本本打咗出嚟。但係 GitHub 喺成個檔案任何位都會計 expression,連 run script 嘅註解都計,而空嘅 expression 係無效嘅,結果個 workflow 未行過一步就被 parser 拒絕。搞到出事嘅,正正就係嗰段解釋「點解唔用 expression」嘅註解。而家佢淨係用文字講嗰對括號,唔會真係打出嚟。" }},
+          { t: { en: "A green run that checked nothing", zh: "check 咗等於冇 check 嘅綠燈" },
+            d: { en: "Guarded against rather than suffered: without the self-test and the empty-glob check, a rename of the m3-*.css files would leave the job passing over zero files. Both failures now abort the job with an ::error:: annotation.", zh: "呢個係防住而唔係撞過:冇咗自我測試同空 glob 檢查,一旦 m3-*.css 改咗名,個 job 就會對住零個檔案照樣過。而家兩種情況都會用 ::error:: 標註直接終止個 job。" }},
+          { t: { en: "Bare mach in the self-test", zh: "自我測試度淨係寫 mach" },
+            d: { en: "GitHub runs run: blocks under bash -e, so invoking mach bare in the self-test would abort the step the moment it failed — which is the exact outcome the self-test is trying to observe — and would look like the self-test itself was broken. It is invoked as `|| rc=$?` so the non-zero exit can be read and asserted on.", zh: "GitHub 行 run: 係用 bash -e,所以喺自我測試度直接寫 mach,佢一失敗成個 step 即刻死 —— 而失敗正正就係自我測試想睇到嘅結果 —— 表面睇落仲會似係自我測試自己壞咗。所以要寫成 || rc=$?,咁先讀到個非零 exit code 再去判斷。" }},
+        ],
+        security: {
+          en: "permissions: contents: read, and nothing else. The installer workflow needs contents: write to publish releases; this one must never be able to write anything. It also runs on GitHub-hosted ubuntu-latest rather than a self-hosted runner — it has a pull_request trigger, and a pull_request trigger on a self-hosted runner in a public repository would let any fork PR execute arbitrary code on that machine.",
+          zh: "權限淨係 contents: read,冇第二樣。Installer 要 contents: write 先出到 release,呢個就一定唔准寫得到任何嘢。佢亦都係行 GitHub 自己嘅 ubuntu-latest,唔行自建 runner —— 因為佢有 pull_request 觸發,而喺公開 repo 度將 pull_request 觸發駁上自建 runner,等於任何 fork PR 都可以喺部機行任意碼。",
+        },
+        verify: {
+          en: "The workflow is green, and the self-test step passes on its own terms: mach commlint exits non-zero on the known-bad file, which is what the step demands before it will let the run continue. eslint over about3Pane.xhtml currently reports nothing — its 19 <script> elements are all src-only, so that step is a regression guard against a future inline script rather than a source of present findings.",
+          zh: "個 workflow 綠燈,而自我測試嗰步亦都以佢自己嘅標準過到:mach commlint 對住嗰個壞檔案出非零 exit code,而咁樣先係嗰步准許個 run 繼續嘅條件。about3Pane.xhtml 嗰邊 eslint 而家一個問題都冇報 —— 佢入面 19 個 <script> 全部淨係 src,所以嗰步係防住將來有人加 inline script,唔係而家有嘢要執。",
         },
       },
     ],
