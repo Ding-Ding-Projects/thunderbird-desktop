@@ -39,7 +39,10 @@ permissions:
 
 concurrency:
   group: windows-installer-${{ github.ref }}
-  cancel-in-progress: true
+  # MUST stay false. Every push has to ship its own release, and builds take long
+  # enough that a follow-up push would otherwise cancel the one in flight and
+  # silently skip its release. Queue them instead.
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -48,9 +51,12 @@ jobs:
     timeout-minutes: 355
 
     env:
-      MOZBUILD_STATE_PATH: C:\mozbuild
+      # Build on D:, not C:. Measured on a real run: C: has ~33 GB free, D: has
+      # ~147 GB. The documented "14 GB SSD" figure understates this image badly,
+      # and D: is roomy enough for a full build (~45 GB) with room to spare.
+      MOZBUILD_STATE_PATH: D:\mozbuild
       MOZ_AUTOMATION: '1'
-      GECKO_DIR: C:\gecko
+      GECKO_DIR: D:\gecko
 
     steps:
       - name: Enable long paths
@@ -72,9 +78,16 @@ jobs:
         shell: pwsh
         continue-on-error: true
         run: |
-          # A full mozilla-central build needs ~40 GB. Hosted runners ship many GB
-          # of toolchains this build never touches; removing them is what makes a
-          # full build fit at all. Disk — not time — is the binding constraint here.
+          # Only worth doing when the build drive is actually tight. Measured on a
+          # real run this deletion takes ~4.5 minutes, and D: already has ~147 GB
+          # free — so on this image it is usually 4.5 minutes bought for nothing.
+          $buildDrive = "$env:GECKO_DIR".Substring(0,1)
+          $free = [math]::Round((Get-PSDrive $buildDrive).Free / 1GB, 1)
+          if ($free -ge 60) {
+            Write-Host "Build drive ${buildDrive}: has $free GB free - skipping cleanup."
+            exit 0
+          }
+          Write-Host "Build drive ${buildDrive}: has only $free GB - reclaiming space."
           $targets = @(
             "$env:ProgramFiles\dotnet",
             "${env:ProgramFiles(x86)}\Android",
@@ -160,10 +173,13 @@ jobs:
           # toolchains ~5). A hosted runner rarely has that even after cleanup, so
           # measure rather than assume — a 3-hour build that dies on disk at the end
           # is the worst outcome available. An explicit workflow_dispatch choice wins.
-          $free = [math]::Round((Get-PSDrive C).Free / 1GB, 1)
+          # Measure the drive we actually build on (D:), not C:.
+          $buildDrive = "$env:GECKO_DIR".Substring(0,1)
+          $free = [math]::Round((Get-PSDrive $buildDrive).Free / 1GB, 1)
           $requested = "${{ github.event.inputs.build_mode }}"
           $FULL_NEEDS_GB = 45
           $mode = if ($requested) { $requested } else { 'artifact' }
+          Write-Host "Build drive ${buildDrive}: $free GB free"
 
           if ($mode -eq 'full' -and $free -lt $FULL_NEEDS_GB) {
             Write-Host "::warning::Full build requested but only $free GB free (needs ~$FULL_NEEDS_GB GB). Proceeding as asked - expect an out-of-disk failure. A self-hosted or larger runner is the fix."
