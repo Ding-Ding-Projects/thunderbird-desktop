@@ -70,7 +70,7 @@ still do*. Nothing here may be dropped silently; anything intentionally cut need
 - [x] All 20 columns: select, thread, flagged, attachment, subject, unread, sender, recipient,
       correspondent, junk status, date, received, status, size, tags, account, priority, unread
       count, total count, location, id, delete
-- [ ] Column picker; reorder; resize; **apply columns to folder / folder+children**
+- [x] Column picker; reorder; resize; **apply columns to folder / folder+children**
 - [x] Sort by 15 fields (date, received, flagged, id, priority, author, recipient, correspondent,
       size, status, subject, unread, tags, junk status, attachments) × ascending/descending
 - [x] Grouping: **threaded / unthreaded / grouped-by-sort**; apply view to folder(+children)
@@ -97,19 +97,19 @@ still do*. Nothing here may be dropped silently; anything intentionally cut need
 - [x] Splitters: drag resize, collapse at threshold, resize-with-window, layout-dependent lock targets
 
 ### Cross-cutting — must not regress
-- [ ] **All 137 `cmd_*` commands** remain wired and correctly enabled/disabled
-- [ ] **Keyboard navigation** throughout; correct tabindex order (note the deliberate reverse
+- [x] **All 137 `cmd_*` commands** remain wired and correctly enabled/disabled
+- [x] **Keyboard navigation** throughout; correct tabindex order (note the deliberate reverse
       tabindex in the folder pane header for `row-reverse`)
-- [ ] **Accessibility**: `role="tree"`, `aria-multiselectable`, `aria-live` regions, `aria-hidden`
+- [x] **Accessibility**: `role="tree"`, `aria-multiselectable`, `aria-live` regions, `aria-hidden`
       on decorative buttons, screen-reader labels on every control
-- [ ] **Localization**: every string via Fluent (`data-l10n-id`) or DTD entity — no hardcoded text.
+- [x] **Localization**: every string via Fluent (`data-l10n-id`) or DTD entity — no hardcoded text.
       Existing `.ftl` files: about3Pane, treeView, messenger, calendar, textActions, findbar
 - [ ] **Theming**: light/dark, `lightweightthemes="true"`, `colors.css` variables, folder colors
-- [ ] **CSP**: the existing `Content-Security-Policy` meta must remain satisfiable.
+- [x] **CSP**: the existing `Content-Security-Policy` meta must remain satisfiable.
       ⚠️ The design loads Google Fonts from `fonts.googleapis.com` / `fonts.gstatic.com` — this is
       **blocked by CSP and unacceptable in Thunderbird** (remote fetch at startup, privacy leak).
       Fonts must be vendored locally or swapped for system fonts.
-- [ ] Session/state persistence: active modes, compact, column layout, sort, view mode, splitter
+- [x] Session/state persistence: active modes, compact, column layout, sort, view mode, splitter
       sizes, quick-filter state
 
 ## Known conflicts between the design and Thunderbird constraints
@@ -316,6 +316,14 @@ scrolls or measures, or hide something the JS keeps focusable.
   demonstrably wrong. Fix needs an id, or `:where(...)` on the base rule, or the
   override raised to at least (1,0,1).
 
+  > **RESOLVED in the cross-cutting pass below.** The dead rule was replaced by
+  > two *inherited custom properties* — `--m3-menu-item-size` /
+  > `--m3-menu-item-font-size`, set on `.menupopup-column-picker` and read by the
+  > nested rule with the old values as `var()` fallbacks. Inheritance is resolved
+  > at the child, so it sidesteps the specificity trap entirely instead of
+  > out-escalating it, and the two popups that do *not* set the variables are
+  > byte-for-byte unchanged. Box now ticked.
+
 ### Regressions found and fixed while proving the ticks
 
 Six real defects, all shipped by the restyle and all caught by the proof
@@ -373,6 +381,13 @@ requirement rather than by review-by-eyeball:
   restyle of it is not running. One-line fix: delete the trailing ` */` from line
   504. Owner is the thread-pane section; deliberately not fixed here, since this
   pass may edit only this file.
+
+  > **RESOLVED.** Reported by three separate agents and owned by none of them,
+  > so the ratify pass took it: the premature `*/` is deleted and the comment now
+  > runs to its real terminator. Re-verified with a comment-aware tokeniser —
+  > **zero** stray `*/` across all seven sheets, braces balanced
+  > (m3-thread-pane 120/120), and the `--read-status-fill` /
+  > `--read-status-stroke` rule is live again.
 - **⛔ The font-size accessibility control is severed for four of five surfaces.**
   `UIFontSize.sys.mjs:194-198` sets the user's size on `documentElement`;
   `m3-layout.css:52` then sets `body#paneLayout { font-size: var(--m3-font-size) }`,
@@ -389,6 +404,18 @@ requirement rather than by review-by-eyeball:
   Fixing it means either wiring `--m3-font-scale` to `UIFontSize` or redefining
   `--m3-font-size` in `rem`/`em` — the latter lives in `material-tokens.css`, so
   it needs an owner with rights to that file.
+
+  > **RESOLVED.** `material-tokens.css:61` is now
+  > `--m3-font-size: calc(1rem * var(--m3-font-scale) / 100)`. `rem` resolves
+  > against the root font-size, which is exactly where
+  > `UIFontSize.sys.mjs:195` writes the user's setting, so one declaration
+  > restores the control everywhere. All **30** `font-size` declarations across
+  > the seven sheets were then enumerated: every one is `var(--m3-font-size)`, a
+  > `calc()` over it, a token derived from it, or already `rem`. No absolute-px
+  > font-size survives. `1rem` rather than `0.875rem` because this chrome's root
+  > is `font: message-box` — the design's "14px" was authored against a 16px web
+  > baseline that does not exist here. The count was also understated: it was
+  > **five** surfaces, not four (`m3-chrome.css`'s menuitems are a fifth).
 - **RTL: `m3-thread-pane.css:406` uses the physical shorthand `padding:
   var(--m3-row-padding)` and the token is asymmetric (`12px 8px 12px 16px`), so
   the card's 16px inset lands on the wrong side under RTL.** Cosmetic mirroring
@@ -398,6 +425,12 @@ requirement rather than by review-by-eyeball:
   weight. Audit before adding more nesting.
 
 ### Still unticked, with honest reasons
+
+> **Superseded** by the cross-cutting pass at the end of this file. Seven of the
+> eight boxes listed here (and the refused column-picker box) were subsequently
+> claimed, proved and ticked. Kept verbatim as the record of what was *not* known
+> at the time. Only **Theming** still stands unticked, and for a different and
+> better-named reason than the one below.
 
 All 7 remaining boxes are in **Cross-cutting — must not regress**. No section
 agent claimed any of them, and this pass will not tick a box nobody proved.
@@ -439,6 +472,148 @@ self-test that lints a deliberately broken file and fails the job if stylelint
 reports it clean. **It will be red on its first run** — the comment bug above is
 a real `CssSyntaxError`. That is the job doing its job. Its `mach commlint`
 invocation has never been executed end-to-end; the first CI run is the real test.
+
+> **Update:** the `CssSyntaxError` it was expected to catch is now fixed (see the
+> resolved blocker above), so the first run is no longer *predicted* red. It has
+> still never been executed end-to-end, so the first run remains the real test.
+
+---
+
+**Cross-cutting audit — 37 of 38 boxes ticked, 1 refused on its own evidence**
+
+The eight boxes nobody had claimed were each assigned to an agent, proved against
+named selectors and handler line numbers, then attacked by an adversarial pass
+that re-ran every grep and re-read every cited line independently. Seven held.
+One did not, and is not ticked.
+
+| Box | Verdict |
+|---|---|
+| Column picker / reorder / resize / apply-to-folder | ✅ ticked (previous refusal resolved) |
+| All `cmd_*` commands | ✅ ticked |
+| Keyboard navigation / tabindex | ✅ ticked |
+| Accessibility | ✅ ticked |
+| Localization | ✅ ticked |
+| CSP | ✅ ticked |
+| Session/state persistence | ✅ ticked |
+| **Theming** | ❌ **refused — see below** |
+
+**Running total: 37 / 38.**
+
+#### What this pass actually proved
+
+The strongest results are enumerations, not arguments.
+
+- **The command count in this file was wrong.** `grep -rhoE '\bcmd_[A-Za-z0-9_]+'
+  mail/base/content | sort -u` returns **167** distinct tokens, not the 137 this
+  contract has claimed since line 44. Of those, **155** have a locatable DOM
+  trigger; the other 12 are JS-only dispatch strings that CSS cannot reach by
+  definition. Every trigger was parsed out of every `.xhtml` — 173 `menuitem`,
+  117 `key`, 16 `toolbarbutton`, 6 `menu`, 3 `menupopup`, 2 `button`, carrying
+  **198** distinct ids and **13** distinct classes — and cross-referenced against
+  all seven sheets. Exactly two ids (`#threadPaneQuickFilterButton`,
+  `#menu_threadPaneSortPopup`), three classes (all scoped under `#threadPane` or
+  `#quick-filter-bar`; no bare `.button` rule exists anywhere) and one ancestor
+  (`#threadPaneDisplayContext`) match. The adversarial pass found one trigger the
+  section agent missed — `mailContext.inc.xhtml:345`'s `observes="cmd_print"` —
+  so the reachable surface is **5** commands, not 4. The other 162 are out of
+  reach because `aboutMessage.xhtml`, `messageWindow.xhtml`, `SearchDialog.xhtml`,
+  `viewSource.xhtml`, `customizeToolbar.xhtml`, `commonDialog.xhtml` and
+  `glodaFacetViewWrapper.xhtml` link no M3 sheet at all, and `messenger.xhtml`'s
+  only M3 sheet reaches the menubar's 120 bindings through a `background-color`
+  and one *inherited* `color`.
+- **Property census across all seven sheets**, re-run independently: `content:` —
+  7 declarations, of which **zero** carry a non-empty quoted string (so no CSS
+  can invent a user-visible string, which is the whole localization box);
+  `display: none` — 3, all either a decorative tab underline or a verbatim
+  restatement of upstream's own hiding; `pointer-events: none` — 1, on a
+  `::before`; `visibility` — 0; `contain` — 0; `outline: none|0` — 0; `@import`,
+  `@font-face`, remote URL — 0. Only two `url()` tokens exist and both are
+  `chrome://messenger/skin/icons/*.svg`, which the CSP's `img-src chrome:`
+  covers. No hex colour literal survives outside `material-tokens.css`.
+- **The markup is inert.** `about3Pane.xhtml` is `+23/-0` and `messenger.xhtml`
+  is `+9/-0` against `main` — every added line a `<link rel="stylesheet">` or an
+  XML comment, **zero** deleted lines, **zero** `style=` attributes. That single
+  diffstat discharges most of the accessibility and localization boxes outright:
+  all 18 `tabindex` attributes, `role="tree"` (:112), `aria-multiselectable`
+  (:115), `role="region" aria-live="off"` (:152-154), all 11 `aria-hidden`, all
+  six `rel="localization"` links and the internal DTD subset are byte-identical.
+  The runtime ARIA layer (`tree-view.mjs`, `tree-listbox-mixin.mjs`, the row
+  modules) does not appear in the diffstat at all.
+- **Persistence rides on inline styles we cannot out-rank.** Splitter sizes land
+  as custom properties on `<body id="paneLayout">` (`pane-splitter.js:880`);
+  column widths land on the `th` twice over (`tree-view.mjs:2190`, `:2865`).
+  Inline beats any stylesheet by origin, so the M3 defaults are defaults only.
+  `.collapsed-by-splitter` appears in the M3 set **only in comments** — zero
+  rules.
+
+#### Regressions found and fixed by this pass
+
+Four more real defects, on top of the six above.
+
+7. **`material-tokens.css` — the font-size accessibility control was severed.**
+   The blocker recorded above, now fixed at the token: one declaration changed
+   from `calc(14px * …)` to `calc(1rem * …)`. Five surfaces — folder pane, quick
+   filter bar, thread-pane header, column headers, every menuitem — were pinned
+   at 14px while the `rem`-based card rows still scaled, so raising the UI font
+   size grew the messages and not the chrome.
+8. **`m3-thread-pane.css` — the column picker's own override was dead.** The
+   CSS-Nesting specificity trap this file warned about, caught in the act:
+   `.menupopup-column-picker > :is(menu, menuitem)` at (0,1,1) could never beat
+   the nested `& > :is(menu, menuitem)` at (1,0,1). Every picker item rendered at
+   the full 48px, so a 23-row popup stood ~1130px tall and scrolled on any
+   display under ~1200px — precisely the failure its own comment claimed to
+   prevent. Rerouted through inherited custom properties; popup now ~780px.
+9. **`m3-thread-pane.css` — the in-row keyboard cursor was invisible.**
+   `tree-listbox.css:551` paints `td.current-cell` with a dashed
+   `--selected-item-text-color`, i.e. white, which was legible on upstream's
+   accent-filled selected row. Retinting selected rows to
+   `--m3-secondary-container` (`#e8def8`) dropped that to ~1.15:1. Because
+   arrow-keying *selects* the row it lands on, the selected state is the normal
+   state — so `ArrowLeft`/`ArrowRight` cell navigation had **no** visible
+   indicator at all. Fixed with a colour-only `outline-color` override, guarded
+   `@media not (forced-colors)`.
+10. **`m3-thread-pane.css` — the premature `*/`.** Fixed here, by the ratify
+    pass, after three agents reported it and none owned it. See above.
+
+#### Still unticked — one box, one honest reason
+
+- **Theming.** Five of its six claims are proven with named evidence: light/dark
+  switches correctly (both built-in themes are `inApp: true` in
+  `BuiltInThemeConfig.sys.mjs`, so they set `color_scheme` without setting
+  `lwtheme`, and `material-tokens.css` keys its dark branch off
+  `prefers-color-scheme` — the same signal `about3Pane.css:21-25` already uses in
+  that document); all 12 seed × theme blocks resolve, specificity-checked against
+  every competing selector; `colors.css` is untouched at `:root` (the only four
+  `--color-*` declarations are element-scoped to `conversation-view`); the
+  `lightweightthemes="true"` feeds are written inline on `documentElement` by
+  `ThemeVariableMap.sys.mjs` and no M3 sheet redeclares any of them; folder
+  colours survive because `m3-folder-pane.css:356` declares only three *size*
+  properties on `#folderTree .icon`, leaving `content`,
+  `-moz-context-properties`, `fill`, `stroke` and the inline `--icon-color` in
+  force. **The sixth claim fails.** An installed third-party lightweight theme is
+  visibly overridden across the 3-pane content: `m3-layout.css:81-82`
+  `#folderPane { background-color: var(--m3-surface) }` ties `about3Pane.css:128`
+  `var(--sidebar-background)` at (1,0,0) and wins on source order, and the same
+  holds for the header bar, thread pane, message pane and gutter. `m3-chrome.css`
+  guards its equivalents with `:root:not([lwtheme])` **eight** times (lines 71,
+  120, 276, 352, 407, 462, 512, 536); the five content sheets guard nothing. So
+  the chrome stands down for a user's theme and the content does not. The
+  attribute and its variables still function — the palette simply stops at the
+  `<browser>` boundary. Fixing it means guarding every colour-bearing rule in
+  five sheets, which is a re-architecture of the skin, not a minimum regression
+  fix. **Reported, not attempted, not ticked.**
+
+#### What a tick still does not mean
+
+Unchanged from the previous entry and worth repeating, because eleven fixes have
+not moved it: **nothing on this branch has been built or launched.** Every proof
+above is static — selector, specificity, cascade and source reading against the
+JS that consumes it. Open item 1 stands. Specifically still open: the audit's F6
+screen-reader gate cannot be closed statically, because
+`_setRowAriaAttributes` short-circuits unless `Services.appinfo.accessibilityEnabled`;
+and `about3Pane.js` was verified **unmodified** by `git status --porcelain`
+throughout, which is what makes "features survive by construction" true rather
+than hopeful.
 
 ## Verification
 

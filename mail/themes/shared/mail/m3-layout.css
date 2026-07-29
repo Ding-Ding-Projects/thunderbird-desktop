@@ -53,13 +53,21 @@ body#paneLayout {
   font-weight: var(--m3-font-weight);
 
   /* Re-declared in px *in the same rule that sets font-size*. about3Pane.css
-   * defaults these to 18em/54em/36em, which resolve against body's font-size;
-   * dropping body to --m3-font-size (14px) would silently shrink all three
-   * panes by 12.5% for every user who has never dragged a splitter (XULStore
-   * only restores explicitly dragged sizes). 864/576 are the current 54em/36em
-   * at the old 16px basis, preserved exactly. 272px is the design's folder
-   * pane width — it is only a *default*: PaneSplitter writes the live value as
-   * an inline custom property on this element, which still wins. */
+   * defaults these to 18em/54em/36em, which resolve against body's font-size,
+   * so a body font-size and these three defaults have to be reasoned about
+   * together. 864/576 are 54em/36em at a 16px basis; 272px is the design's
+   * folder pane width — all three are only *defaults*: PaneSplitter writes the
+   * live value as an inline custom property on this element, which still wins.
+   *
+   * NOTE (a11y pass): --m3-font-size is now `1rem`, not a hard 14px, so the
+   * `font-size` above no longer shrinks the body and these px values no longer
+   * compensate for anything — they are a plain design default. The residual
+   * cost is that they do not grow with the UIFontSize setting the way
+   * about3Pane.css's em defaults would, for the one case of a user who has
+   * raised the font size and never dragged a splitter. Left alone rather than
+   * re-derived here because pane sizing is the layout contract's call, not the
+   * accessibility pass's. Do NOT "restore" an absolute px --m3-font-size to
+   * justify this block: that is what severed the font-size control. */
   --folderPaneSplitter-width: 272px;
   --messagePaneSplitter-width: 864px;
   --messagePaneSplitter-height: 576px;

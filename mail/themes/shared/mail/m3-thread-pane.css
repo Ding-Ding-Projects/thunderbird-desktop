@@ -116,12 +116,17 @@
       --thread-pane-unread-stroke: var(--m3-primary);
       --thread-pane-spam-fill: color-mix(in srgb, var(--m3-error) 35%, transparent);
       --thread-pane-spam-stroke: var(--m3-error);
-      /* The design's star amber. There is no amber/warning role in the M3
-       * token set, so the design's literal value is bound to the existing
-       * flag pair — that keeps every prefers-contrast and selected-row
-       * override in threadPane.css pointed at a single place. */
-      --thread-pane-flag-fill: color-mix(in srgb, #f9a825 45%, transparent);
-      --thread-pane-flag-stroke: #f9a825;
+      /* --thread-pane-flag-fill / --thread-pane-flag-stroke are deliberately
+       * NOT re-pointed. There is no amber/warning role in the M3 token set, so
+       * the only way to honour the design's star amber here was a literal
+       * #f9a825 — and a literal is theme-blind twice over: it bypasses
+       * colors.css, and it is the same value in light and dark where
+       * threadPane.css:22-23 ramps light-dark(--color-orange-30/-60,
+       * --color-orange-40/-50). Against --m3-s2 in light that literal stroke
+       * measures 1.67:1, under the 3:1 non-text minimum the upstream ramp
+       * clears at 3.22:1. Leaving the pair undeclared lets #threadPane inherit
+       * the :root values threadPane.css already sets, which track colors.css
+       * and the light/dark axis. */
     }
   }
 }
@@ -146,6 +151,25 @@
    * design's list/detail tonal split. */
   &[rows="thread-row"] {
     background-color: var(--m3-surface);
+  }
+}
+
+/* Cell cursor for in-row keyboard navigation (tree-view.mjs navigateRowCells:
+ * ArrowRight/ArrowLeft moves `td.current-cell` and focuses the cell). Once the
+ * row is also selected — which it is for every arrow-key move in the thread
+ * list — tree-listbox.css paints that cursor with
+ *   table[is="tree-view-table"] tr.selected td.current-cell {
+ *     outline: 1px dashed var(--selected-item-text-color); }
+ * which resolves to AccentColorText (white in light themes). That was legible
+ * on upstream's accent-filled selected row, but section 1 of this file retints
+ * selected rows to --m3-secondary-container (#e8def8 light / #4a4458 dark), on
+ * which white is invisible — the only cell-level focus indicator would be lost.
+ * Colour only: the 1px dashed stroke and the -2px offset stay upstream's.
+ * Excluded under forced-colors, where section 1's remap does not apply and
+ * SelectedItemText is already the correct answer. */
+@media not (forced-colors) {
+  #threadPane #threadTree tr.selected td.current-cell {
+    outline-color: var(--m3-on-secondary-container);
   }
 }
 
@@ -329,12 +353,18 @@
 
   font-family: var(--m3-font);
 
+  /* Both sizes are read through a per-popup custom property rather than set
+   * outright. This rule is nested, so `&` expands to
+   * `:is(#threadPaneDisplayContext, #menu_threadPaneSortPopup, .menupopup-column-picker)`
+   * and the whole thing computes at (1,0,1) even when it matches the picker by
+   * class. No class-only selector further down this file can outrank that, so
+   * the column-picker overrides below have to arrive as inherited variables. */
   & > :is(menu, menuitem) {
-    min-block-size: var(--m3-control-size);
+    min-block-size: var(--m3-menu-item-size, var(--m3-control-size));
     padding-inline: 16px;
     margin: 0;
     border-radius: 0;
-    font-size: var(--m3-font-size);
+    font-size: var(--m3-menu-item-font-size, var(--m3-font-size));
 
     &[checked],
     &[selected="true"] {
@@ -353,9 +383,24 @@
  * the restore item and the two apply-to submenus. At the 48px comfortable
  * control height that popup is ~1130px tall and has to scroll on a 1080p
  * screen, which turns "tick the column you want" into a hunt. Use the chip
- * step instead — still well above the native ~24px item. */
-.menupopup-column-picker > :is(menu, menuitem) {
-  min-block-size: calc(var(--m3-control-size) - 16px);
+ * step instead — still well above the native ~24px item.
+ *
+ * Declared as inherited variables on the popup, NOT as `.menupopup-column-picker
+ * > :is(menu, menuitem) { min-block-size }`. That selector is only (0,1,1) and
+ * loses to the (1,0,1) nested rule above, so it would never take effect. */
+.menupopup-column-picker {
+  --m3-menu-item-size: calc(var(--m3-control-size) - 16px);
+
+  /* Restores text scaling to the picker. --m3-font-size resolves to an
+   * absolute `calc(14px * 100 / 100)` (material-tokens.css:41-42;
+   * --m3-font-scale is never rewritten at runtime), whereas upstream's
+   * `menupopup { font: menu; font-size: inherit }` (contextMenu.css:25-30)
+   * inherits the root font-size that UIFontSize.sys.mjs:195-199 writes onto
+   * document.documentElement for mail.uifontsize. Left on the token, every
+   * column checkbox, the restore item and the two apply-to submenu labels
+   * would sit at 14px whatever the user sets. 1rem is exactly what upstream
+   * resolved to, so scaling comes back with no change at the default. */
+  --m3-menu-item-font-size: 1rem;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -501,7 +546,8 @@
   /* The unread dot. Recoloured only — the icon keeps arriving through
    * `content: var(--icon-*)` + -moz-context-properties so the sparkle/new
    * override in threadCard.css and the flagged/junk duotones keep working;
-   * a CSS mask (as the design uses) would flatten all of them to one colour. */
+   * a CSS mask (as the design uses) would flatten all of them to one colour.
+   *
    * `new` is excluded on purpose. threadCard.css paints the sparkle amber
    * inside a nested `[unread][new]` rule whose specificity is (1,4,0); this
    * selector carries two IDs, so without the :not() it would win and flatten

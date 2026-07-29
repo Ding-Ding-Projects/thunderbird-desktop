@@ -39,7 +39,26 @@
 
   --m3-font: var(--m3-font-roboto);
   --m3-font-scale: 100;
-  --m3-font-size: calc(14px * var(--m3-font-scale) / 100);
+  /* MUST stay root-relative. This token is the base of every type size in the
+   * M3 sheets, and several of them (`body#paneLayout`, `#navigation-toolbox`,
+   * `.tabmail-tab .tab-text`, the menu and search-field rules) set `font-size`
+   * on a *container*, which stops inheritance for everything below it.
+   *
+   * UIFontSize.sys.mjs:194-198 is the whole font-size accessibility control:
+   * it writes an inline `font-size: <n>px` onto `document.documentElement` of
+   * every registered window (about3Pane.js:169, mailWindow.js). `rem` reads
+   * exactly that value, so the user's setting flows through this token into
+   * every derived size. An absolute `14px` here silently severed that control
+   * for the folder pane, the quick filter bar, the thread-pane header, the
+   * column headers, the tab strip and every menuitem, none of which are `rem`
+   * based -- they were pinned at 14px while the `rem`-sized card rows scaled.
+   *
+   * 1rem, not 0.875rem: the design's "14px" was authored against a 16px web
+   * baseline, but this chrome's root is `font: message-box`, so 1rem is both
+   * the platform-correct body size and exact parity with what about3Pane.css
+   * inherits today. --m3-font-scale stays as the multiplier hook; it is 100
+   * (a no-op) until something writes it. */
+  --m3-font-size: calc(1rem * var(--m3-font-scale) / 100);
   --m3-font-weight: 400;
 
   /* ---- Density ----------------------------------------------------------
