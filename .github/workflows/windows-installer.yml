@@ -554,12 +554,27 @@ jobs:
         shell: pwsh
         working-directory: ${{ env.GECKO_DIR }}
         run: |
-          # dist/install/sea/<app>-<version>.<locale>.win64.installer.exe, per
-          # toolkit/mozapps/installer/package-name.mk (PKG_INST_PATH/PKG_INST_BASENAME).
+          # The installer lands at obj-tb/dist/<app>-<version>.<locale>.win64.installer.exe.
+          #
+          # NOT dist/install/sea/. That was the old assumption from
+          # package-name.mk's PKG_INST_PATH, and it cost a run: the build and the
+          # packaging both succeeded and this step then threw because it was
+          # looking one directory too deep. Verified from a real run:
+          #   D:\gecko\obj-tb\dist\thunderbird-155.0a1.en-US.win64.installer.exe
+          #
+          # Search dist/ recursively and EXCLUDE maintenanceservice_installer.exe,
+          # which is a different, much smaller installer that also matches
+          # "*installer.exe" and sits in dist/bin and dist/thunderbird.
           $dist = Join-Path $env:GECKO_DIR "obj-tb\dist"
-          $exe = Get-ChildItem -Path (Join-Path $dist "install") -Recurse -Filter "*.exe" -EA SilentlyContinue |
-                 Where-Object { $_.Name -match 'installer|setup' } |
+          $exe = Get-ChildItem -Path $dist -Recurse -Filter "*installer.exe" -EA SilentlyContinue |
+                 Where-Object { $_.Name -notmatch 'maintenanceservice' } |
                  Sort-Object Length -Descending | Select-Object -First 1
+          if (-not $exe) {
+            # Fall back to the historical location before giving up.
+            $exe = Get-ChildItem -Path (Join-Path $dist "install") -Recurse -Filter "*.exe" -EA SilentlyContinue |
+                   Where-Object { $_.Name -match 'installer|setup' -and $_.Name -notmatch 'maintenanceservice' } |
+                   Sort-Object Length -Descending | Select-Object -First 1
+          }
           if (-not $exe) {
             Write-Host "No installer found. $dist contents:"
             Get-ChildItem -Path $dist -Recurse -Depth 3 -EA SilentlyContinue |
