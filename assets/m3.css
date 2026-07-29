@@ -1,0 +1,174 @@
+/* Material Design 3 tokens and components for the Material Mail Pages site.
+ * Token values are identical to mail/themes/shared/mail/material-tokens.css so
+ * the docs and the application cannot drift apart.
+ * No remote fonts: local-first stacks, platform fallback. Noto Sans HK matters
+ * because every string here has a Cantonese counterpart. */
+
+:root {
+  --m3-primary: #6750a4; --m3-on-primary: #fff;
+  --m3-primary-container: #eaddff; --m3-on-primary-container: #21005d;
+  --m3-secondary-container: #e8def8; --m3-on-secondary-container: #1d192b;
+  --m3-tertiary-container: #ffd8e4; --m3-on-tertiary-container: #31111d;
+  --m3-surface: #fef7ff; --m3-s1: #fff; --m3-s2: #f7f2fa;
+  --m3-s3: #f3edf7; --m3-s4: #ece6f0; --m3-s5: #e6e0e9;
+  --m3-on-surface: #1d1b20; --m3-on-surface-variant: #49454f;
+  --m3-outline: #79747e; --m3-outline-variant: #cac4d0;
+  --m3-inverse-surface: #322f35; --m3-inverse-on-surface: #f5eff7;
+  --m3-inverse-primary: #d0bcff;
+  --m3-error: #b3261e; --m3-error-container: #f9dedc; --m3-on-error-container: #410e0b;
+  --m3-ok: #146c2e;
+
+  --font: Roboto, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --cjk: "Noto Sans HK", "Microsoft JhengHei UI", "PingFang HK", var(--font);
+  --mono: ui-monospace, "Cascadia Code", Consolas, "Courier New", monospace;
+
+  --r-xs: 4px; --r-s: 8px; --r-m: 12px; --r-l: 16px; --r-xl: 28px; --r-full: 999px;
+  --dur: 180ms;
+}
+
+:root[data-theme="dark"], :root[data-theme="dark"] * { color-scheme: dark; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --m3-primary: #d0bcff; --m3-on-primary: #381e72;
+    --m3-primary-container: #4f378b; --m3-on-primary-container: #eaddff;
+    --m3-secondary-container: #4a4458; --m3-on-secondary-container: #e8def8;
+    --m3-tertiary-container: #633b48; --m3-on-tertiary-container: #ffd8e4;
+    --m3-surface: #141218; --m3-s1: #0f0d13; --m3-s2: #1d1b20;
+    --m3-s3: #211f26; --m3-s4: #2b2930; --m3-s5: #36343b;
+    --m3-on-surface: #e6e0e9; --m3-on-surface-variant: #cac4d0;
+    --m3-outline: #938f99; --m3-outline-variant: #49454f;
+    --m3-inverse-surface: #e6e0e9; --m3-inverse-on-surface: #322f35;
+    --m3-inverse-primary: #6750a4;
+    --m3-error: #f2b8b5; --m3-error-container: #8c1d18; --m3-on-error-container: #f9dedc;
+    --m3-ok: #6dd58c;
+  }
+}
+:root[data-theme="dark"] {
+  --m3-primary: #d0bcff; --m3-on-primary: #381e72;
+  --m3-primary-container: #4f378b; --m3-on-primary-container: #eaddff;
+  --m3-secondary-container: #4a4458; --m3-on-secondary-container: #e8def8;
+  --m3-tertiary-container: #633b48; --m3-on-tertiary-container: #ffd8e4;
+  --m3-surface: #141218; --m3-s1: #0f0d13; --m3-s2: #1d1b20;
+  --m3-s3: #211f26; --m3-s4: #2b2930; --m3-s5: #36343b;
+  --m3-on-surface: #e6e0e9; --m3-on-surface-variant: #cac4d0;
+  --m3-outline: #938f99; --m3-outline-variant: #49454f;
+  --m3-inverse-surface: #e6e0e9; --m3-inverse-on-surface: #322f35;
+  --m3-inverse-primary: #6750a4;
+  --m3-error: #f2b8b5; --m3-error-container: #8c1d18; --m3-on-error-container: #f9dedc;
+  --m3-ok: #6dd58c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0; background: var(--m3-s3); color: var(--m3-on-surface);
+  font-family: var(--font); font-size: 16px; line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+.zh, [lang="zh-HK"] { font-family: var(--cjk); }
+
+a { color: var(--m3-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Focus is a completion blocker, not polish. Every interactive element. */
+:focus-visible {
+  outline: 3px solid var(--m3-primary);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+.skip-link {
+  position: absolute; inset-inline-start: -9999px; top: 8px;
+  background: var(--m3-primary); color: var(--m3-on-primary);
+  padding: 10px 18px; border-radius: var(--r-full); z-index: 100;
+}
+.skip-link:focus { inset-inline-start: 8px; }
+
+.wrap { max-width: 1040px; margin: 0 auto; padding: 20px 18px 72px; }
+
+/* ---- app bar ---- */
+.appbar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 0 16px;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 500; }
+.brand-mark {
+  inline-size: 30px; block-size: 30px; border-radius: var(--r-s);
+  background: var(--m3-primary); color: var(--m3-on-primary);
+  display: grid; place-items: center; font-size: 17px;
+}
+.spacer { flex: 1 1 auto; }
+
+/* ---- buttons ---- */
+.btn {
+  font: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+  border: 1px solid transparent; border-radius: var(--r-full);
+  padding: 9px 18px; background: var(--m3-primary); color: var(--m3-on-primary);
+  transition: opacity var(--dur);
+}
+.btn:hover { opacity: .9; }
+.btn.tonal { background: var(--m3-secondary-container); color: var(--m3-on-secondary-container); }
+.btn.outline { background: transparent; color: var(--m3-primary); border-color: var(--m3-outline); }
+.btn.text { background: transparent; color: var(--m3-primary); padding-inline: 12px; }
+.btn.icon { padding: 8px; inline-size: 38px; block-size: 38px; display: grid; place-items: center; }
+.btn[aria-pressed="true"] { background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
+
+/* ---- cards ---- */
+.card {
+  background: var(--m3-surface); border: 1px solid var(--m3-outline-variant);
+  border-radius: var(--r-l); padding: 22px 24px; margin-bottom: 16px;
+}
+.card h2 { margin: 0 0 12px; font-size: 20px; font-weight: 500; color: var(--m3-primary); }
+.card h3 { margin: 20px 0 8px; font-size: 16.5px; font-weight: 500; }
+.card > :last-child { margin-bottom: 0; }
+
+/* ---- tables ---- */
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+th, td { text-align: start; padding: 9px 10px; border-bottom: 1px solid var(--m3-outline-variant); vertical-align: top; }
+th { color: var(--m3-on-surface-variant); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+
+code {
+  background: var(--m3-s5); padding: 2px 6px; border-radius: var(--r-xs);
+  font-family: var(--mono); font-size: .88em;
+}
+pre {
+  background: var(--m3-s5); padding: 14px 16px; border-radius: var(--r-m);
+  overflow-x: auto; font-family: var(--mono); font-size: 13.5px; line-height: 1.5;
+}
+pre code { background: none; padding: 0; }
+
+/* ---- pills / callouts ---- */
+.pill {
+  display: inline-block; padding: 3px 12px; border-radius: var(--r-full);
+  font-size: 13px; font-weight: 500; background: var(--m3-s5); color: var(--m3-on-surface-variant);
+}
+.pill.ok { background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
+.pill.bad { background: var(--m3-error-container); color: var(--m3-on-error-container); }
+
+.callout {
+  border-inline-start: 4px solid var(--m3-primary); background: var(--m3-s2);
+  padding: 12px 16px; border-radius: 0 var(--r-m) var(--r-m) 0; margin: 14px 0;
+}
+.callout.warn { border-color: var(--m3-error); }
+.callout.note { border-color: var(--m3-outline); }
+
+/* ---- form controls ---- */
+.field {
+  font: inherit; font-size: 15px; padding: 10px 14px;
+  border: 1px solid var(--m3-outline); border-radius: var(--r-s);
+  background: var(--m3-s1); color: var(--m3-on-surface); width: 100%;
+}
+select.field { cursor: pointer; }
+label.lbl { display: block; font-size: 13px; color: var(--m3-on-surface-variant); margin-bottom: 5px; }
+
+input[type="range"] { width: 100%; accent-color: var(--m3-primary); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

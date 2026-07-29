@@ -1,0 +1,94 @@
+/* Docs-app components: tab strip, anchored regex builder, snackbars, settings. */
+
+.muted { color: var(--m3-on-surface-variant); }
+.small { font-size: 13.5px; }
+.secondary {
+  display: block; font-size: .92em; opacity: .78; margin-top: 1px;
+}
+
+/* ---- search bar with its builder anchored beside it ---- */
+.searchbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  background: var(--m3-s1); border: 1px solid var(--m3-outline);
+  border-radius: var(--r-full); padding: 6px 8px 6px 16px; margin: 4px 0 14px;
+}
+.searchbar input[type="search"] {
+  flex: 1 1 220px; min-width: 0; border: 0; background: none;
+  font: inherit; font-size: 15px; color: var(--m3-on-surface); padding: 6px 0;
+}
+.searchbar input[type="search"]:focus { outline: none; }
+.searchbar:focus-within { border-color: var(--m3-primary); box-shadow: 0 0 0 1px var(--m3-primary); }
+
+#search-anchor { position: relative; }
+
+.rb-panel {
+  position: absolute; z-index: 40; inset-inline-end: 0; top: calc(100% + 8px);
+  inline-size: min(560px, calc(100vw - 36px));
+  background: var(--m3-surface); border: 1px solid var(--m3-outline-variant);
+  border-radius: var(--r-l); padding: 16px 18px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / .22);
+  animation: m3-rise 180ms ease-out;
+}
+@keyframes m3-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rb-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.rb-engine { font-size: 12.5px; color: var(--m3-on-surface-variant); }
+.rb-head .rb-close { margin-inline-start: auto; }
+.rb-flags { display: flex; gap: 4px; flex-wrap: wrap; margin: 10px 0; }
+.rb-flag { font-family: var(--mono); font-size: 13px; padding: 5px 10px; border: 1px solid var(--m3-outline-variant); }
+.rb-group { margin: 8px 0; }
+.rb-group-name { display: block; font-size: 12px; color: var(--m3-on-surface-variant); margin-bottom: 3px; }
+.rb-token { font-family: var(--mono); font-size: 12.5px; padding: 4px 9px; border: 1px solid var(--m3-outline-variant); margin: 0 3px 3px 0; }
+.rb-sample { font-family: var(--mono); font-size: 12.5px; resize: vertical; }
+.rb-status { margin: 10px 0; font-size: 13.5px; min-height: 22px; }
+.rb-bad { color: var(--m3-error); font-weight: 500; }
+.rb-none { color: var(--m3-on-surface-variant); }
+.rb-grp { color: var(--m3-on-surface-variant); font-size: 12px; }
+.rb-actions { display: flex; gap: 8px; margin-top: 6px; }
+
+/* ---- tab strip ---- */
+.tabs-wrap { border-bottom: 1px solid var(--m3-outline-variant); margin-bottom: 18px; }
+.tabstrip {
+  display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px;
+  scrollbar-width: thin;
+}
+.tab {
+  font: inherit; font-size: 14.5px; cursor: pointer; white-space: nowrap;
+  background: transparent; border: 0; border-bottom: 3px solid transparent;
+  color: var(--m3-on-surface-variant); padding: 11px 15px; border-radius: var(--r-s) var(--r-s) 0 0;
+  transition: background var(--dur), color var(--dur);
+}
+.tab:hover { background: var(--m3-s4); color: var(--m3-on-surface); }
+.tab.active { color: var(--m3-primary); border-bottom-color: var(--m3-primary); background: var(--m3-s2); font-weight: 500; }
+.tab .pin { font-size: 11px; }
+.tab-tools { display: flex; align-items: center; gap: 8px; padding: 8px 0 10px; flex-wrap: wrap; }
+.tab-tools input { max-width: 220px; }
+.cat-head { margin-bottom: 14px; }
+.cat-head h2 { margin: 0 0 4px; font-size: 24px; font-weight: 500; }
+.cat-head p { margin: 0; }
+
+.doc h2 { font-size: 19px; }
+
+/* ---- settings ---- */
+.set-row { margin-bottom: 14px; }
+details.settings-box > summary {
+  cursor: pointer; font-weight: 500; padding: 10px 0; color: var(--m3-primary);
+}
+
+/* ---- snackbars: non-blocking, corner-anchored, auto-dismissing ---- */
+#snackbars {
+  position: fixed; inset-block-end: 18px; inset-inline-start: 18px;
+  display: flex; flex-direction: column; gap: 8px; z-index: 60; pointer-events: none;
+}
+.snack {
+  background: var(--m3-inverse-surface); color: var(--m3-inverse-on-surface);
+  padding: 12px 18px; border-radius: var(--r-s); font-size: 14px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / .28); max-width: 340px;
+  animation: m3-rise 160ms ease-out;
+}
+.snack.out { opacity: 0; transition: opacity 200ms; }
+
+@media (max-width: 620px) {
+  .rb-panel { inset-inline: 0; }
+  #snackbars { inset-inline: 12px; }
+  .snack { max-width: none; }
+}

@@ -4,139 +4,114 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Material Mail — Thunderbird 3-Pane Rewrite</title>
-<meta name="description" content="A full ground-up rewrite of Thunderbird's 3-pane UI to Material Design 3. Unofficial fork.">
+<meta name="description" content="A ground-up rewrite of Thunderbird's 3-pane UI to Material Design 3. Unofficial fork; builds here are not official Thunderbird releases.">
+<link rel="stylesheet" href="assets/m3.css">
+<link rel="stylesheet" href="assets/docs.css">
 <style>
-  /* Material Design 3 tokens, same values as mail/themes/shared/mail/material-tokens.css */
-  :root {
-    --primary: #6750A4; --on-primary: #fff;
-    --pc: #EADDFF; --on-pc: #21005D;
-    --surface: #FEF7FF; --s2: #F7F2FA; --s3: #F3EDF7; --s5: #E6E0E9;
-    --on-surface: #1D1B20; --on-surface-var: #49454F;
-    --outline: #79747E; --outline-var: #CAC4D0;
-    --error: #B3261E; --ok: #146C2E;
-    --font: Roboto, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-    --cjk: "Noto Sans HK", "Microsoft JhengHei UI", "PingFang HK", var(--font);
-    --radius: 16px;
+  .hero {
+    background: var(--m3-primary-container); color: var(--m3-on-primary-container);
+    border-radius: var(--r-xl); padding: 40px 32px; margin-bottom: 22px;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --primary: #D0BCFF; --on-primary: #381E72;
-      --pc: #4F378B; --on-pc: #EADDFF;
-      --surface: #141218; --s2: #1D1B20; --s3: #211F26; --s5: #36343B;
-      --on-surface: #E6E0E9; --on-surface-var: #CAC4D0;
-      --outline: #938F99; --outline-var: #49454F;
-      --error: #F2B8B5; --ok: #6DD58C;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--s3); color: var(--on-surface);
-    font-family: var(--font); font-size: 16px; line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 72px; }
-  header {
-    background: var(--pc); color: var(--on-pc);
-    border-radius: var(--radius); padding: 32px 28px; margin-bottom: 28px;
-  }
-  h1 { margin: 0 0 8px; font-size: clamp(26px, 5vw, 38px); font-weight: 500; letter-spacing: -0.5px; }
-  .sub { margin: 0; opacity: 0.85; font-size: 17px; }
-  .zh { font-family: var(--cjk); }
-  .card {
-    background: var(--surface); border: 1px solid var(--outline-var);
-    border-radius: var(--radius); padding: 22px 24px; margin-bottom: 18px;
-  }
-  h2 { margin: 0 0 14px; font-size: 20px; font-weight: 500; color: var(--primary); }
-  a { color: var(--primary); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  table { width: 100%; border-collapse: collapse; font-size: 15px; }
-  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--outline-var); }
-  th { color: var(--on-surface-var); font-weight: 500; }
-  tr:last-child td { border-bottom: 0; }
-  code {
-    background: var(--s5); padding: 2px 6px; border-radius: 6px;
-    font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.88em;
-  }
-  .pill {
-    display: inline-block; padding: 3px 12px; border-radius: 999px;
-    font-size: 13px; font-weight: 500; background: var(--s5); color: var(--on-surface-var);
-  }
-  .pill.warn { background: var(--error); color: var(--surface); }
-  .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
-  .links a {
-    background: var(--primary); color: var(--on-primary);
-    padding: 10px 18px; border-radius: 999px; font-weight: 500; font-size: 15px;
-  }
-  .links a:hover { text-decoration: none; opacity: 0.9; }
-  .note {
-    border-left: 4px solid var(--error); background: var(--s2);
-    padding: 12px 16px; border-radius: 0 10px 10px 0; margin: 14px 0 0;
-  }
-  footer { color: var(--on-surface-var); font-size: 13.5px; text-align: center; margin-top: 34px; }
-  .scroll { overflow-x: auto; }
+  .hero h1 { margin: 0 0 10px; font-size: clamp(30px, 6vw, 44px); font-weight: 500; letter-spacing: -.6px; }
+  .hero p { margin: 0 0 6px; font-size: 17.5px; opacity: .9; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .cta .btn { font-size: 15px; padding: 11px 22px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .grid .card { margin: 0; }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
+
 <div class="wrap">
 
-  <header>
-    <h1>Material Mail</h1>
-    <p class="sub">A ground-up rewrite of Thunderbird's 3-pane UI to Material Design 3.</p>
-    <p class="sub zh">將 Thunderbird 三欄介面由頭到尾重寫做 Material Design 3。</p>
+  <header class="appbar">
+    <span class="brand">
+      <span class="brand-mark" aria-hidden="true">✉</span>
+      <span>Material Mail</span>
+    </span>
+    <span class="spacer"></span>
+    <a class="btn tonal" href="docs.html">Documentation</a>
+    <a class="btn outline" href="https://github.com/Ding-Ding-Projects/thunderbird-desktop">GitHub</a>
   </header>
 
-  <div class="note">
-    <strong>Unofficial fork.</strong> Not affiliated with, endorsed by, or released by MZLA
-    Technologies Corporation or the Thunderbird project. Builds published here are
-    <strong>not</strong> official Thunderbird releases.
-    <br><span class="zh">呢個係非官方 fork,唔係官方 Thunderbird,亦都唔關 Thunderbird 團隊事。</span>
-  </div>
+  <main id="main">
 
-  <div class="card">
-    <h2>Status</h2>
-    <div class="scroll">
-    <table>
-      <tr><th>Design</th><td><span class="pill">complete</span> <code>a334d745c32a7ab3</code> · 140,780 bytes</td></tr>
-      <tr><th>Implementation</th><td>in progress — M3 token layer landed, sections underway</td></tr>
-      <tr><th>Windows installer CI</th><td><span class="pill warn">no green build yet</span></td></tr>
-      <tr><th>Platform</th><td>Windows only (macOS/Linux paths untouched, not deleted)</td></tr>
-      <tr><th>Scope</th><td>~18,450 lines · 137 <code>cmd_*</code> commands, all to be preserved</td></tr>
-    </table>
+    <section class="hero">
+      <h1>Material Mail</h1>
+      <p>A ground-up rewrite of Thunderbird's 3-pane interface to Material Design 3.</p>
+      <p class="zh" lang="zh-HK">將 Thunderbird 三欄介面由頭到尾重寫做 Material Design 3。</p>
+      <div class="cta">
+        <a class="btn" href="docs.html">Read the docs</a>
+        <a class="btn outline" href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/discussions/1">Live progress</a>
+        <a class="btn outline" href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases">Releases</a>
+      </div>
+    </section>
+
+    <div class="callout warn card">
+      <strong>Unofficial fork.</strong> Not affiliated with, endorsed by, or released by MZLA
+      Technologies Corporation or the Thunderbird project. Builds published here are
+      <strong>not</strong> official Thunderbird releases.
+      <span class="secondary zh" lang="zh-HK">呢個係非官方 fork,唔關 Thunderbird 團隊事,呢度啲 build 唔係官方版本。</span>
     </div>
-  </div>
 
-  <div class="card">
-    <h2>Principle</h2>
-    <p>
-      No stock markup carried over — and <strong>every existing feature must survive</strong>.
-      Styling a surface is not the same as preserving it, so a checkbox is only ticked when the
-      feature is genuinely wired. Progress is reported honestly: a build is not called green
-      until it is green.
-    </p>
-    <p class="zh">
-      舊 markup 一件都唔留,但係功能一個都唔准少。畫靚咗個樣唔等於功能仲喺度,
-      所以要真係駁通咗先剔。未綠就係未綠,唔會當佢綠。
-    </p>
-  </div>
-
-  <div class="card">
-    <h2>Where things live</h2>
-    <div class="links">
-      <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/discussions/1">Rolling progress</a>
-      <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases">Releases</a>
-      <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/tree/design-import/thunderbird-3pane/design">Design snapshot</a>
-      <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/design-import/thunderbird-3pane/design/REWRITE-CONTRACT.md">Parity contract</a>
-      <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/design-import/thunderbird-3pane/design/INFRA.md">Build infra</a>
+    <div class="card">
+      <h2>Status</h2>
+      <div class="scroll">
+        <table>
+          <tbody>
+            <tr><th>Design</th><td><span class="pill ok">complete</span> <code>a334d745c32a7ab3</code> · 140,780 bytes</td></tr>
+            <tr><th>M3 token layer</th><td><span class="pill ok">landed</span> <code>material-tokens.css</code> — 24 tokens, 4 seeds × light/dark</td></tr>
+            <tr><th>Feature parity</th><td><span class="pill">not started</span> — no checkbox ticked yet</td></tr>
+            <tr><th>Windows installer</th><td><span class="pill bad">no green build yet</span></td></tr>
+            <tr><th>Platform</th><td>Windows only — macOS/Linux paths untouched, not deleted</td></tr>
+            <tr><th>Scope</th><td>~18,450 lines · 137 <code>cmd_*</code> commands, all to be preserved</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <p style="margin-top:18px">
-      Releases are code-named after dim sum — har gow, siu mai, char siu bao, and thirteen more in
-      rotation. <span class="zh">啲 release 跟點心名排隊出:蝦餃、燒賣、叉燒包⋯⋯</span>
-    </p>
-  </div>
 
-  <footer>
-    Thunderbird is a trademark of MZLA Technologies Corporation. Source under
-    <a href="https://www.mozilla.org/MPL/2.0/">MPL 2.0</a>.
+    <div class="grid">
+      <div class="card">
+        <h2>Two rules</h2>
+        <p>No stock markup is carried over — the rewrite is genuine, not a reskin. And every existing
+           feature must survive it.</p>
+        <p class="zh" lang="zh-HK">舊 markup 一件都唔留,係真重寫唔係換膚。但係功能一個都唔准少。</p>
+      </div>
+      <div class="card">
+        <h2>Honest reporting</h2>
+        <p>A build is not called green until it is green. A feature is not called preserved until it is
+           wired. Styling a surface is not the same as keeping it working.</p>
+        <p class="zh" lang="zh-HK">未綠就唔叫綠,未駁通就唔叫保住咗。畫靚咗個樣唔等於功能仲喺度。</p>
+      </div>
+      <div class="card">
+        <h2>Dim sum releases</h2>
+        <p>Every push ships a real release — not a draft, not a prerelease — code-named after a dim sum
+           dish, cycled by run number.</p>
+        <p class="zh" lang="zh-HK">每次 push 出一個真 release,跟點心名排隊:蝦餃、燒賣、叉燒包⋯⋯</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Where things live</h2>
+      <div class="scroll">
+        <table>
+          <tbody>
+            <tr><th>Documentation</th><td><a href="docs.html">Full docs</a> — searchable, tabbed, bilingual</td></tr>
+            <tr><th>Progress</th><td><a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/discussions/1">Rolling Discussion</a> — every push and CI verdict</td></tr>
+            <tr><th>Parity contract</th><td><a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/design-import/thunderbird-3pane/design/REWRITE-CONTRACT.md">REWRITE-CONTRACT.md</a></td></tr>
+            <tr><th>Build infra</th><td><a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/design-import/thunderbird-3pane/design/INFRA.md">INFRA.md</a></td></tr>
+            <tr><th>Design snapshot</th><td><a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/tree/design-import/thunderbird-3pane/design">design/</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="muted small" style="margin-top:30px;text-align:center">
+    Thunderbird is a trademark of MZLA Technologies Corporation.
+    Source under <a href="https://www.mozilla.org/MPL/2.0/">MPL 2.0</a>.
   </footer>
 
 </div>

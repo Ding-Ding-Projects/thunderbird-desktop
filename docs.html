@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation — Material Mail</title>
+<meta name="description" content="Full documentation for the Material Mail Thunderbird 3-pane rewrite: design sync, build and CI, infrastructure, and the parity contract.">
+<link rel="stylesheet" href="assets/m3.css">
+<link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+<a class="skip-link" href="#tabpanel">Skip to content</a>
+
+<div class="wrap">
+
+  <header class="appbar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark" aria-hidden="true">✉</span>
+      <span>Material Mail</span>
+    </a>
+    <span class="spacer"></span>
+    <a class="btn tonal" href="index.html">Home</a>
+    <a class="btn outline" href="https://github.com/Ding-Ding-Projects/thunderbird-desktop">GitHub</a>
+  </header>
+
+  <h1 style="font-size:clamp(24px,4.6vw,32px);font-weight:500;margin:0 0 4px">Documentation</h1>
+  <p class="muted" style="margin:0 0 16px">
+    Behaviour, configuration, failure modes, security and verification for each part of the project.
+    <span class="secondary zh" lang="zh-HK">每一部分嘅行為、設定、會點衰、保安考慮同點樣驗證。</span>
+  </p>
+
+  <!-- Search bar with its regex builder anchored directly beside it. -->
+  <div id="search-anchor">
+    <div class="searchbar" role="search">
+      <span aria-hidden="true">🔍</span>
+      <input type="search" id="search" placeholder="Search documentation… (Ctrl+F)"
+             aria-label="Search documentation" autocomplete="off" spellcheck="false">
+      <button type="button" class="btn text" id="regex-toggle" aria-pressed="false"
+              title="Use regular expression (plain text is the default)">.*</button>
+      <button type="button" class="btn tonal" id="regex-builder-btn"
+              title="Open the regex builder, anchored to this search bar">Regex builder</button>
+    </div>
+    <!-- rb-panel is injected here by docs.js so it stays anchored to this field -->
+  </div>
+
+  <div class="tabs-wrap">
+    <div class="tab-tools">
+      <label class="lbl" for="tab-filter" style="margin:0">Find a tab</label>
+      <input type="search" id="tab-filter" class="field" placeholder="Filter tabs…" aria-label="Filter tabs" style="width:auto">
+      <span class="muted small">Right-click a tab to pin · <kbd>[</kbd> <kbd>]</kbd> reorder · <kbd>←</kbd> <kbd>→</kbd> move</span>
+    </div>
+    <div class="tabstrip" id="tabstrip" role="tablist" aria-label="Documentation categories"></div>
+  </div>
+
+  <main id="tabpanel" role="tabpanel" tabindex="0"></main>
+
+  <details class="settings-box card" style="margin-top:26px">
+    <summary>⚙️ Language, humour and appearance · 語言、幽默同外觀</summary>
+    <div id="settings" style="margin-top:12px"></div>
+  </details>
+
+  <footer style="margin-top:34px" class="muted small">
+    <p>
+      Unofficial fork. Not affiliated with, endorsed by, or released by MZLA Technologies Corporation.
+      Builds published here are not official Thunderbird releases. Thunderbird is a trademark of MZLA
+      Technologies Corporation. Source under <a href="https://www.mozilla.org/MPL/2.0/">MPL 2.0</a>.
+    </p>
+  </footer>
+
+</div>
+
+<div id="snackbars" aria-live="polite" aria-atomic="false"></div>
+
+<script type="module" src="assets/docs.js"></script>
+<noscript>
+  <div class="wrap"><div class="card"><div class="callout warn">
+    This documentation is interactive and needs JavaScript for its tabs and search.
+    The same content is available in the repository under <code>design/</code>.
+  </div></div></div>
+</noscript>
+</body>
+</html>
