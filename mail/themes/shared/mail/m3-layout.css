@@ -258,8 +258,20 @@ body#paneLayout {
 }
 
 @media (prefers-contrast) {
-  #folderPaneSplitter:not(.splitter-collapsed),
-  #messagePaneSplitter:not(.splitter-collapsed) {
+  /* Prefixed with the same :root:not([lwtheme]) guard as the rule it overrides.
+   *
+   * A media query contributes NO specificity. Once the base rule was guarded it
+   * went to (1,2,0) while this fallback stayed at (1,1,0), so the fallback lost
+   * outright: the splitter kept border-width: 1px from here and border-color:
+   * transparent from the guard — a 1px invisible border costing 2px of content
+   * box for nothing.
+   *
+   * With the prefix the pair is equal-specificity again and this wins on source
+   * order, exactly as it did before the guard existed. Under [lwtheme] neither
+   * matches, which is correct: the M3 colours have stood down and about3Pane.css
+   * runs its own contrast fallbacks. Same precedent as m3-chrome.css:511. */
+  :root:not([lwtheme]) #folderPaneSplitter:not(.splitter-collapsed),
+  :root:not([lwtheme]) #messagePaneSplitter:not(.splitter-collapsed) {
     /* A tonal step alone is not a reliable boundary in high contrast, so put
      * the hairline back. Occupied space is unchanged (it is driven by
      * occupy-size, not border-width), so this causes no layout shift.

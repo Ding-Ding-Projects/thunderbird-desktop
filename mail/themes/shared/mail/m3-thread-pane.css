@@ -1075,46 +1075,67 @@
 }
 
 @media (forced-colors) {
+  /* Every selector below carries the same :root:not([lwtheme]) guard as the rule
+   * it exists to undo.
+   *
+   * A media query contributes NO specificity. Guarding the base rules raised
+   * them to (2,2,0) while this block stayed at (2,0,0), so the block lost to the
+   * very rules it overrides. Most degrade quietly because the UA's forced-colors
+   * adjustment re-forces the losing token anyway - but two do not, because a
+   * SYSTEM COLOUR survives forced-colors and a token does not:
+   *   - #threadPaneSelectedCount lost SelectedItem/SelectedItemText, so the
+   *     "N selected" pill became indistinguishable from the header bar.
+   *   - thread-card-tags[tags] lost background-color: transparent to a
+   *     color-mix() that IS forced, painting an opaque box over the row.
+   *
+   * With the prefix each pair is equal-specificity and this block wins on source
+   * order again. Under [lwtheme] neither matches, which is correct: the M3 fills
+   * have already stood down and about3Pane.css / list-container.css run their own
+   * forced-colors fallbacks.
+   *
+   * The focus-ring group at the end is deliberately NOT prefixed - the rings it
+   * overrides are themselves unguarded, so it already out-ranks them, and a
+   * high-contrast focus ring must never depend on the installed theme. */
   /* Hand every surface back to the system palette. The tonal fills above are
    * scoped to `not (forced-colors)`; these are the few places that set a
    * colour outright rather than through a variable. */
-  #threadPane,
-  #threadPane > tree-view#threadTree,
-  #threadPane > tree-view#threadTree[rows="thread-row"] {
+  :root:not([lwtheme]) #threadPane,
+  :root:not([lwtheme]) #threadPane > tree-view#threadTree,
+  :root:not([lwtheme]) #threadPane > tree-view#threadTree[rows="thread-row"] {
     background-color: Canvas;
     color: CanvasText;
   }
 
-  #threadPane #threadPaneFolderName.list-header-title,
-  #threadPane .thread-pane-count-info,
+  :root:not([lwtheme]) #threadPane #threadPaneFolderName.list-header-title,
+  :root:not([lwtheme]) #threadPane .thread-pane-count-info,
   #threadPane #threadTree .card-container :is(.sender, .subject, .date),
-  #threadPane #threadTree[rows="thread-row"] tbody tr.table-layout {
+  :root:not([lwtheme]) #threadPane #threadTree[rows="thread-row"] tbody tr.table-layout {
     color: inherit;
   }
 
-  #threadPane #threadPaneSelectedCount {
+  :root:not([lwtheme]) #threadPane #threadPaneSelectedCount {
     background-color: SelectedItem;
     color: SelectedItemText;
   }
 
-  #threadPane #threadTree thead[is="tree-view-table-header"] th[is="tree-view-table-header-cell"] {
+  :root:not([lwtheme]) #threadPane #threadTree thead[is="tree-view-table-header"] th[is="tree-view-table-header-cell"] {
     background-color: Canvas;
   }
 
-  #threadPane #threadTree thead[is="tree-view-table-header"] .tree-table-cell-container button {
+  :root:not([lwtheme]) #threadPane #threadTree thead[is="tree-view-table-header"] .tree-table-cell-container button {
     color: CanvasText;
   }
 
-  #threadPane #threadTree slot[name="placeholders"] {
+  :root:not([lwtheme]) #threadPane #threadTree slot[name="placeholders"] {
     color: CanvasText;
   }
 
-  #threadPane #threadTree slot[name="placeholders"] div::before {
+  :root:not([lwtheme]) #threadPane #threadTree slot[name="placeholders"] div::before {
     fill: CanvasText;
     stroke: CanvasText;
   }
 
-  #threadPane #threadTree[rows="thread-card"] thread-card-tags[tags]:not([tags=""]) {
+  :root:not([lwtheme]) #threadPane #threadTree[rows="thread-card"] thread-card-tags[tags]:not([tags=""]) {
     background-color: transparent;
     color: CanvasText;
   }

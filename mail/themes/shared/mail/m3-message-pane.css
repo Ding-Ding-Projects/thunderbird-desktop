@@ -259,7 +259,13 @@ body:is(.layout-classic, .layout-wide) #messagePane {
     stroke: var(--m3-on-surface);
   }
 
-  #messagePane findbar {
+  /* Prefixed with the same guard as the rule it overrides. A media query adds no
+   * specificity, so once the base rule became :root:not([lwtheme]) #messagePane
+   * findbar (1,2,1) this fallback at (1,0,1) could no longer restore
+   * --m3-outline, and the high-contrast divider was defeated. Equal specificity
+   * restores the source-order win. Under [lwtheme] neither matches, which is
+   * correct — the M3 colours have stood down. */
+  :root:not([lwtheme]) #messagePane findbar {
     /* Restore a definite boundary between the findbar and the message body;
      * the tonal step alone is not one here. */
     border-block-start-color: var(--m3-outline);

@@ -104,7 +104,7 @@ still do*. Nothing here may be dropped silently; anything intentionally cut need
       on decorative buttons, screen-reader labels on every control
 - [x] **Localization**: every string via Fluent (`data-l10n-id`) or DTD entity — no hardcoded text.
       Existing `.ftl` files: about3Pane, treeView, messenger, calendar, textActions, findbar
-- [ ] **Theming**: light/dark, `lightweightthemes="true"`, `colors.css` variables, folder colors
+- [x] **Theming**: light/dark, `lightweightthemes="true"`, `colors.css` variables, folder colors
 - [x] **CSP**: the existing `Content-Security-Policy` meta must remain satisfiable.
       ⚠️ The design loads Google Fonts from `fonts.googleapis.com` / `fonts.gstatic.com` — this is
       **blocked by CSP and unacceptable in Thunderbird** (remote fetch at startup, privacy leak).
@@ -728,9 +728,59 @@ down while `about3Pane.css` (contrast variables at 18-57, rules at 404-410,
 that same prefix; the focus-ring groups must stay unprefixed, since the rings
 they override are themselves unguarded.
 
-**Not fixed in this pass by design.** The ratify agent grades, it does not
-re-cut the work it is grading. Recorded here as the whole of what remains between
-this branch and 38/38.
+**Not fixed in that pass by design.** The ratify agent grades, it does not
+re-cut the work it is grading. Recorded above as the whole of what remained
+between this branch and 38/38.
+
+#### Resolved — the three over-guards are fixed, Theming is ticked
+
+All three took the one-line fix the review prescribed: prefix the accessibility
+fallback with the same guard as the rule it overrides, so the pair is
+equal-specificity again and the fallback wins on source order exactly as it did
+before the guard existed.
+
+| Sheet | Fallback | Fix |
+|---|---|---|
+| `m3-layout.css` | `@media (prefers-contrast)` splitter hairline | both selectors prefixed |
+| `m3-thread-pane.css` | `@media (forced-colors)` block | 12 selector lines prefixed |
+| `m3-message-pane.css` | `@media (prefers-contrast)` findbar divider | prefixed |
+
+**Deliberately still unprefixed**, and verified so:
+
+- The `forced-colors` **focus-ring group** in `m3-thread-pane.css` (`:focus-visible`
+  and `tr.current > td > .card-container`). The rings it overrides are themselves
+  unguarded, so it already out-ranks them, and a high-contrast focus ring must
+  never depend on whether a theme is installed.
+- `m3-folder-pane.css`'s six `forced-colors` focus selectors, for the same reason,
+  and its `prefers-contrast` `--icon-color: currentColor !important` rule —
+  `!important` needs no specificity help.
+- `m3-thread-pane.css`'s `@media (prefers-contrast)` block (selected card border,
+  selected row outline). Checked and left alone deliberately: both use
+  `currentColor`, no guarded rule sets those properties on those selectors, and
+  prefixing them would *remove* a high-contrast affordance whenever a theme is
+  installed — over-guarding of exactly the shape this section is about.
+- `material-tokens.css` carries **zero** guards. Custom-property *definitions* are
+  not colour application; guarding them would break every consumer.
+
+Verified mechanically: all seven M3 sheets balance braces, contain no remote URL,
+no `@import` and no `@font-face`, and the guard counts are
+layout 15 · folder-pane 61 · thread-pane 42 · quick-filter 25 · message-pane 10 ·
+chrome 11 · tokens 0.
+
+**Running total: 38 / 38.**
+
+> [!WARNING]
+> **A complete contract is not a working application.** Every proof on this branch
+> is *static* — selector, specificity, cascade and source reading against the JS
+> that consumes it. **Nothing here has been built or launched.** The installer CI
+> is green and ships a real 85,207,651-byte artifact, but nobody has run it and
+> clicked through the 3-pane. Open item 1 stands, and the audit's F6 screen-reader
+> gate cannot be closed statically at all, because `_setRowAriaAttributes`
+> short-circuits unless `Services.appinfo.accessibilityEnabled`.
+>
+> `mail/base/content/about3Pane.js` was verified **unmodified** by
+> `git status --porcelain` at every ratification. That is what makes "features
+> survive by construction" a claim about evidence rather than about hope.
 
 #### One deletion, recorded because it is not a guard
 
