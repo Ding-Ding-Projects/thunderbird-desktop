@@ -205,81 +205,74 @@ jobs:
         shell: pwsh
         working-directory: ${{ github.workspace }}\comm-src
         run: |
-          # Prefer the vendor/gecko submodule: it pins an exact mozilla-central
-          # commit, so builds are reproducible and upstream tip moving cannot
-          # break one mid-flight. Fall back to cloning tip when the submodule is
-          # not registered yet, so the pipeline is not hostage to a multi-GB
-          # local clone landing first.
-          $pinned = $false
-          $rev = ""
+          # Fetch the pinned gecko revision DIRECTLY into $GECKO_DIR. Nothing is
+          # moved, which is the whole point.
+          #
+          # A submodule has TWO relative pointers and moving its worktree breaks
+          # both, one after the other:
+          #   1. the worktree's .git FILE -> `gitdir: ../../.git/modules/...`
+          #   2. that gitdir's `core.worktree` -> `../../../../vendor/gecko`
+          # Fixing (1) by relocating the gitdir just exposes (2):
+          #   fatal: cannot chdir to '../../../../vendor/gecko'
+          # Both observed on real runs. Fetching straight to the destination has
+          # neither pointer to break.
+          #
+          # gecko MUST remain a real git checkout - this is not cosmetic:
+          #   * init.configure's vcs_checkout_type() is a plain
+          #     os.path.exists(topsrcdir/.git) test. No .git, and
+          #     VCS_CHECKOUT_TYPE and GIT never reach substs.
+          #   * without GIT, mozbuild/base.py falls back to SrcRepository,
+          #     artifact_commands.py sets git=None and hg=None, and
+          #     artifacts.py::_get_recent_public_revisions() then calls run_hg()
+          #     with self._hg = None -> TypeError, mid-build.
+          #   * bootstrap.configure shells out to `mach taskgraph tasks` for
+          #     toolchains; no repo, no taskgraph, no nsis/7zz, no installer.
           $geckoUrl = "https://github.com/mozilla-firefox/firefox.git"
-          if ((Test-Path .gitmodules) -and (Select-String -Path .gitmodules -Pattern 'vendor/gecko' -Quiet)) {
-            Write-Host "vendor/gecko submodule found - using pinned revision."
-            git submodule update --init --depth 1 vendor/gecko
-            if (Test-Path "vendor\gecko\mach") { $pinned = $true }
-            else { Write-Host "::warning::vendor/gecko registered but did not populate; falling back to tip." }
-          }
-          if ($pinned) {
-            # Read the revision AND the real gitdir BEFORE moving. A submodule's
-            # .git is a *file* whose `gitdir:` pointer is RELATIVE to the parent
-            # repo, so the moment the directory moves it resolves to nothing and
-            # every git command in it dies with "fatal: not a git repository: (NULL)".
-            $rev       = (git -C "vendor\gecko" rev-parse HEAD).Trim()
-            $moduleDir = (git -C "vendor\gecko" rev-parse --absolute-git-dir).Trim()
+          $rev = ""
+          $pinned = $false
 
-            Move-Item -Path "vendor\gecko" -Destination "$env:GECKO_DIR"
-
-            # This step used to simply delete the dangling .git and move on. That
-            # is what breaks everything downstream: gecko MUST remain a real git
-            # checkout, because
-            #   * init.configure's vcs_checkout_type() is a plain
-            #     os.path.exists(topsrcdir/.git) test. No .git means
-            #     VCS_CHECKOUT_TYPE and GIT never reach substs.
-            #   * with GIT missing, mozbuild/base.py falls back to SrcRepository,
-            #     artifact_commands.py sets git=None and hg=None, and
-            #     artifacts.py::_get_recent_public_revisions() then calls
-            #     run_hg() with self._hg = None -> TypeError, mid-build.
-            #   * bootstrap.configure's toolchain fetching shells out to
-            #     `mach taskgraph tasks`, which needs repo parameters. No repo,
-            #     no taskgraph, no nsis/7zz/upx, no installer.
-            # So instead of deleting it, relocate the submodule's real gitdir and
-            # promote it to a standalone repository.
-            $dotGit = Join-Path $env:GECKO_DIR ".git"
-            if (Test-Path $dotGit) { Remove-Item -Force -Recurse $dotGit }
-            if ($moduleDir -and (Test-Path $moduleDir)) {
-              Move-Item -Path $moduleDir -Destination $dotGit
-              # The relocated gitdir still aims core.worktree at the old submodule
-              # path. Drop it and the parent directory becomes the worktree.
-              # `config --unset` exits 5 when the key was already absent, which is
-              # a success for us; swallow it either way so it cannot fail the step
-              # under $PSNativeCommandUseErrorActionPreference.
-              try { git -C "$env:GECKO_DIR" config --unset core.worktree | Out-Null } catch {}
-              try { git -C "$env:GECKO_DIR" config core.bare false | Out-Null } catch {}
-              $global:LASTEXITCODE = 0
-            } else {
-              Write-Host "::warning::could not locate the vendor/gecko gitdir at '$moduleDir'."
-            }
-            $check = ""
-            try { $check = (git -C "$env:GECKO_DIR" rev-parse HEAD 2>$null).Trim() } catch {}
-            if ($check -ne $rev) {
-              throw "gecko at $env:GECKO_DIR is not a usable git checkout (rev-parse gave '$check', expected '$rev'). Artifact builds and toolchain bootstrap both require it."
-            }
+          # The pinned SHA lives in this repo's tree as a gitlink entry.
+          $entry = (git ls-tree HEAD vendor/gecko) 2>$null
+          if ($entry -and $entry -match '^\s*\d+\s+commit\s+([0-9a-f]{40})') {
+            $rev = $Matches[1]
+            $pinned = $true
+            Write-Host "vendor/gecko pins gecko at $rev"
           } else {
-            Write-Host "::notice::Cloning mozilla-central tip (unpinned). Register vendor/gecko for reproducible builds."
-            git clone --depth 1 $geckoUrl "$env:GECKO_DIR"
-            $rev = (git -C "$env:GECKO_DIR" rev-parse HEAD).Trim()
+            Write-Host "::notice::vendor/gecko gitlink not found - using mozilla-central tip (unpinned)."
           }
-          if (-not $rev) { throw "could not determine gecko revision" }
-          Write-Host "gecko rev: $rev (pinned: $pinned)"
 
-          # comm/build/moz.configure/gecko_source.configure reads these for MPL
-          # source-provenance. Without them a non-automation build just records
-          # "unknown" in about:buildconfig, and an automation build die()s. They
-          # cost nothing and make the shipped build honest about its origin.
-          "GECKO_HEAD_REPOSITORY=$geckoUrl" >> $env:GITHUB_ENV
-          "GECKO_HEAD_REV=$rev"             >> $env:GITHUB_ENV
+          git init --quiet "$env:GECKO_DIR"
+          git -C "$env:GECKO_DIR" remote add origin $geckoUrl
 
-          "### Gecko: ``$rev`` (pinned submodule: $pinned)" >> $env:GITHUB_STEP_SUMMARY
+          if ($pinned) {
+            # GitHub permits fetching an exact commit, so a shallow pinned fetch
+            # needs no history and no branch.
+            git -C "$env:GECKO_DIR" fetch --depth 1 --quiet origin $rev
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "::warning::pinned fetch of $rev failed; falling back to tip."
+              $pinned = $false
+            } else {
+              git -C "$env:GECKO_DIR" checkout --quiet --detach FETCH_HEAD
+              if ($LASTEXITCODE -ne 0) { throw "checkout of pinned $rev failed" }
+            }
+          }
+          if (-not $pinned) {
+            git -C "$env:GECKO_DIR" fetch --depth 1 --quiet origin HEAD
+            if ($LASTEXITCODE -ne 0) { throw "could not fetch gecko from $geckoUrl" }
+            git -C "$env:GECKO_DIR" checkout --quiet --detach FETCH_HEAD
+            if ($LASTEXITCODE -ne 0) { throw "checkout of gecko tip failed" }
+          }
+
+          if (-not (Test-Path (Join-Path $env:GECKO_DIR "mach"))) {
+            throw "gecko checkout has no mach - fetch produced an unusable tree"
+          }
+          if (-not (Test-Path (Join-Path $env:GECKO_DIR ".git"))) {
+            throw "gecko has no .git - vcs_checkout_type() would fail and the build would break later, confusingly"
+          }
+          $head = (git -C "$env:GECKO_DIR" rev-parse HEAD).Trim()
+          if (-not $head) { throw "could not determine gecko revision" }
+          Write-Host "gecko rev: $head (pinned: $pinned)"
+          "### Gecko: ``$head`` (pinned: $pinned)" >> $env:GITHUB_STEP_SUMMARY
 
       - name: Assemble gecko/comm tree
         shell: pwsh
