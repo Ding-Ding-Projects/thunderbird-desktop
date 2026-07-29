@@ -1,0 +1,1198 @@
+# Runs Thunderbird's own browser (mochitest-browser) tests over the surfaces the
+# Material Mail 3-pane restyle actually touches, so parity claims stop resting on
+# static selector reading alone.
+#
+# Deliberately a SEPARATE workflow from windows-installer.yml, for exactly the
+# reason lint-m3.yml is: it shares no job, no `needs:`, no concurrency group and
+# no permission scope with the installer, so it cannot fail it, cancel it, or
+# change what it publishes. It shares only *technique* with it - the same gecko
+# acquisition, the same mozconfig shape, the same nine already-paid-for CI
+# blockers avoided.
+#
+#
+# Does this need a build? Yes. Honestly, unavoidably yes.
+# ------------------------------------------------------
+# mochitest-browser is not a static checker. It launches the real Thunderbird
+# binary, loads real chrome documents and drives real DOM. There is no way to run
+# it without an application to run it against, so this workflow builds one.
+#
+# Is that feasible on a hosted runner? Yes, and it is not a guess: this repo
+# already builds Thunderbird on `windows-latest` in artifact mode on every push
+# (windows-installer.yml, 24 green runs, measured 15m26s end to end, ~20 GB of a
+# ~147 GB D: drive). Artifact mode downloads comm-central's prebuilt binaries and
+# compiles only the frontend, which is precisely what a CSS-layer restyle needs.
+# So the build here is that proven path with two deliberate changes:
+#
+#   1. `--enable-tests` instead of `--disable-tests`. The installer disables tests
+#      because all it wants is a shippable .exe. We need the opposite: with tests
+#      enabled, gecko's artifact recursion stops passing `--no-tests` to
+#      `mach artifact install`, so the test archives - which carry the harness
+#      support binaries mochitest needs - are fetched, and `mach build` stages the
+#      in-tree test files and manifests into obj-tb/_tests.
+#   2. No `mach package`. Nothing here needs an installer, so packaging - and
+#      blocker #9's dist-path trap - is simply never entered.
+#
+# Why windows-latest and not ubuntu-latest
+# ----------------------------------------
+# Three reasons, in order of weight:
+#
+#   1. These tests need a real, non-headless desktop, and Thunderbird's own
+#      manifests say so out loud. mail/base/test/browser/widgets/browser.toml
+#      marks browser_dropIndicator.js and browser_orderableTreeListbox.js
+#      `skip-if = ["headless"]`, and browser_autoTreeView.js
+#      `run-if = ["!headless", "os != 'linux'"]`. On a Linux runner those would
+#      need xvfb, and one of them would be skipped on Linux regardless. A hosted
+#      Windows runner has a real interactive desktop session, so nothing has to be
+#      faked and MOZ_HEADLESS is never set.
+#   2. The Windows artifact build is the only build path in this repository that
+#      has ever actually worked. Nine distinct CI blockers were found and fixed to
+#      get there (MAX_PATH, the D: drive premise, MozillaBuild's absence,
+#      MOZ_AUTOMATION, two relative submodule pointers, --enable-optimize under
+#      --disable-compile-environment, and more). Reproducing all of that on Linux
+#      trades a proven path for an unproven one and saves nothing.
+#   3. Project scope is the Windows desktop app exclusively. Windows is the
+#      platform whose results count.
+#
+# What this workflow cannot promise
+# ---------------------------------
+# Stated here rather than discovered later:
+#
+#   * IT HAS NEVER BEEN RUN. Every step below is either lifted from a step
+#     windows-installer.yml has run green 24 times, or is new and unproven. The
+#     new parts are: `--enable-tests` reaching the artifact fetch, the mochitest
+#     invocation shape, and GUI stability on a hosted Windows runner. Treat the
+#     first red run as information, not as a bug in the tests.
+#   * mochitest-browser is somewhat flaky under contention - focus stealing,
+#     animation timing, drag-and-drop. Expect intermittents. The correct response
+#     is to annotate the specific test upstream-style, never to add
+#     `continue-on-error` to a step here. A suite that cannot fail proves nothing.
+#   * All four inherited risks in windows-installer.yml's "UNRESOLVED RISKS" block
+#     apply unchanged, especially RISK 1 (artifact index lookups may be keyed on
+#     Mercurial rather than git changesets) and RISK 4 (comm/gecko artifact skew,
+#     which surfaces at *runtime* as missing chrome - that is, as a wall of test
+#     failures that look like the restyle's fault and are not).
+#
+# How this job is stopped from going green while proving nothing
+# -------------------------------------------------------------
+# Four independent gates, because "the suite passed" and "the suite ran" are
+# different claims and only the second one is easy to fake:
+#
+#   A. mach mochitest's own exit code. No `|| true`, no `continue-on-error`, on
+#      any step in this file. A test failure fails its step and so the job.
+#   B. A result gate (m3-test-gate.py, written at runtime by the "Write the result
+#      gate" step) parses the run's mozlog --log-raw stream and fails when the
+#      number of executed test files falls below a floor derived from the number
+#      of test files actually on disk. This is what catches a silently-empty run:
+#      a subsuite filter that excludes everything, a renamed path, a resolver that
+#      found nothing.
+#   C. That gate is itself self-tested - eight assertions over five synthetic
+#      mozlog streams - BEFORE the build starts, so a broken gate costs seconds
+#      instead of passing everything after an hour.
+#   D. A real end-to-end harness self-test: a deliberately failing assertion is
+#      appended to a real, already-registered browser test, the real mochitest
+#      command is run against it, and the step fails unless BOTH mochitest exits
+#      non-zero AND the gate sees an unexpected result in the structured log. Same
+#      idea as lint-m3.yml's `colour: red` known-bad file, but it validates the
+#      whole invocation shape - flavor, subsuite, log parsing, exit-code
+#      propagation - rather than just the parser.
+
+name: Browser tests (Material Mail)
+
+on:
+  push:
+    branches:
+      - main
+      - 'design-import/**'
+    # Documentation-only pushes cannot change what these tests observe, and this
+    # job costs a Windows runner for the better part of an hour. Anything under
+    # mail/ - which is the entire restyle - still triggers it.
+    paths-ignore:
+      - 'design/**'
+      - '**/*.md'
+      - '.github/workflows/windows-installer.yml'
+      - '.github/workflows/lint-m3.yml'
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Which group of tests to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - 3pane
+          - widgets
+          - static
+          - folder
+          - chrome
+          - m3
+
+# Read-only. This workflow publishes nothing; only windows-installer.yml needs
+# `contents: write`.
+permissions:
+  contents: read
+
+# Scoped by a name nothing else uses. The installer workflow declares no
+# concurrency group at all - deliberately, because of CI blocker #3: a QUEUED run
+# is superseded the moment a newer one joins its group, which silently cost
+# releases twice. So it cannot be a member of this group. Cancelling an in-flight
+# *test* run is safe: unlike the installer it produces no artefact anyone needs.
+concurrency:
+  group: m3-browser-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-tests:
+    name: mochitest-browser (3-pane, folder tree, thread tree)
+    runs-on: windows-latest
+    # GitHub caps a hosted job at 6h. The artifact build measured 15m26s in
+    # windows-installer.yml; the suite runtime is the unknown, so leave room and
+    # let the cap be the backstop rather than a tight guess.
+    timeout-minutes: 330
+
+    env:
+      # Build on D:, not C:. Measured on a real installer run: C: has ~33 GB free,
+      # D: has ~147 GB. D: is the Azure resource disk - it lives as long as the VM,
+      # i.e. as long as this job, which is fine because this workflow has exactly
+      # one job and no `needs:`.
+      MOZBUILD_STATE_PATH: D:\mozbuild
+      GECKO_DIR: D:\gecko
+      OBJ_DIR: D:\gecko\obj-tb
+
+      # MOZ_AUTOMATION is deliberately NOT set. See windows-installer.yml's env
+      # block for the four independent ways it breaks a non-Taskcluster build.
+      # MOZ_NOSPAM buys back the only useful thing it provided (silencing mach's
+      # desktop notifications).
+      MOZ_NOSPAM: '1'
+
+      # MOZ_HEADLESS is deliberately NOT set either. Several widget tests below are
+      # `skip-if = ["headless"]`; setting it would make them vanish and the run
+      # would go green having tested less than it claims.
+
+      # Keep the mozconfig off $topsrcdir/mozconfig. `mach bootstrap` ends in
+      # _output_mozconfig() and, finding one at the default path, asks whether to
+      # overwrite it - and mozboot's non-interactive prompt_yesno returns True
+      # unconditionally. It would replace this comm/mail mozconfig with a Firefox
+      # one. Must be a literal: GitHub does not expand env into env.
+      MOZCONFIG: D:\gecko\mozconfig-ci
+
+      # Written at runtime by two early steps; read by every run step below.
+      GATE_SCRIPT: ${{ github.workspace }}\m3-test-gate.py
+      SUITE_RUNNER: ${{ github.workspace }}\m3-run-suite.ps1
+      LOG_DIR: ${{ github.workspace }}\test-logs
+      # Where mochitest drops failure screenshots when --screenshot-on-fail is
+      # available. Uploaded as an artifact at the end of the job.
+      MOZ_UPLOAD_DIR: ${{ github.workspace }}\test-logs
+
+      # Every manifest touched below declares `subsuite = "thunderbird"` - verified
+      # across all ten: mail/base/test/browser/browser1-4.toml,
+      # .../widgets/browser.toml, .../static/browser.toml, .../spacesToolbar/browser.toml
+      # and mail/test/browser/{folder-pane,folder-tree-modes,quick-filter-bar,
+      # folder-display,tabmail}/browser.toml. manifestparser's default subsuite
+      # filter yields only tests with NO subsuite, so without this every path below
+      # could resolve to zero tests. Passing it is the safe direction either way,
+      # because the manifests really do carry this value. The "Probe the harness"
+      # step asserts the option still exists, and gate B catches it if the filter
+      # ever empties a run anyway.
+      MOCHITEST_SUBSUITE: thunderbird
+
+      # ---- The test surface: one folded list per group. ----
+      # Paths are relative to the gecko topsrcdir, so they start with `comm/`,
+      # which is where the "Assemble" step puts this checkout. These are folded
+      # scalars: one entry per line, no blank lines, no comments inside.
+
+      # Group 3pane - about3Pane.xhtml itself: thread tree, folder tree, pane
+      # focus, card layout, findbar. This is the surface m3-layout.css,
+      # m3-thread-pane.css, m3-folder-pane.css and m3-message-pane.css restyle.
+      SUITE_3PANE: >-
+        comm/mail/base/test/browser/browser_threadTreeQuirks.js
+        comm/mail/base/test/browser/browser_threadTreeSelection.js
+        comm/mail/base/test/browser/browser_threadTreeSorting.js
+        comm/mail/base/test/browser/browser_threadTreeDeleting.js
+        comm/mail/base/test/browser/browser_threads.js
+        comm/mail/base/test/browser/browser_threadHorizontal.js
+        comm/mail/base/test/browser/browser_cardsView.js
+        comm/mail/base/test/browser/browser_dummyRow.js
+        comm/mail/base/test/browser/browser_groupedBySortPersistence.js
+        comm/mail/base/test/browser/browser_folderTreeQuirks.js
+        comm/mail/base/test/browser/browser_folderTreeProperties.js
+        comm/mail/base/test/browser/browser_manualSortFolders.js
+        comm/mail/base/test/browser/browser_tagsMode.js
+        comm/mail/base/test/browser/browser_paneFocus.js
+        comm/mail/base/test/browser/browser_multiMessageView.js
+        comm/mail/base/test/browser/browser_findbar.js
+        comm/mail/base/test/browser/browser_accountCentral.js
+
+      # Group widgets - the custom elements whose DOM the M3 selectors match. These
+      # live in upstream's widgets/*.mjs, which this project must never edit; if a
+      # rule here reparents, hides or un-hit-tests part of that DOM, this is the
+      # group that notices.
+      SUITE_WIDGETS: >-
+        comm/mail/base/test/browser/widgets/browser_treeView.js
+        comm/mail/base/test/browser/widgets/browser_treeListbox.js
+        comm/mail/base/test/browser/widgets/browser_orderableTreeListbox.js
+        comm/mail/base/test/browser/widgets/browser_autoTreeView.js
+        comm/mail/base/test/browser/widgets/browser_paneSplitter.js
+        comm/mail/base/test/browser/widgets/browser_threadCardTags.js
+        comm/mail/base/test/browser/widgets/browser_dropIndicator.js
+        comm/mail/base/test/browser/widgets/browser_folderMenuPopup.js
+        comm/mail/base/test/browser/widgets/browser_customElements.js
+
+      # Group static - browser_parsable_css.js loads every CSS file the packaged
+      # app registers and fails on any parse error or unknown property. The seven
+      # sheets this project owns are packaged by mail/themes/shared/jar.inc.mn, so
+      # they are in scope. This is the only test in the tree that checks the M3
+      # sheets as the *browser* parses them rather than as stylelint reads them.
+      SUITE_STATIC: >-
+        comm/mail/base/test/browser/static/browser_parsable_css.js
+
+      # Group folder - the older mail/test/browser suites for the folder pane,
+      # folder modes and the quick filter bar (m3-quick-filter.css is 839 lines and
+      # holds two of the project's four `!important` declarations), plus the
+      # layout-sensitive subset of folder-display: columns, splitter gaps, pane
+      # visibility, selection and view application.
+      SUITE_FOLDER: >-
+        comm/mail/test/browser/folder-pane
+        comm/mail/test/browser/folder-tree-modes
+        comm/mail/test/browser/quick-filter-bar
+        comm/mail/test/browser/folder-display/browser_columns.js
+        comm/mail/test/browser/folder-display/browser_paneSplitterGaps.js
+        comm/mail/test/browser/folder-display/browser_folderPaneVisibility.js
+        comm/mail/test/browser/folder-display/browser_messagePaneVisibility.js
+        comm/mail/test/browser/folder-display/browser_messagePane.js
+        comm/mail/test/browser/folder-display/browser_selection.js
+        comm/mail/test/browser/folder-display/browser_applyView.js
+
+      # Group chrome - what m3-chrome.css restyles. It is the one M3 sheet linked
+      # from messenger.xhtml rather than about3Pane.xhtml, i.e. a different
+      # document, so it gets its own group: spaces toolbar and tabmail.
+      SUITE_CHROME: >-
+        comm/mail/base/test/browser/spacesToolbar/browser_spacesToolbar.js
+        comm/mail/base/test/browser/browser_mailTabsAndWindows.js
+        comm/mail/test/browser/tabmail
+
+    steps:
+      - name: Enable long paths
+        shell: pwsh
+        run: |
+          # CI blocker #1. mozilla-central has web-platform-test paths well past
+          # Windows' 260-char MAX_PATH; without this the gecko clone dies partway
+          # through with a wall of "Filename too long".
+          git config --system core.longpaths true
+          New-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" `
+            -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force | Out-Null
+          Write-Host "core.longpaths = $(git config --system --get core.longpaths)"
+
+      - name: Disk space (before)
+        shell: pwsh
+        run: Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}} | Format-Table
+
+      - name: Check out comm (this repo)
+        uses: actions/checkout@v4
+        with:
+          path: comm-src
+          # NOT fetch-depth: 1, for the same reason windows-installer.yml is not.
+          # An artifact build of comm/mail resolves its prebuilt binaries by walking
+          # *comm* history: artifacts.py runs `git rev-list --topo-order
+          # --max-count=500` in commtopsrcdir and asks the Taskcluster index about
+          # each revision. At depth 1 the only candidate is this fork's own tip,
+          # which comm-central has obviously never built, and the failure reads
+          # "Could not find any candidate pushheads". 500 matches
+          # NUM_REVISIONS_TO_QUERY exactly, so nothing is fetched that is not looked
+          # at.
+          fetch-depth: 500
+          # vendor/gecko is multi-GB and is fetched directly below;
+          # vendor/agent-global-memory is irrelevant to running tests.
+          submodules: false
+
+      - name: Select which groups to run
+        id: select
+        shell: pwsh
+        env:
+          REQUESTED: ${{ github.event.inputs.suite }}
+        run: |
+          # A push or a pull_request runs everything. Only an explicit
+          # workflow_dispatch narrows it, and only to one of the declared choice
+          # values - so nothing free-form ever reaches a command line.
+          $requested = if ($env:REQUESTED) { $env:REQUESTED } else { 'all' }
+          $groups = @('3pane', 'widgets', 'static', 'folder', 'chrome', 'm3')
+          if ($requested -ne 'all' -and $groups -notcontains $requested) {
+            throw "unknown suite '$requested'"
+          }
+          foreach ($g in $groups) {
+            $on = ($requested -eq 'all' -or $requested -eq $g)
+            "run_$g=$($on.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+            Write-Host ("group {0,-8} {1}" -f $g, $(if ($on) { 'RUN' } else { 'skip' }))
+          }
+          "### Requested suite: ``$requested``" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Write the result gate
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:LOG_DIR | Out-Null
+          # This script is gate B, and gate D's judge. It reads a mozlog --log-raw
+          # stream (newline-delimited JSON) and answers three separate questions:
+          #
+          #   * did anything actually run?  -> test_end count against a floor
+          #   * did everything finish?      -> test_end count against the count the
+          #                                    harness announced in suite_start
+          #   * did anything fail?          -> any entry carrying an "expected" key
+          #
+          # The second test is exact, not a heuristic. mozlog's StructuredLogger
+          # only emits "expected" on test_end / test_status when the observed status
+          # differs from the expected one and is not a declared known_intermittent.
+          # Its presence therefore IS the definition of an unexpected result - the
+          # same condition the TBPL formatter renders as TEST-UNEXPECTED-FAIL.
+          #
+          # --expect-failure inverts the verdict, which is what makes the harness
+          # self-test (gate D) possible at all.
+          $py = @'
+          """Gate a mochitest run on having actually run, and on having passed.
+
+          usage: m3-test-gate.py [--expect-failure] <raw-log> <min-tests>
+
+          Exit 0 only when the run is trustworthy. Written by
+          .github/workflows/browser-tests-m3.yml at job runtime.
+          """
+
+          import json
+          import os
+          import sys
+
+
+          def summarise(text):
+              path = os.environ.get("GITHUB_STEP_SUMMARY")
+              if not path:
+                  return
+              try:
+                  with open(path, "a", encoding="utf-8") as handle:
+                      handle.write(text + "\n")
+              except OSError:
+                  pass
+
+
+          def main(argv):
+              expect_failure = False
+              args = []
+              for arg in argv[1:]:
+                  if arg == "--expect-failure":
+                      expect_failure = True
+                  else:
+                      args.append(arg)
+              if len(args) != 2:
+                  sys.stderr.write(__doc__)
+                  return 2
+              log_path = args[0]
+              min_tests = int(args[1])
+
+              started = ended = unexpected = crashes = malformed = resolved = 0
+              detail = []
+              try:
+                  handle = open(log_path, encoding="utf-8", errors="replace")
+              except OSError as exc:
+                  print("GATE FAIL: cannot read %s: %s" % (log_path, exc))
+                  print("           the harness produced no structured log at all.")
+                  return 1
+              with handle:
+                  for line in handle:
+                      line = line.strip()
+                      if not line:
+                          continue
+                      try:
+                          entry = json.loads(line)
+                      except ValueError:
+                          malformed += 1
+                          continue
+                      if not isinstance(entry, dict):
+                          malformed += 1
+                          continue
+                      action = entry.get("action")
+                      if action == "suite_start":
+                          # mochitest announces everything it resolved here, already
+                          # filtered by skip-if / run-if. Counting it lets the gate
+                          # notice a TRUNCATED run - the harness resolved 20 tests
+                          # and only reported 9 - which a floor alone cannot see.
+                          # Shape-tolerant on purpose: if it is not what is expected,
+                          # resolved stays 0 and the check simply does not fire.
+                          tests = entry.get("tests")
+                          if isinstance(tests, dict):
+                              for value in tests.values():
+                                  resolved += len(value) if isinstance(value, list) else 1
+                          elif isinstance(tests, list):
+                              resolved += len(tests)
+                      elif action == "test_start":
+                          started += 1
+                      elif action == "test_end":
+                          ended += 1
+                          if "expected" in entry:
+                              unexpected += 1
+                              detail.append(
+                                  "%s -> %s (expected %s)"
+                                  % (
+                                      entry.get("test"),
+                                      entry.get("status"),
+                                      entry.get("expected"),
+                                  )
+                              )
+                      elif action == "test_status":
+                          if "expected" in entry:
+                              unexpected += 1
+                              detail.append(
+                                  "%s :: %s -> %s (expected %s)"
+                                  % (
+                                      entry.get("test"),
+                                      entry.get("subtest"),
+                                      entry.get("status"),
+                                      entry.get("expected"),
+                                  )
+                              )
+                      elif action == "crash":
+                          crashes += 1
+                          detail.append("CRASH in %s" % entry.get("test"))
+
+              name = os.path.basename(log_path)
+              print(
+                  "gate: %s | resolved=%d started=%d ended=%d floor=%d unexpected=%d "
+                  "crashes=%d malformed=%d"
+                  % (name, resolved, started, ended, min_tests, unexpected, crashes, malformed)
+              )
+              for line in detail[:40]:
+                  print("  " + line)
+              if len(detail) > 40:
+                  print("  ... and %d more" % (len(detail) - 40))
+
+              if expect_failure:
+                  # Self-test mode: tests must have run AND something must have gone
+                  # wrong. If the harness cannot report a deliberate failure, nothing
+                  # it reports afterwards can be believed.
+                  if ended < min_tests:
+                      print(
+                          "GATE FAIL (self-test): the deliberately-broken test did not run "
+                          "at all, so this proves nothing about failure detection."
+                      )
+                      return 1
+                  if not unexpected and not crashes:
+                      print(
+                          "GATE FAIL (self-test): no unexpected result was recorded for a "
+                          "test containing Assert.ok(false). Failure detection is broken."
+                      )
+                      return 1
+                  print("gate OK (self-test): the harness reported the injected failure.")
+                  return 0
+
+              failures = []
+              if ended < min_tests:
+                  failures.append(
+                      "only %d test file(s) ran, floor is %d - a run that executes nothing "
+                      "would otherwise pass trivially; check the subsuite filter, the "
+                      "resolved paths, and skip-if annotations" % (ended, min_tests)
+                  )
+              if resolved and ended < resolved:
+                  failures.append(
+                      "the harness resolved %d test(s) but only %d finished, so the run "
+                      "was truncated - look for a crash, a timeout or a harness abort "
+                      "rather than a plain assertion failure" % (resolved, ended)
+                  )
+              if unexpected:
+                  failures.append("%d unexpected result(s)" % unexpected)
+              if crashes:
+                  failures.append("%d crash(es)" % crashes)
+
+              if failures:
+                  for line in failures:
+                      print("GATE FAIL: " + line)
+                  summarise("- FAIL `%s`: %s" % (name, "; ".join(failures)))
+                  return 1
+              summarise("- PASS `%s`: %d test file(s), 0 unexpected" % (name, ended))
+              return 0
+
+
+          if __name__ == "__main__":
+              sys.exit(main(sys.argv))
+          '@
+          Set-Content -Path $env:GATE_SCRIPT -Value $py -Encoding utf8
+          Write-Host "wrote $env:GATE_SCRIPT ($((Get-Item $env:GATE_SCRIPT).Length) bytes)"
+
+      - name: Write the suite runner
+        shell: pwsh
+        run: |
+          # One script, five suite steps. Each step sets GROUP and this reads the
+          # matching SUITE_* env list, so there is exactly one copy of the mochitest
+          # invocation and exactly one copy of the gating logic to get wrong.
+          $ps = @'
+          # Run one group of mochitest-browser tests and gate the result.
+          # Written by .github/workflows/browser-tests-m3.yml at job runtime.
+
+          # GitHub's pwsh wrapper sets $ErrorActionPreference = 'stop'. On PowerShell
+          # versions where $PSNativeCommandUseErrorActionPreference exists, that can
+          # make a non-zero exit from a native command throw - which would abort this
+          # script before the exit code could be inspected and before the gate ran.
+          # Both are needed here, so native-command failures are handled explicitly.
+          if (Test-Path variable:PSNativeCommandUseErrorActionPreference) {
+            $PSNativeCommandUseErrorActionPreference = $false
+          }
+
+          $group = $env:GROUP
+          if (-not $group) { throw 'GROUP is not set' }
+
+          if ($env:DISCOVER_GLOB) {
+            # Discovery mode, for tests this PROJECT writes rather than tests it
+            # inherits. A fixed path list is right for upstream's suites, which move
+            # rarely and loudly; it is wrong for our own, which get added over time -
+            # a stale list would silently stop running them, which is precisely the
+            # failure mode this whole workflow exists to prevent.
+            #
+            # The convention this depends on: a project-authored browser test must be
+            # named browser_m3*.js. If you add one under another name it will not be
+            # picked up here.
+            #
+            # An empty result is a WARNING, not a failure. On the day this workflow
+            # was written the project's own first browser test was still in flight,
+            # and a CI job that cannot be committed until its tests exist is a job
+            # nobody commits.
+            $root = Join-Path $env:GECKO_DIR 'comm'
+            $found = @(Get-ChildItem -LiteralPath $root -Recurse -Filter $env:DISCOVER_GLOB -File -EA SilentlyContinue)
+            if ($found.Count -eq 0) {
+              Write-Host "::warning::group '$group': no test matching '$($env:DISCOVER_GLOB)' found under comm/, so nothing ran. Expected only until this project's own browser tests land."
+              exit 0
+            }
+            $cut = $env:GECKO_DIR.TrimEnd('\').Length + 1
+            $paths = @($found | ForEach-Object { $_.FullName.Substring($cut) -replace '\\', '/' })
+            Write-Host "discovered $($paths.Count) project-authored test(s):"
+            foreach ($p in $paths) { Write-Host "  $p" }
+          } else {
+            $varName = 'SUITE_' + $group.ToUpperInvariant()
+            $item = Get-Item -LiteralPath "env:$varName" -ErrorAction SilentlyContinue
+            if (-not $item -or -not $item.Value) {
+              throw "$varName is empty - this workflow has no path list for group '$group'"
+            }
+            $paths = @($item.Value -split '\s+' | Where-Object { $_ })
+          }
+
+          # The gate floor is computed from what is on disk right now rather than
+          # hardcoded, so adding a test to one of the directory entries raises the
+          # bar automatically instead of silently widening the blind spot.
+          #
+          # Why 0.6 and not 1.0: upstream permanently disables some of these tests,
+          # and the count on disk cannot see that. Measured at the time of writing -
+          # 57 test files resolve across the five groups, of which three are
+          # `skip-if = ["true"]` in mail/test/browser/folder-pane/browser.toml
+          # (browser_displayMessageWithFolderModes.js, browser_folderNamesInRecentMode.js,
+          # browser_folderPaneConsumers.js). A floor of 1.0 would go red on those, and a
+          # gate that cries wolf gets switched off. 0.6 leaves headroom for a few more
+          # upstream skips while still failing decisively on the case that matters,
+          # which is a run that resolved little or nothing.
+          #
+          # The tight check on skips is elsewhere and does not need a guess: the gate
+          # also compares finished tests against the count mochitest itself announces
+          # in suite_start, which is already skip-if filtered.
+          $files = 0
+          foreach ($p in $paths) {
+            $local = Join-Path $env:GECKO_DIR ($p -replace '/', '\')
+            if (-not (Test-Path -LiteralPath $local)) {
+              throw "test path does not exist in the assembled tree: $p"
+            }
+            if (Test-Path -LiteralPath $local -PathType Container) {
+              $files += @(Get-ChildItem -LiteralPath $local -Filter 'browser_*.js' -File -Recurse).Count
+            } else {
+              $files += 1
+            }
+          }
+          $floor = [Math]::Max(1, [int][Math]::Floor($files * 0.6))
+          $log = Join-Path $env:LOG_DIR ("{0}.raw.json" -f $group)
+          $extra = @($env:MOCHITEST_EXTRA_ARGS -split '\s+' | Where-Object { $_ })
+
+          Write-Host "group   : $group"
+          Write-Host "entries : $($paths.Count)"
+          Write-Host "files   : $files (gate floor: $floor)"
+          Write-Host "log     : $log"
+
+          python mach mochitest --flavor=browser "--subsuite=$($env:MOCHITEST_SUBSUITE)" `
+            "--log-raw=$log" $extra $paths
+          $rc = $LASTEXITCODE
+          Write-Host "mach mochitest exited $rc"
+
+          # The gate runs whatever mochitest returned, because its job is to catch
+          # the case where mochitest exits 0 having run nothing at all.
+          python $env:GATE_SCRIPT $log $floor
+          $gate = $LASTEXITCODE
+
+          if ($rc -ne 0) {
+            Write-Host "::error::group '$group': mach mochitest reported failures (exit $rc). Logs and any screenshots are in the m3-browser-test-logs artifact."
+          }
+          if ($gate -ne 0) {
+            Write-Host "::error::group '$group': the result gate rejected this run."
+          }
+          if ($rc -ne 0 -or $gate -ne 0) { exit 1 }
+          Write-Host "group '$group' passed, and the gate agrees it really ran."
+          exit 0
+          '@
+          Set-Content -Path $env:SUITE_RUNNER -Value $ps -Encoding utf8
+          Write-Host "wrote $env:SUITE_RUNNER ($((Get-Item $env:SUITE_RUNNER).Length) bytes)"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # mach refuses to start below 3.9 and warns above 3.12
+          # (MIN_PYTHON_VERSION / MAX_PYTHON_VERSION_TO_CONSIDER in gecko's `mach`).
+          # 3.11 is what windows-installer.yml already uses.
+          python-version: '3.11'
+
+      - name: Self-test the result gate
+        shell: pwsh
+        run: |
+          # Gate C. Eight assertions over five synthetic mozlog streams, run before
+          # anything is built, so a gate that cannot tell pass from fail costs seconds
+          # rather than an hour of runner time plus a false green tick.
+          if (Test-Path variable:PSNativeCommandUseErrorActionPreference) {
+            $PSNativeCommandUseErrorActionPreference = $false
+          }
+          # The gate appends a PASS/FAIL line to the job summary. That is wanted for
+          # real suites and actively misleading here, because these six deliberate
+          # failures would show up in the summary as if suites had failed. Hide the
+          # summary path from the child processes for the duration of the self-test.
+          $realSummary = $env:GITHUB_STEP_SUMMARY
+          $env:GITHUB_STEP_SUMMARY = ''
+          $dir = Join-Path $env:RUNNER_TEMP 'gate-selftest'
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          $empty = Join-Path $dir 'empty.log'
+          $junk = Join-Path $dir 'junk.log'
+          $onePass = Join-Path $dir 'pass.log'
+          $oneFail = Join-Path $dir 'fail.log'
+
+          Set-Content -Path $empty -Value '' -Encoding utf8
+          Set-Content -Path $junk -Value 'this is not json at all' -Encoding utf8
+          # One test file ran and no entry carries "expected" -> a clean pass.
+          @(
+            '{"action":"suite_start","tests":{}}',
+            '{"action":"test_start","test":"a.js"}',
+            '{"action":"test_status","test":"a.js","subtest":"fine","status":"PASS"}',
+            '{"action":"test_end","test":"a.js","status":"OK"}',
+            '{"action":"suite_end"}'
+          ) | Set-Content -Path $onePass -Encoding utf8
+          # Same, but one subtest carries "expected" -> an unexpected failure.
+          @(
+            '{"action":"suite_start","tests":{}}',
+            '{"action":"test_start","test":"a.js"}',
+            '{"action":"test_status","test":"a.js","subtest":"boom","status":"FAIL","expected":"PASS"}',
+            '{"action":"test_end","test":"a.js","status":"OK"}',
+            '{"action":"suite_end"}'
+          ) | Set-Content -Path $oneFail -Encoding utf8
+          # suite_start announces three tests, only one finishes, nothing fails ->
+          # a truncated run, which must not be allowed to pass.
+          $truncated = Join-Path $dir 'truncated.log'
+          @(
+            '{"action":"suite_start","tests":{"browser.toml":["a.js","b.js","c.js"]}}',
+            '{"action":"test_start","test":"a.js"}',
+            '{"action":"test_end","test":"a.js","status":"OK"}'
+          ) | Set-Content -Path $truncated -Encoding utf8
+
+          function Assert-Gate {
+            param([string]$Label, [string[]]$GateArgs, [bool]$WantPass)
+            python $env:GATE_SCRIPT $GateArgs | Out-Host
+            $rc = $LASTEXITCODE
+            if ($WantPass -and $rc -ne 0) { throw "gate self-test '$Label': expected exit 0, got $rc" }
+            if (-not $WantPass -and $rc -eq 0) { throw "gate self-test '$Label': expected a non-zero exit, got 0" }
+            Write-Host "  ok: $Label (exit $rc)"
+          }
+
+          Assert-Gate 'empty log fails the ran-nothing floor' @($empty, '1') $false
+          Assert-Gate 'unparseable log fails the ran-nothing floor' @($junk, '1') $false
+          Assert-Gate 'clean log passes' @($onePass, '1') $true
+          Assert-Gate 'clean log still fails a floor it cannot meet' @($onePass, '5') $false
+          Assert-Gate 'log with an unexpected result fails' @($oneFail, '1') $false
+          Assert-Gate 'expect-failure rejects a clean log' @('--expect-failure', $onePass, '1') $false
+          Assert-Gate 'expect-failure accepts a failing log' @('--expect-failure', $oneFail, '1') $true
+          Assert-Gate 'a truncated run fails even with no failures' @($truncated, '1') $false
+          $env:GITHUB_STEP_SUMMARY = $realSummary
+          Write-Host "Result gate self-test OK."
+          exit 0
+
+      - name: Resolve the test surface
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\comm-src
+        run: |
+          # Mirrors lint-m3.yml's "Resolve the files to lint". If upstream renames or
+          # moves a test, say so here - loudly, in seconds - rather than discovering
+          # an hour later that mochitest quietly resolved fewer tests than intended.
+          #
+          # The SUITE_* paths are gecko-relative (`comm/...`) and this step runs
+          # inside the comm checkout, so the `comm/` prefix is stripped first.
+          $groups = [ordered]@{
+            '3pane'   = $env:SUITE_3PANE
+            'widgets' = $env:SUITE_WIDGETS
+            'static'  = $env:SUITE_STATIC
+            'folder'  = $env:SUITE_FOLDER
+            'chrome'  = $env:SUITE_CHROME
+          }
+          $missing = @()
+          $rows = @()
+          foreach ($name in $groups.Keys) {
+            $paths = @($groups[$name] -split '\s+' | Where-Object { $_ })
+            if ($paths.Count -eq 0) { throw "group '$name' has an empty path list" }
+            $files = 0
+            foreach ($p in $paths) {
+              if (-not $p.StartsWith('comm/')) {
+                throw "group '$name' path '$p' must be gecko-relative and start with comm/"
+              }
+              $local = $p.Substring(5)
+              if (-not (Test-Path -LiteralPath $local)) {
+                $missing += $p
+                continue
+              }
+              if (Test-Path -LiteralPath $local -PathType Container) {
+                $n = @(Get-ChildItem -LiteralPath $local -Filter 'browser_*.js' -File -Recurse).Count
+                if ($n -eq 0) { $missing += "$p (directory holds no browser_*.js)" }
+                $files += $n
+              } else {
+                $files += 1
+              }
+            }
+            $rows += [pscustomobject]@{ Group = $name; Entries = $paths.Count; TestFiles = $files }
+          }
+          $rows | Format-Table -AutoSize | Out-Host
+          if ($missing.Count -gt 0) {
+            foreach ($m in $missing) { Write-Host "::error::test path no longer exists: $m" }
+            throw "$($missing.Count) test path(s) named by this workflow no longer exist. Upstream moved them; update the SUITE_* lists rather than letting the run silently shrink."
+          }
+          # The sixth group, `m3`, is discovered by filename at run time rather than
+          # listed above, so it is reported here but never a reason to fail: see the
+          # DISCOVER_GLOB branch in the suite runner.
+          $disc = @(Get-ChildItem -Path . -Recurse -Filter 'browser_m3*.js' -File -EA SilentlyContinue)
+          Write-Host "project-authored M3 browser tests discovered: $($disc.Count)"
+          foreach ($f in $disc) { Write-Host "  $($f.FullName)" }
+          if ($disc.Count -eq 0) {
+            Write-Host '::notice::no browser_m3*.js exists yet, so the m3 group will report a warning and run nothing. Name project-authored browser tests browser_m3*.js to have them picked up.'
+          }
+
+          $md = @('### Test surface', '', '| group | entries | test files |', '| --- | --: | --: |')
+          foreach ($r in $rows) { $md += "| $($r.Group) | $($r.Entries) | $($r.TestFiles) |" }
+          $md += "| m3 (discovered) | - | $($disc.Count) |"
+          $md | Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding utf8
+          exit 0
+
+      - name: Obtain gecko
+        shell: pwsh
+        working-directory: ${{ github.workspace }}\comm-src
+        run: |
+          # Identical in approach to windows-installer.yml's "Obtain gecko": fetch
+          # the pinned revision DIRECTLY into $GECKO_DIR, so neither of a
+          # submodule's two relative pointers (the .git file's gitdir, and that
+          # gitdir's core.worktree) exists to be broken by a move. CI blockers #4
+          # and #7, both observed on real runs.
+          #
+          # gecko must stay a real git checkout: init.configure's
+          # vcs_checkout_type() is a plain exists(topsrcdir/.git) test, and without
+          # it artifacts.py falls through to run_hg() with self._hg = None and dies
+          # mid-build.
+          $geckoUrl = "https://github.com/mozilla-firefox/firefox.git"
+          $rev = ""
+          $pinned = $false
+
+          $entry = (git ls-tree HEAD vendor/gecko) 2>$null
+          if ($entry -and $entry -match '^\s*\d+\s+commit\s+([0-9a-f]{40})') {
+            $rev = $Matches[1]
+            $pinned = $true
+            Write-Host "vendor/gecko pins gecko at $rev"
+          } else {
+            Write-Host "::notice::vendor/gecko gitlink not found - using mozilla-central tip (unpinned)."
+          }
+
+          git init --quiet "$env:GECKO_DIR"
+          git -C "$env:GECKO_DIR" remote add origin $geckoUrl
+
+          if ($pinned) {
+            git -C "$env:GECKO_DIR" fetch --depth 1 --quiet origin $rev
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "::warning::pinned fetch of $rev failed; falling back to tip."
+              $pinned = $false
+            } else {
+              git -C "$env:GECKO_DIR" checkout --quiet --detach FETCH_HEAD
+              if ($LASTEXITCODE -ne 0) { throw "checkout of pinned $rev failed" }
+            }
+          }
+          if (-not $pinned) {
+            git -C "$env:GECKO_DIR" fetch --depth 1 --quiet origin HEAD
+            if ($LASTEXITCODE -ne 0) { throw "could not fetch gecko from $geckoUrl" }
+            git -C "$env:GECKO_DIR" checkout --quiet --detach FETCH_HEAD
+            if ($LASTEXITCODE -ne 0) { throw "checkout of gecko tip failed" }
+          }
+
+          # Assert the pieces this workflow specifically needs, not just `mach`.
+          foreach ($f in 'mach', '.git', 'testing/mochitest/runtests.py', 'testing/mochitest/mach_commands.py') {
+            if (-not (Test-Path (Join-Path $env:GECKO_DIR $f))) {
+              throw "gecko checkout is missing $f - the fetch produced a tree that cannot run mochitest"
+            }
+          }
+          $head = (git -C "$env:GECKO_DIR" rev-parse HEAD).Trim()
+          if (-not $head) { throw "could not determine gecko revision" }
+          Write-Host "gecko rev: $head (pinned: $pinned)"
+          "### Gecko: ``$head`` (pinned: $pinned)" >> $env:GITHUB_STEP_SUMMARY
+          exit 0
+
+      - name: Assemble gecko/comm tree
+        shell: pwsh
+        run: |
+          # Layout must be gecko/comm: gecko's `mach` looks for
+          # comm/build/mach_initialize.py, and that is what registers comm's own
+          # mach commands. comm merely being somewhere on disk is not enough.
+          Move-Item -Path "${{ github.workspace }}\comm-src" -Destination "$env:GECKO_DIR\comm"
+          # comm/.git is load-bearing: `mach artifact install` walks it to find a
+          # comm-central revision with a published win64-opt build. actions/checkout
+          # leaves a real .git directory here, so there is nothing to repair.
+          foreach ($f in 'mail/config/version.txt', '.git', 'build/mach_initialize.py', 'mail/base/test/browser/browser1.toml', 'mail/test/browser/moz.build') {
+            if (-not (Test-Path "$env:GECKO_DIR\comm\$f")) {
+              throw "comm/$f missing - comm was not placed correctly, or the test layout moved"
+            }
+          }
+          "COMM_HEAD_REPOSITORY=${{ github.server_url }}/${{ github.repository }}" >> $env:GITHUB_ENV
+          "COMM_HEAD_REV=${{ github.sha }}" >> $env:GITHUB_ENV
+          Write-Host "Thunderbird version: $(Get-Content "$env:GECKO_DIR\comm\mail\config\version.txt")"
+
+      - name: Install Rust toolchain
+        shell: pwsh
+        run: |
+          # `mach bootstrap` installs this too; doing it up front turns an obscure
+          # bootstrap error into an obvious one.
+          rustup set profile minimal
+          rustup default stable
+          rustup target add x86_64-pc-windows-msvc
+          rustc --version; cargo --version
+
+      - name: Install MozillaBuild
+        shell: pwsh
+        run: |
+          # CI blocker #5. Windows mach hard-asserts MozillaBuild's presence
+          # ("MozillaBuild was not found at C:\mozilla-build"); it is not on hosted
+          # runners; and bootstrap cannot install it because mach will not start
+          # without it. So it goes in first, silently, from Mozilla's own FTP.
+          $url = "https://ftp.mozilla.org/pub/mozilla/libraries/win32/MozillaBuildSetup-Latest.exe"
+          $exe = "$env:RUNNER_TEMP\MozillaBuildSetup.exe"
+          Invoke-WebRequest -Uri $url -OutFile $exe -UseBasicParsing
+          Write-Host ("Downloaded {0:N1} MB" -f ((Get-Item $exe).Length / 1MB))
+          # NSIS installer: /S is silent, /D must be last and unquoted.
+          Start-Process -FilePath $exe -ArgumentList '/S', '/D=C:\mozilla-build' -Wait -NoNewWindow
+          if (-not (Test-Path "C:\mozilla-build")) { throw "MozillaBuild did not install to C:\mozilla-build" }
+          "MOZILLABUILD=C:\mozilla-build" >> $env:GITHUB_ENV
+
+      - name: Write mozconfig
+        shell: pwsh
+        run: |
+          # Written to $MOZCONFIG (D:\gecko\mozconfig-ci), NOT $topsrcdir/mozconfig.
+          # See the job env block for why that distinction is load-bearing.
+          $lines = @(
+            # Makes this a Thunderbird build rather than a Firefox one, and it has to
+            # be present at *configure* time: it is what puts MOZ_BUILD_APP=comm/mail
+            # into substs, which is the sole trigger for artifacts.py choosing
+            # ThunderbirdJobConfiguration over the Gecko one.
+            'ac_add_options --enable-project=comm/mail',
+
+            # THE line that distinguishes this workflow from windows-installer.yml,
+            # which passes --disable-tests because all it wants is an .exe.
+            #
+            # Two things follow from enabling tests, and this job is worthless
+            # without both:
+            #   * gecko's artifact recursion stops adding --no-tests to
+            #     `mach artifact install`, so the test archives come down. Those
+            #     carry the harness support binaries (certutil, pk12util, ssltunnel,
+            #     xpcshell) that mochitest-browser needs and that a tests-disabled
+            #     artifact build simply does not have.
+            #   * `mach build` stages the in-tree test files and manifests into
+            #     obj-tb/_tests, which is where the harness reads them from.
+            # The Configure step below asserts ENABLE_TESTS actually reached
+            # config.status, because a silent revert here would produce a green run
+            # that tested nothing at all.
+            'ac_add_options --enable-tests',
+
+            # Artifact mode: implies --disable-compile-environment, so no MSVC
+            # toolchain check runs and only the frontend is compiled - exactly right
+            # for a CSS-layer restyle, and the mode all 24 green installer runs used.
+            # NOTE: --enable-optimize and --disable-debug must NOT appear here. Both
+            # live behind the compile environment and configure rejects them outright
+            # under artifact builds (CI blocker #8, which failed at configure *after*
+            # bootstrap had already paid for the toolchain downloads).
+            'ac_add_options --enable-artifact-builds',
+
+            # Kept for fidelity with the proven installer mozconfig. This job never
+            # runs `mach package`, so it does not strictly need nsis/7zz/upx - but
+            # --enable-bootstrap is also how configure fetches anything else declared
+            # with bootstrap=..., and deviating from the one configuration known to
+            # work in this repository buys nothing.
+            'ac_add_options --enable-bootstrap',
+
+            # @TOPSRCDIR@ is D:\gecko, so this resolves to D:\gecko\obj-tb, which is
+            # $OBJ_DIR. Keep the two in step.
+            'mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/obj-tb',
+            'mk_add_options AUTOCLOBBER=1'
+          )
+          New-Item -ItemType Directory -Force -Path (Split-Path -Parent $env:MOZCONFIG) | Out-Null
+          $lines -join "`n" | Set-Content -Encoding ascii $env:MOZCONFIG
+          Write-Host "--- $env:MOZCONFIG ---"
+          Get-Content $env:MOZCONFIG
+          if (Test-Path "$env:GECKO_DIR\mozconfig") {
+            throw "a mozconfig exists at the default path; bootstrap would overwrite it. Remove it."
+          }
+
+      - name: Bootstrap build environment
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          # --application-choice=browser is correct for comm/mail: mozboot's
+          # APPLICATIONS map has no Thunderbird entry, and bootstrap does not read
+          # our mozconfig anyway - auto_bootstrap() builds its own argv. It is
+          # fetching host toolchains, which comm shares with Firefox.
+          #
+          # --no-system-changes stops mozboot calling ShellExecuteW(..., "runas") to
+          # add Defender exclusions, which fires a UAC dialog nobody on a hosted
+          # runner can answer. It does not reduce what gets installed.
+          python mach --no-interactive bootstrap --application-choice=browser --no-system-changes
+          if ($LASTEXITCODE -ne 0) { throw "mach bootstrap failed ($LASTEXITCODE)" }
+
+      - name: Configure
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          python mach configure
+          if ($LASTEXITCODE -ne 0) { throw "mach configure failed ($LASTEXITCODE)" }
+          $cs = Join-Path $env:OBJ_DIR "config.status"
+          if (-not (Test-Path $cs)) { throw "configure produced no config.status at $cs" }
+
+          # config.status is a pprint'ed python dict, so entries read
+          #   'ENABLE_TESTS': '1',
+          # An absent key and an empty value both mean off.
+          #
+          # This is a HARD gate, not a warning. Without ENABLE_TESTS there is no
+          # obj-tb/_tests, mochitest has nothing to resolve, and the entire job
+          # becomes an expensive no-op that could still report green.
+          $csText = Get-Content $cs -Raw
+          if ($csText -notmatch "'ENABLE_TESTS':\s*'1'") {
+            Write-Host "::error::configure did not set ENABLE_TESTS=1, so --enable-tests did not take effect. No test files would be staged into obj-tb/_tests and mochitest would have nothing to run."
+            throw "ENABLE_TESTS is not set"
+          }
+          if ($csText -notmatch "'MOZ_ARTIFACT_BUILDS':\s*'1'") {
+            Write-Host "::warning::MOZ_ARTIFACT_BUILDS is not 1. This will attempt a full compile, which needs ~45 GB and hours rather than minutes."
+          }
+          Select-String -Path $cs -Pattern "MOZ_BUILD_APP|MOZ_ARTIFACT_BUILDS|MOZ_APP_NAME|ENABLE_TESTS" -EA SilentlyContinue |
+            ForEach-Object { Write-Host $_.Line.Trim() }
+          exit 0
+
+      - name: Build
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          # In artifact mode this is where comm-central's prebuilt win64-opt binaries
+          # arrive, resolved against trust domain `comm` and product `thunderbird`
+          # because MOZ_BUILD_APP is comm/mail - not against mozilla-central, which
+          # would be the wrong product entirely. With --enable-tests the test
+          # archives come down with them.
+          python mach build
+          if ($LASTEXITCODE -ne 0) { throw "mach build failed ($LASTEXITCODE)" }
+
+      - name: Verify the objdir can actually run browser tests
+        shell: pwsh
+        run: |
+          # Cheap assertions before an hour of test time.
+          $bin = Join-Path $env:OBJ_DIR 'dist\bin\thunderbird.exe'
+          if (-not (Test-Path $bin)) {
+            throw "no thunderbird.exe at $bin - the artifact build produced no application to test"
+          }
+          $harness = Join-Path $env:OBJ_DIR '_tests\testing\mochitest\runtests.py'
+          if (-not (Test-Path $harness)) {
+            throw "no mochitest harness at $harness - --enable-tests did not stage the harness"
+          }
+          Write-Host "binary : $bin"
+          Write-Host "harness: $harness"
+
+          # The exact directory the build backend stages comm's browser tests into is
+          # an implementation detail, and the harness self-test below is the
+          # authoritative proof that tests can be resolved and run. So a layout
+          # surprise here informs rather than aborts.
+          $staged = @(Get-ChildItem -LiteralPath (Join-Path $env:OBJ_DIR '_tests') -Recurse -Filter 'browser_threadTree*.js' -File -EA SilentlyContinue)
+          if ($staged.Count -eq 0) {
+            Write-Host "::warning::no browser_threadTree*.js found under obj-tb/_tests. If the harness self-test below also cannot resolve tests, this is the reason."
+          } else {
+            Write-Host "staged example: $($staged[0].FullName)"
+          }
+          Get-PSDrive -PSProvider FileSystem | Select-Object Name,@{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}} | Format-Table
+          exit 0
+
+      - name: Probe the harness for the options this workflow relies on
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          # Every option name used below is asserted rather than assumed. If upstream
+          # renames one, this step fails with the reason - instead of all five suites
+          # failing later in a way that looks like a test regression.
+          if (Test-Path variable:PSNativeCommandUseErrorActionPreference) {
+            $PSNativeCommandUseErrorActionPreference = $false
+          }
+          $help = (python mach mochitest --help 2>&1 | Out-String)
+          foreach ($opt in '--flavor', '--subsuite', '--log-raw') {
+            if ($help -notmatch [regex]::Escape($opt)) {
+              throw "mach mochitest has no $opt option. The invocation in this workflow is written against it; fix the workflow, do not work around it."
+            }
+            Write-Host "ok: $opt"
+          }
+          $extra = @()
+          if ($help -match [regex]::Escape('--screenshot-on-fail')) {
+            $extra += '--screenshot-on-fail'
+            Write-Host "ok: --screenshot-on-fail (failure screenshots land in MOZ_UPLOAD_DIR)"
+          } else {
+            Write-Host "::notice::--screenshot-on-fail is unavailable in this harness; failures will be text-only."
+          }
+          "MOCHITEST_EXTRA_ARGS=$($extra -join ' ')" >> $env:GITHUB_ENV
+          exit 0
+
+      - name: Self-test - prove the harness actually reports a failure
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          # Gate D, and the counterpart of lint-m3.yml's `colour: red` known-bad
+          # file. Without it a green run is indistinguishable from a run where every
+          # path resolved to zero tests, or where the subsuite filter dropped
+          # everything, or where a failure was reported and swallowed.
+          #
+          # So: take a real, already-registered browser test, append an assertion
+          # that cannot pass, run the REAL command shape, and demand red from both
+          # mochitest's exit code and the structured log.
+          #
+          # browser_customElements.js is the victim because it is the cheapest test
+          # in the widget manifest (40 lines, one add_task) and carries no skip-if.
+          # Editing an existing REGISTERED test - rather than adding a new file -
+          # deliberately avoids needing a manifest edit and a test-resolver refresh.
+          # Both the source copy and any already-staged copy under obj-tb/_tests are
+          # patched, so it does not matter which one the harness reads.
+          if (Test-Path variable:PSNativeCommandUseErrorActionPreference) {
+            $PSNativeCommandUseErrorActionPreference = $false
+          }
+          $rel = 'comm/mail/base/test/browser/widgets/browser_customElements.js'
+          $src = Join-Path $env:GECKO_DIR ($rel -replace '/', '\')
+          if (-not (Test-Path $src)) { throw "self-test victim missing: $src" }
+
+          $targets = @($src)
+          $targets += @(
+            Get-ChildItem -LiteralPath (Join-Path $env:OBJ_DIR '_tests') -Recurse `
+              -Filter 'browser_customElements.js' -File -EA SilentlyContinue
+          ).FullName
+          $targets = @($targets | Where-Object { $_ } | Select-Object -Unique)
+          Write-Host "patching $($targets.Count) copy/copies of browser_customElements.js"
+
+          $inject = @'
+
+          // CI harness self-test, removed again immediately after this run.
+          add_task(function test_m3_harness_selftest_must_fail() {
+            Assert.ok(false, "Intentional failure: proving mochitest can report one.");
+          });
+          '@
+          $log = Join-Path $env:LOG_DIR 'selftest.raw.json'
+          $backups = @{}
+          $rc = 0
+          try {
+            foreach ($t in $targets) {
+              $backups[$t] = Get-Content -LiteralPath $t -Raw
+              Add-Content -LiteralPath $t -Value $inject -Encoding utf8
+            }
+            $extra = @($env:MOCHITEST_EXTRA_ARGS -split '\s+' | Where-Object { $_ })
+            python mach mochitest --flavor=browser "--subsuite=$($env:MOCHITEST_SUBSUITE)" `
+              "--log-raw=$log" $extra $rel
+            $rc = $LASTEXITCODE
+          } finally {
+            foreach ($t in @($backups.Keys)) {
+              Set-Content -LiteralPath $t -Value $backups[$t] -NoNewline -Encoding utf8
+            }
+            Write-Host "restored $($backups.Count) file(s)"
+          }
+
+          Write-Host "mochitest exit code was $rc"
+          if ($rc -eq 0) {
+            Write-Host "::error::mochitest exited 0 on a test containing Assert.ok(false). This job cannot detect a test failure, so nothing it later reports green can be believed. Fix the wiring before trusting this workflow."
+            exit 1
+          }
+          # And prove the structured log says so too, not merely the exit code -
+          # otherwise the per-suite gates below are parsing something they cannot
+          # actually read.
+          python $env:GATE_SCRIPT --expect-failure $log 1
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::mochitest exited non-zero but its structured log records no unexpected result. The result gate cannot see failures, which makes every per-suite gate below meaningless."
+            exit 1
+          }
+          Write-Host "Harness self-test OK: a failing test fails this job."
+          exit 0
+
+      # ---------------------------------------------------------------------
+      # The suites. Six groups, one step each, so a failure names the area it
+      # broke. Five of them run tests this project INHERITS from upstream and
+      # names by path; the sixth runs tests this project WRITES and finds by
+      # filename.
+      #
+      # `if: !cancelled() && ...` means a failure in one group does not hide the
+      # others - one push reports every area. It does NOT make failures
+      # survivable: each step still exits non-zero on failure, so the job is red.
+      #
+      # Each step runs $SUITE_RUNNER, which runs mochitest for the group's
+      # SUITE_* path list and then runs the gate over that run's own --log-raw
+      # output. See the "Write the suite runner" step for the gating logic.
+      # ---------------------------------------------------------------------
+
+      - name: 'Suite: 3-pane (thread tree, folder tree, pane focus, findbar)'
+        if: ${{ !cancelled() && steps.select.outputs.run_3pane == 'true' }}
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        env:
+          GROUP: 3pane
+        run: '& "$env:SUITE_RUNNER"'
+
+      - name: 'Suite: widgets (tree-view, pane-splitter, thread-card tags)'
+        if: ${{ !cancelled() && steps.select.outputs.run_widgets == 'true' }}
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        env:
+          GROUP: widgets
+        run: '& "$env:SUITE_RUNNER"'
+
+      - name: 'Suite: static (browser_parsable_css over the packaged M3 sheets)'
+        if: ${{ !cancelled() && steps.select.outputs.run_static == 'true' }}
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        env:
+          GROUP: static
+        run: '& "$env:SUITE_RUNNER"'
+
+      - name: 'Suite: folder pane, folder modes, quick filter bar'
+        if: ${{ !cancelled() && steps.select.outputs.run_folder == 'true' }}
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        env:
+          GROUP: folder
+        run: '& "$env:SUITE_RUNNER"'
+
+      - name: 'Suite: chrome (spaces toolbar, tabmail)'
+        if: ${{ !cancelled() && steps.select.outputs.run_chrome == 'true' }}
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        env:
+          GROUP: chrome
+        run: '& "$env:SUITE_RUNNER"'
+
+      # This group is discovered by filename, not listed by path - see the
+      # DISCOVER_GLOB branch in the suite runner for why, and for the naming
+      # convention it depends on. It is the group that runs the tests this project
+      # writes itself, as opposed to the five above, which are upstream's.
+      - name: 'Suite: project-authored M3 tests (discovered)'
+        if: ${{ !cancelled() && steps.select.outputs.run_m3 == 'true' }}
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        env:
+          GROUP: m3
+          DISCOVER_GLOB: 'browser_m3*.js'
+        run: '& "$env:SUITE_RUNNER"'
+
+      - name: Upload test logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: m3-browser-test-logs
+          path: ${{ github.workspace }}\test-logs
+          if-no-files-found: warn
+          retention-days: 14

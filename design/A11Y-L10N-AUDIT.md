@@ -704,8 +704,16 @@ The cost, stated plainly:
 ### F6. Verification gates
 
 - [ ] Manual pass with a real screen reader on Windows (NVDA and/or Narrator) — not an inspector.
-      `_setRowAriaAttributes` **short-circuits unless `Services.appinfo.accessibilityEnabled`**,
-      so level/setsize/posinset are literally absent until AT is running.
+      **Correction 2026-07-29:** the guard has a **second disjunct** this document missed.
+      `tree-view.mjs:1109` is `if (!Services.appinfo.accessibilityEnabled && !Cu.isInAutomation)`,
+      and `Cu.isInAutomation` is true whenever
+      `security.turn_off_all_security_so_that_viruses_can_take_over_this_computer` is set
+      (`vendor/gecko/js/xpconnect/src/xpcpublic.h:862-868` reads only `mTurnOffAllSecurityPref`),
+      which `vendor/gecko/testing/profiles/common/user.js:58` sets for **every** mochitest profile.
+      So level/setsize/posinset **are** assertable from a browser-chrome test — they are absent in
+      an ordinary user profile without AT, and unobservable to static analysis, but not
+      untestable. `mail/base/test/browser/browser_m3Accessibility.js` asserts them. This gate
+      remains open for what a test genuinely cannot do: hear what NVDA or Narrator *says*.
 - [ ] Keyboard-only pass: reach every control, operate every menu, in all three layouts
 - [ ] Tab-stop count recorded before and after; any increase justified
 - [ ] `./mach test mail/base/test/browser/browser_*3pane*` plus folder-tree / thread-tree suites

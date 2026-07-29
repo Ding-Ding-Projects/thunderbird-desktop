@@ -35,6 +35,8 @@ tags = ["virtualfolders"]
 
 ["browser_interactionTelemetry.js"]
 
+["browser_m3Accessibility.js"]
+
 ["browser_mailTabsAndWindows.js"]
 
 ["browser_manualSortFolders.js"]

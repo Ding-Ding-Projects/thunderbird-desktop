@@ -57,15 +57,23 @@ still do*. Nothing here may be dropped silently; anything intentionally cut need
 - [x] Compact mode per-mode (`canModeBeCompact`)
 - [x] Toggles: total count badge, folder size, full path, hide local folders
 - [ ] Unread-count and total-count badges; new-mail indicator; folder colors; account indicator
-      — **UN-TICKED 2026-07-29.** Badges, new-mail indicator and account indicator are proven;
-      **folder colors** are not. `m3-folder-pane.css:397` sets `--icon-color:
-      var(--m3-on-secondary-container)` on the selected row **unguarded**, so with a lightweight
-      theme installed a fixed M3 lilac is painted over the theme's own selection fill — the exact
-      failure the guard doctrine exists to prevent. The in-file justification ("calibrated against
-      about3Pane.css's own specificity … prefixing it would break the hand-off") is false: ours is
-      (1,4,1), the competitor `#folderTree { & .icon }` is (1,1,0), so it out-ranks by three class
-      components and guarding it would still win. Re-tick after the rule is guarded or the comment
-      is replaced with a true reason — guarding is a visible design decision, not an auditor's call.
+      — **STILL UN-TICKED 2026-07-29 (second refutation).** The audit's named defect **is fixed**:
+      the selected-row `--icon-color` now carries the guard and reads
+      `:root:not([lwtheme]) #folderTree li.selected:not([data-folder-type], [data-server-type],
+      [data-tag-key]) > .container > .icon` = (1,6,1), against `#folderTree .icon` (1,1,0) and the
+      nntp/rss arms (1,2,2)/(1,3,3) — it wins with or without the guard, so the hand-off the old
+      comment invented was never needed. The refuter then found a **different** live defect in the
+      clause the box names: our `@media (prefers-contrast)` fallback handed **both** the unread and
+      the new-mail badge arm `--folderpane-unread-count-background`, while `about3Pane.css:56`
+      defines a separate `--folderpane-unread-new-count-background: ButtonShadow` and applies it at
+      `:600` / `:611-614`. Ours out-ranked upstream on both arms — (1,5,1) vs (0,3,0) filled,
+      (1,9,2) vs (0,7,1) collapsed — so in Windows High Contrast a folder with **new** mail was
+      painted identically to one with merely **unread** mail. **Fixed in this wave** (two arms
+      restated at matching weight, ordered after, still below the `.selected` arms). The box waits
+      because that fix has had no adversarial pass, and two secondary findings stand: the
+      `:not(…)` exclusion list does not cover selected newsgroup/RSS **subfolders** (their own `li`
+      carries no `[data-server-type]`), and `.folder-size` (1,4,0) / `.twisty` (1,4,0) have no
+      `prefers-contrast` **base** counterpart, only their `.selected` variants at (1,5,1).
 - [x] Header bar with Get Messages / Write / More buttons, each independently hideable; header itself hideable
 - [x] Server ordering + user custom sort order (`insertFolder`, `clearUserSortOrder`, `setSortOrderOnNewFolder`)
 - [x] Gmail folder special-casing (`_isGmailFolder`, `_getNonGmailParent`)
@@ -115,65 +123,127 @@ still do*. Nothing here may be dropped silently; anything intentionally cut need
 
 ### Cross-cutting — must not regress
 - [ ] **All 167 `cmd_*` commands** remain wired and correctly enabled/disabled
-      — **UN-TICKED 2026-07-29.** Two independent defects. (a) The box said **137**; the real count
-      is **167**, so the box asserted coverage of a set it mis-stated by 30. (b) The tick's stated
-      proof — "the M3 blast radius is exactly 4" — is reproducible only as
-      `grep cmd_ about3Pane.xhtml`, a **markup-only** derivation, and Thunderbird wires most 3-pane
-      triggers from JavaScript. It misses `#threadTree` (delegated `dblclick`/`auxclick` at
-      `about3Pane.js:4527-4528` → `_onItemActivate` dispatching `cmd_openMessage`,
-      `cmd_editDraftMsg`, `cmd_newMsgFromTemplate`), `.tree-button-more` (gateway to `#mailContext`'s
-      45 commands), and the inherited font/colour `m3-chrome.css:72-99` pushes onto ~163 chrome
-      triggers. Corrected radius: **5 direct trigger elements covering 7 commands, 2 popup gateways,
-      ~163 chrome triggers reached cosmetically.** A supporting proof was also falsified — "zero
-      `position`/`z-index` declarations" is untrue (`m3-quick-filter.css` declares `z-index: auto`
-      and `position: static`, both initial values, so the conclusion survives but the proof does
-      not). Re-tick against the corrected radius, not the filed reasoning.
+      — **STILL UN-TICKED 2026-07-29 (second refutation), on arithmetic, not on cascade.** Defect
+      (a) is repaired: **167** is now reproducible three ways
+      (`grep -rhoE '\bcmd_[A-Za-z0-9_]+' mail/base/content | sort -u | wc -l` = 167; 313 across
+      `mail/`; chrome-document trigger counts 120 / 67 / 119 all verify exactly). Defect (b) is
+      repaired too, and the refuter could not break the cascade half — it re-derived and **confirmed**
+      both contests: `m3-thread-pane.css:454` `& > :is(menu, menuitem)` = (1,0,1) does out-rank
+      `contextMenu.css:76-81`'s disabled arm (0,1,2) but declares a **disjoint** set (size, padding,
+      radius, font-size — no `color`), so out-ranking is inert; and `widgets.css:58-60` `.button:disabled`
+      (0,2,0) declares `opacity: 0.4` **and** `pointer-events: none`, and no M3 sheet declares
+      `pointer-events` on a `.button` at all, so a disabled button is not a hit-test target and the
+      unguarded `:hover` rules cannot match it. What refutes is the box's own enumeration: it claimed
+      `mailContext._commands` = 31 and `_alwaysVisibleCommands` = 13, hence "52 id-mapped triggers".
+      Counted from source: **30** (`mailContext.js`, entries 82-111) and **12** (`_alwaysVisibleCommands:`
+      at **114**, entries 115-126), plus `folderPaneContextMenu._commands` = 8 → **50**, not 52; the
+      cross-check `sed -n '78,132p' | grep -c cmd_` = **42** = 30 + 12. Three further evidence defects:
+      the "`--button-*` grep returns only `--panel-*`" parenthetical is false (M3 repoints
+      `--button-border-radius`, `--button-margin`, `--button-padding`,
+      `--button-pressed-indicator-padding` — none a `*-disabled` variant, so the conclusion holds);
+      the opacity census is 6 in the six sheets **plus 4 keyframe endpoints** in `material-tokens.css`;
+      and `cmd_createAddressBook` is not trigger-less (`mailWindowOverlay.js:1738`, loaded by
+      `messenger.xhtml:173`). A box revoked for a miscount cannot be re-ticked on evidence that
+      miscounts. Re-tick when those five figures are corrected — the cascade argument is already
+      independently reproduced.
 - [ ] **Keyboard navigation** throughout; correct tabindex order (note the deliberate reverse
       tabindex in the folder pane header for `row-reverse`)
-      — **UN-TICKED 2026-07-29.** The reverse tabindex is genuinely safe (no M3 sheet declares
-      `order`, `flex-direction` or `direction`, so `about3Pane.css:191`'s `row-reverse` is
-      unopposed) and no focusable element was hidden. But the tick's forced-colors evidence is
-      false: `m3-thread-pane.css:1177-1179` claims its focus-ring group "already out-ranks" the
-      rings it overrides, and the group is **entirely dead** —
-      `#threadPane :is(button, [is="tree-view-table-body"]):focus-visible` is (1,2,0) against
-      two-ID competitors at (2,2,0)–(2,4,1), and the second arm (2,2,2) loses to the card-current
-      ring at (2,6,2). Not fixed: raising it changes forced-colors rendering from CanvasText to
-      Highlight, which nobody in this wave could observe. Separately the tick's "exhaustive
-      `display:` inventory = 21 declarations" is a raw count including comment prose; the real
-      figure is **12**. No affordance is currently lost, so this is a bad tick, not a broken
-      feature. Re-tick when the dead group is either deleted or made live and observed.
+      — **STILL UN-TICKED 2026-07-29 (second refutation).** The audit's named defect is genuinely
+      repaired and the refuter reproduced the repair arm by arm: all 13 restated arms of the
+      `@media (forced-colors)` group in `m3-thread-pane.css` are **character-identical** to their
+      bases, so each pair TIES — (2,3,1), (2,2,0)×2, (2,3,2), (2,4,0), (2,6,2), (2,3,2), (2,3,1),
+      (2,5,1), **(2,4,1)** (element column is `tbody` alone — the file's own table now reads (2,4,1)),
+      (2,3,1) — and the block wins on source order; the ground-aware correction at (2,7,2) / (2,6,1) /
+      (2,6,3) / (2,6,2) beats every arm it corrects on weight. Three new grounds refute. **(i) Four
+      focus rings ARE theme-conditional**, which a line-grep of `:focus-visible` cannot see because
+      the guard sits on the **nesting ancestor**: `m3-chrome.css:151` `.tabmail-tab:focus-visible`
+      (0,4,0), `:244` `button.tab-close-button:focus-visible` (0,4,1), `:331` `#alltabs-button:focus-visible`
+      (1,3,0) and `:479` `.spaces-toolbar-button:focus-visible:not(:hover)` (0,5,0) sit inside
+      `:root:not([lwtheme])` blocks opening at `:120`, `:120`, `:276`, `:462`. For a lightweight-theme
+      user the first three degrade to a UA/toolkit `auto` ring — `tabmail.css` has **no**
+      `:focus-visible` rule at all, so the fallback is `ua.css:189`'s 1px, and `#alltabs-button` falls
+      to `toolbarbutton.css:13`'s `:where(:focus-visible)` at (0,0,1). This is the over-guarding
+      failure §3 of `AGENTS.md` names, and `AGENTS.md` §3 asserts the opposite as *verified*: that
+      claim is a raw-grep artifact and must be corrected there too. **(ii)** The selector group under
+      review has **15** selectors, not 14 — the unenumerated one is
+      `#threadPane #threadTree tr.current > td > .card-container` at (2,2,2), which restates no base
+      and loses to the card ring at (2,6,2) (benign: nothing sets `outline-style` on an unfocused
+      current row, so its `outline-color` paints nothing). **(iii)** "Throughout" is unproven:
+      `m3-chrome.css` has **no `@media (forced-colors)` block at all**, and the message pane's only
+      ring, `m3-message-pane.css:231` (1,3,0), cannot cross the `<browser id="messageBrowser">`
+      boundary into `about:message` any more than a custom property can. Re-tick after the four
+      chrome rings are split (geometry unguarded, colour guarded) or lifted out of the guard, the
+      15th selector is accounted for, and the rings are observed in Windows High Contrast.
 - [ ] **Accessibility**: `role="tree"`, `aria-multiselectable`, `aria-live` regions, `aria-hidden`
       on decorative buttons, screen-reader labels on every control
-      — **UN-TICKED 2026-07-29.** Scope, not defect. The static surface is proven (ten ARIA-bearing
-      sources last touched by upstream `Bug` commits; `about3Pane.xhtml` diffed at +23/-0 with zero
-      aria/role/tabindex lines changed; 27 of 31 `:focus-visible` rules unguarded; zero
-      `outline: none` anywhere), and a genuine WCAG 1.4.11 regression found this wave was fixed
-      (`#qfb-sticky`'s `aria-pressed` had no cue under forced-colors and measured 1.17:1 by
-      default). But this box cannot be evidenced as written: `_setRowAriaAttributes`
-      (`tree-view.mjs:1109-1156`) short-circuits unless `Services.appinfo.accessibilityEnabled`, so
-      `aria-level`/`-setsize`/`-posinset` are **absent until a screen reader is actually running**
-      and are unobservable by any static or DOM-inspector check. All eight F6 gates in
-      `design/A11Y-L10N-AUDIT.md:704-717` remain `- [ ]`. Re-tick only after a live NVDA or
-      Narrator pass — never on static evidence.
+      — **STILL UN-TICKED 2026-07-29 (second refutation).** Three things moved and none of them is
+      a tick. **(1) The revocation's own premise was too strong and is corrected.**
+      `tree-view.mjs:1109` is `if (!Services.appinfo.accessibilityEnabled && !Cu.isInAutomation)`;
+      `Cu.isInAutomation` is true iff `security.turn_off_all_security_so_that_viruses_can_take_over_this_computer`
+      is set (`xpcpublic.h:862-868`), which `vendor/gecko/testing/profiles/common/user.js:58` sets for
+      every mochitest profile. `aria-level` / `-setsize` / `-posinset` / `-rowindex` therefore **are**
+      assertable from a browser-chrome test. `design/A11Y-L10N-AUDIT.md` F6 gate 1 has been corrected
+      accordingly. **(2) A real registered test now exists**:
+      `mail/base/test/browser/browser_m3Accessibility.js` (998 lines), registered in
+      `mail/base/test/browser/browser2.toml:38` and picked up by
+      `.github/workflows/browser-tests-m3.yml` (its `m3` group discovers `browser_m3*.js`). It asserts
+      the container roles, the threading semantics above in both row modes, `aria-live="off"` verbatim
+      across selection churn, spacer `aria-hidden="true"`, `tabindex="-1"` on every decorative row
+      button, three focus rings by **computed** style (alpha > 0, width ≥ 2px), and hard-asserts zero
+      axe `color-contrast` violations over the live 3-pane using the already-vendored
+      `third_party/axe-core` via `mail/test/browser/shared-modules/AxeHelpers.sys.mjs`. **It has never
+      been executed** — there is no build in this checkout and the workflow has never run — so it is a
+      written test, not a passed one, and it is worth **nothing** as evidence until it is green.
+      **(3) The static half is not exhaustive either.** `m3-folder-pane.css:288` declares
+      `text-transform: uppercase` at (1,2,1), unguarded and **uncontested** (upstream's own rule for
+      that element, `about3Pane.css:464-471`, declares no `text-transform`), on `.mode-name` — and
+      `tree-listbox-mixin.mjs:469-475` gives **every** descendant `li` `role="treeitem"`, `.unselectable`
+      included, so that is a treeitem whose accessible name comes from that text. Gecko exposes the
+      transformed text: `vendor/gecko/accessible/tests/mochitest/text/test_gettext.html:69-76` asserts
+      `"HELLO MY FRIEND"` for a `text-transform: uppercase` node. The in-file comment "visual casing
+      only — the string still comes from Fluent" is half true: the Fluent id is untouched, the
+      accessible text is not. Also standing: all 11 decorative buttons are `aria-hidden="hidden"`, an
+      invalid value (`ARIAMap.cpp:1637-1643` compares against `true` case-sensitively), so they are
+      **not** hidden from AT at all — upstream markup we may not edit — and three of our own comments
+      (`m3-thread-pane.css:19`, `:732`, `:995`) repeat that false premise. All eight F6 gates in
+      `design/A11Y-L10N-AUDIT.md` remain `- [ ]`. Re-tick only when the test has run green **and** a
+      live NVDA or Narrator pass has been heard — never on static evidence, and never on a test that
+      has only been written.
 - [x] **Localization**: every string via Fluent (`data-l10n-id`) or DTD entity — no hardcoded text.
       Existing `.ftl` files: about3Pane, treeView, messenger, calendar, textActions, findbar
 - [ ] **Theming**: light/dark, `lightweightthemes="true"`, `colors.css` variables, folder colors
-      — **UN-TICKED 2026-07-29.** Eight of nine sub-claims verified independently (the guard is
-      live — upstream's `lightweightthemes="true"` at `about3Pane.xhtml:14` drives
-      `MailGlue.sys.mjs:569` → `LightweightThemeConsumer.sys.mjs:537`, so `[lwtheme]` really does
-      land on about:3pane's own root; all 12 seed × theme blocks resolve across 30 simulated
-      cascade cases; `colors.css` is untouched at `:root`; folder colours survive because
-      `folder-tree-row.mjs:259` writes `--icon-color` **inline**). But **"the guard is complete" is
-      false.** `m3-thread-pane.css:547` declares `border: 1px solid transparent` at (2,3,2),
-      unguarded, out-ranking `tree-listbox.css:307` (0,3,1) and its hover longhand (0,4,1) — so an
-      installed lightweight theme can **never** paint the thread-card hover, selected,
-      selected-unfocused or junk border colours. The file's defence, that `transparent` "takes no
-      palette decision away from a theme", is exactly backwards: `transparent` *is* the palette
-      decision. Deliberately **not** fixed — splitting the shorthand and guarding the colour raises
-      it to (2,5,2), which then defeats the `prefers-contrast` selected-card rule at (2,4,2) and
-      deletes a high-contrast affordance. This needs a coordinated re-prefix of both rules, which
-      is its own reviewed change. Low severity (backgrounds still signal all four states, and those
-      remaps *are* guarded) but the tick was filed on reasoning that does not hold.
+      — **STILL UN-TICKED 2026-07-29 (second refutation).** The audit's named defect is **fixed and
+      the fix independently re-derived**: `m3-thread-pane.css:582` now declares only
+      `border-width: 1px; border-style: solid` at (2,3,2) — **no colour** — while the colour moved to
+      the guarded `:642` at (2,4,0). Without a theme (2,4,0) beats `tree-listbox.css` (0,3,1)/(0,4,1)
+      on the id column and cards stay flat; with a theme `:642` does not match, `:582`'s values are
+      byte-identical to `:307`'s shorthand, and `var(--tree-card-border)` paints unopposed. The
+      `prefers-contrast` restore at `:1161` is (2,4,2), unguarded, and ties (2,4,0) on ids and classes
+      while taking the element column 2-0 — so the "deletes a high-contrast affordance" objection is
+      answered too. What refutes now is the **folder-colours** clause, on a cascade rule that is
+      simply false: the box argued "an inline author declaration outranks every selector-matched
+      author rule regardless of specificity". CSS Cascade sorts **origin and importance before
+      element-attached styles**, so an author `!important` declaration beats a `style` attribute set
+      with `setProperty(name, value)` (two arguments → normal priority,
+      `folder-tree-row.mjs:259`). The M3 layer has exactly two `--icon-color` `!important`
+      declarations and the box listed both without connecting them to its own argument:
+      **`m3-folder-pane.css:546`** paints `--icon-color: var(--m3-error) !important` at (1,4,1),
+      **unguarded**, beating upstream's `about3Pane.css:271` (1,3,1) `!important` — while its own
+      guarded sibling at `:527` stands down under a theme and lets `--color-text-critical` paint the
+      name. A themed profile with a broken-TLS folder therefore gets **two different reds on one
+      row**: icon `#b3261e` (M3), name `#dc2626` (upstream). The prescribed fix is one prefix →
+      (1,6,1) `!important`, which still beats (1,3,1) with no theme and hands back to
+      `--color-text-critical` with one. **Not applied here** — it decides M3's red versus the theme's
+      red, which is a design call to make on the record, not a ratifier's edit. And
+      **`#folderTree li.selected > .container > .icon { --icon-color: currentColor !important }`**
+      (`m3-folder-pane.css:928` today, inside `@media (prefers-contrast)` but **outside** the guard
+      block) is broader than upstream's equivalent `about3Pane.css:419-422`, which requires
+      `#folderTree:focus-within`; in the themed, not-focus-within case its stated premise
+      ("unreadable on the high-contrast selection fill") is false, because our fill is guarded and
+      upstream sets `--treeitem-background-selected: transparent` under `prefers-contrast`
+      (`about3Pane.css:57`) — there **is** no fill, so we overwrite the user's folder colour for
+      nothing. Re-tick when both `!important` rules are decided on the record. (Search by selector:
+      line numbers in this file are historical.)
 - [x] **CSP**: the existing `Content-Security-Policy` meta must remain satisfiable.
       The policy is **per-directive**, not a union — `about3Pane.xhtml:20` is
       `style-src about: 'unsafe-inline'; img-src moz-icon: chrome: moz-src: data:`. Note `style-src`
@@ -187,23 +257,40 @@ still do*. Nothing here may be dropped silently; anything intentionally cut need
       Fonts must be vendored locally or swapped for system fonts. **Deliberately not ported**; the
       families survive as local-name fallbacks only, and the remote `<link>` appears nowhere outside
       comments at `material-tokens.css:20-21,28`.
-- [ ] Session/state persistence: active modes, compact, column layout, sort, view mode, splitter
+- [x] Session/state persistence: active modes, compact, column layout, sort, view mode, splitter
       sizes, quick-filter state
-      — **UN-TICKED 2026-07-29.** Six of seven sub-claims are proven by mechanism, not assertion:
-      restored splitter and column sizes arrive as **inline** custom properties
-      (`pane-splitter.js:880`, `tree-view.mjs:2189/2865`) which out-rank every stylesheet rule; the
-      Gecko UA rule `:where([hidden]) { display: none !important }`
-      (`toolkit/themes/shared/global-shared.css:118`) immunises every `[hidden]`-driven toggle; and
-      the `uidensity` fork reaches four live token consumers. The failure is **splitter sizes**:
-      `m3-layout.css:67-69` pins `--folderPaneSplitter-width` / `--messagePaneSplitter-width` /
-      `-height` to **272px / 864px / 576px**, replacing `about3Pane.css:75-77`'s **18em / 54em /
-      36em**. `UIFontSize.sys.mjs:194-198` implements the font-size accessibility control by writing
-      an inline px `font-size` onto `documentElement`, so the em defaults tracked that control and
-      the px defaults do not. For a user who raises `mail.uifontsize` and has never dragged a
-      splitter, the setting restores and **no longer changes the pane's default width** — which is
-      this box's own stated acceptance criterion for a real regression. Narrow (defaults only,
-      never-dragged only) and not a persistence break, but the box cannot be ticked over it.
-      Re-tick when the defaults are expressed in a unit that tracks the pref.
+      — **RE-TICKED 2026-07-29.** The named defect is fixed and the fix survived a dedicated
+      adversarial pass that returned **UPHELD**. `m3-layout.css:86-88` now reads **17em / 54em /
+      36em**, so the defaults track `mail.uifontsize` the way `about3Pane.css:75-77`'s do:
+      `about3Pane.js:169` calls `UIFontSize.registerWindow(window)`, `UIFontSize.sys.mjs:195-198`
+      writes an inline px `font-size` onto `documentElement` (and `removeProperty` on the default
+      path), and `em` on `body` resolves against it. `grep -nE 'Splitter-(width|height):\s*[0-9.]+px'`
+      across the six sheets is **empty** — no px default survives. Both sides of the only cascade
+      contest re-derived: ours `body#paneLayout` = **(1,0,1)**, upstream `body` = **(0,0,1)**, and
+      both are only defaults because `pane-splitter.js` `#setSize` writes the restored value
+      **inline** on `parentNode`, which beats every author-normal stylesheet rule by origin.
+      Restored column widths arrive the same way (`tree-view.mjs:2189` / `:2865`, inline
+      `--<colId>Splitter-width` and `width: var(...)` on the same `<th>`), and **no JS anywhere parses
+      the em**: `grep -n getComputedStyle` over `pane-splitter.js` and `about3Pane.js` is empty,
+      persistence stores `getBoundingClientRect()` numbers, and `browser_paneSplitterGaps.js` reads
+      the **inline** value only. The strongest link was strengthened, not assumed: `activeModes` is
+      `Array.from(folderTree.children, li => li.dataset.mode)` (`about3Pane.js:2134-2136`) with
+      `mode.container.remove()` on toggle-off (`:2224`), so it round-trips through DOM child
+      membership, and `m3-folder-pane.css` declares **zero** `display:`; compact round-trips through
+      a content attribute (`toggleAttribute` at `:2079`, `hasAttribute` at `:2089`) which CSS cannot
+      write; quick-filter visibility round-trips through `quickFilterBar.js:439`'s `.hidden` and our
+      rule is `#quick-filter-bar:not([hidden])`. Column-header widths cannot drift on our typography
+      because `tree-listbox.css:320` sets `table-layout: fixed` and `:494-501` gives the header button
+      `overflow: hidden; text-overflow: ellipsis; min-inline-size: auto`. The column-picker
+      workaround the first pass **refused** is also confirmed correct: `& > :is(menu, menuitem)` under
+      the list `#threadPaneDisplayContext, #menu_threadPaneSortPopup, .menupopup-column-picker`
+      resolves to **(1,0,1)** (`&` takes the list's most specific member even when matching via the
+      class), against the rejected flat form `.menupopup-column-picker > :is(menu, menuitem)` at
+      **(0,1,1)**. ⚠️ **The tick certifies mechanism, not observation.** `17em` = 272px at a 16px root
+      versus upstream's `18em` = 288px is a deliberate divergence in the *unpersisted default only*
+      (no test asserts a numeric default width), and the priority runtime check is: clear XULStore,
+      raise `mail.uifontsize`, confirm `#folderPane`'s never-dragged width scales, then stops moving
+      once dragged.
 
 ## Known conflicts between the design and Thunderbird constraints
 

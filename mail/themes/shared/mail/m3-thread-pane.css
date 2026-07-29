@@ -1286,7 +1286,7 @@
    *   thead .tree-table-cell-container button           (2,3,2)  (1,2,0)
    *   thead .button-column-picker                       (2,3,1)  (1,2,0)
    *   [rows=thread-row] current tr.table-layout         (2,5,1)  (1,2,0)
-   *   [rows=thread-row] .button-column .button-flat     (2,4,2)  (1,2,0)
+   *   [rows=thread-row] .button-column .button-flat     (2,4,1)  (1,2,0)
    *   tr.table-layout .twisty                           (2,3,1)  (1,2,0)
    *
    * So the catch-all lost every one of them and Highlight never landed. The
@@ -1306,9 +1306,31 @@
    * never a guard - see the block header.
    *
    * The catch-all is KEPT as the first selector, not replaced: it is the only
-   * cover for focusable controls in #threadPane that this file styles no ring
-   * for at all (#threadPaneNotificationBox buttons, and the quick-filter bar's
-   * own controls where m3-quick-filter.css draws no forced-colors ring). */
+   * cover for focusable controls in #threadPane that no M3 sheet styles a ring
+   * for at all. In practice that is #threadPaneNotificationBox: MozElements
+   * NotificationBox appends <notification-message> there, and its
+   * `slot="actions"` button container is created with appendChild
+   * (toolkit/content/widgets/notificationbox.js:458-461), so those buttons are
+   * LIGHT DOM and (1,2,0) with one id beats the class-only toolkit rings.
+   *
+   * It does NOT cover the quick-filter bar, even though that bar is inside
+   * #threadPane (about3Pane.xhtml:179 includes quickFilterBar.inc.xhtml inside
+   * #threadPane at line 150). m3-quick-filter.css loads AFTER this file and all
+   * four of its rings out-specify the catch-all outright:
+   *   #quick-filter-bar :is(#qfb-sticky, #qfd-dropdown):focus-visible  (2,1,0)
+   *   #quick-filter-bar #qfb-tag-filter-mode:focus-visible             (2,1,0)
+   *   #quick-filter-bar .button-group > .button:focus-visible          (1,3,0)
+   *   #quick-filter-bar button.qfb-tag-button:focus-visible            (1,2,1)
+   * against (1,2,0) - two ids beat one, and (1,3,0) / (1,2,1) beat (1,2,0) on
+   * the class and element columns. Those four therefore keep painting their own
+   * ring in forced colors, reverted to currentColor rather than Highlight, which
+   * is VISIBLE but not accented. Deliberately left that way: m3-quick-filter.css
+   * paints #qfb-sticky[aria-pressed="true"] and the pressed chips
+   * `background-color: SelectedItem !important` in its own
+   * (prefers-contrast), (forced-colors) block, and Highlight IS SelectedItem on
+   * Windows, so handing those rings Highlight would erase them on exactly the
+   * pressed state - the trap the ground-aware correction below exists to avoid.
+   * Fix it there, with its own correction, or not at all. */
   #threadPane :is(button, [is="tree-view-table-body"]):focus-visible,
   #threadPane #threadTree tr.current > td > .card-container,
   #threadPane #threadTree [is="tree-view-table-body"]:focus-visible:not(:has(> tr.current)),
@@ -1366,7 +1388,7 @@
    * Specificity, one class above each arm it corrects, so it wins on weight and
    * not on source order: (2,7,2) vs the cards' (2,6,2), (2,6,1) vs the table's
    * (2,5,1), and the two button arms at (2,6,3) / (2,6,2) vs (2,4,0), (2,3,2),
-   * (2,4,2) and (2,3,1). The in-row buttons are included because they sit
+   * (2,4,1) and (2,3,1). The in-row buttons are included because they sit
    * INSIDE the selected row, so their ground is SelectedItem too; `.selected`
    * alone is the right condition for them, while the row's own ring needs
    * `.current.selected` - a selected but non-current card is painted
