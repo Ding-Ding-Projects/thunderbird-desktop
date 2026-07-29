@@ -238,9 +238,15 @@ jobs:
         run: |
           set -euo pipefail
           # The glob is expanded here, in the shell, rather than passed in
-          # through a `${{ }}` step output: filenames come from the working tree
-          # and a `${{ }}` substitution would splice them into the command line
-          # before bash quoting could protect them.
+          # through a step output: filenames come from the working tree, and a
+          # workflow-expression substitution would splice them into the command
+          # line before bash quoting could protect them.
+          #
+          # (That explanation used to spell the expression syntax out literally.
+          # GitHub evaluates expressions ANYWHERE in a workflow file, including
+          # inside run-script comments, and an empty one is invalid — so the
+          # comment describing why this step avoids expressions was itself
+          # rejected by the workflow parser. Do not write the braces here.)
           shopt -s nullglob
           css=(comm/mail/themes/shared/mail/m3-*.css)
           shopt -u nullglob
