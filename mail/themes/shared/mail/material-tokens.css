@@ -1,0 +1,333 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/**
+ * Material Design 3 tokens for the Thunderbird 3-pane rewrite.
+ *
+ * Ported from the "Material Mail" design (design/Material Mail.dc.html, its
+ * vars() generator, and design/app-data.js). The design emits these 24 custom
+ * properties as an inline style attribute at runtime; here they are static CSS,
+ * because Thunderbird's CSP restricts inline styling and a stylesheet is the
+ * reviewable, themeable form.
+ *
+ * Two axes, exactly as the design defines them:
+ *   - seed:  purple (default) | blue | green | orange   -> [data-m3-seed]
+ *   - theme: light | dark                               -> prefers-color-scheme,
+ *                                                          overridable via
+ *                                                          [data-m3-theme]
+ *
+ * Deliberately NOT ported: the design's Google Fonts <link>. Fetching Roboto and
+ * Noto Sans HK from fonts.googleapis.com at startup is blocked by the existing
+ * Content-Security-Policy, leaks a request on every launch, and delays first
+ * paint. The font stacks below resolve locally instead.
+ */
+
+:root {
+  /* ---- Typography -------------------------------------------------------
+   * The design asks for Roboto and Noto Sans HK. Both are named first so a
+   * locally installed copy is honoured, then we fall back to the platform UI
+   * font rather than reaching for the network. Noto Sans HK matters for the
+   * Cantonese strings in app-data.js; without a CJK-capable fallback those
+   * render as tofu.
+   */
+  --m3-font-roboto: Roboto, "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --m3-font-notohk: "Noto Sans HK", "Microsoft JhengHei UI", "Microsoft JhengHei",
+    "PingFang HK", Roboto, system-ui, sans-serif;
+  --m3-font-system: system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  --m3-font-serif: Georgia, "Times New Roman", serif;
+
+  --m3-font: var(--m3-font-roboto);
+  --m3-font-scale: 100;
+  --m3-font-size: calc(14px * var(--m3-font-scale) / 100);
+  --m3-font-weight: 400;
+
+  /* ---- Density ----------------------------------------------------------
+   * app-data.js DENSITY. Default is comfortable, matching the design.
+   */
+  --m3-row-padding: 12px 8px 12px 16px;
+  --m3-gap: 2px;
+  --m3-control-size: 48px;
+  --m3-avatar-size: 40px;
+
+  /* ---- Shape / motion ---------------------------------------------------- */
+  --m3-radius-xs: 4px;
+  --m3-radius-s: 8px;
+  --m3-radius-m: 12px;
+  --m3-radius-l: 16px;
+  --m3-radius-xl: 28px;
+  --m3-radius-full: 999px;
+}
+
+/* Density variants. */
+:root[data-m3-density="compact"] {
+  --m3-row-padding: 8px 8px 8px 12px;
+  --m3-gap: 1px;
+  --m3-control-size: 40px;
+  --m3-avatar-size: 32px;
+}
+
+:root[data-m3-density="relaxed"] {
+  --m3-row-padding: 16px 12px 16px 20px;
+  --m3-gap: 4px;
+  --m3-control-size: 56px;
+  --m3-avatar-size: 44px;
+}
+
+/* Font family variants, selected by the appearance surface. */
+:root[data-m3-font="notohk"] { --m3-font: var(--m3-font-notohk); }
+:root[data-m3-font="system"] { --m3-font: var(--m3-font-system); }
+:root[data-m3-font="serif"] { --m3-font: var(--m3-font-serif); }
+
+/* ==========================================================================
+ * Neutrals — surface/outline/error. Independent of the accent seed.
+ * ======================================================================== */
+
+:root,
+:root[data-m3-theme="light"] {
+  --m3-surface: #fef7ff;
+  --m3-s1: #fff;
+  --m3-s2: #f7f2fa;
+  --m3-s3: #f3edf7;
+  --m3-s4: #ece6f0;
+  --m3-s5: #e6e0e9;
+  --m3-on-surface: #1d1b20;
+  --m3-on-surface-variant: #49454f;
+  --m3-outline: #79747e;
+  --m3-outline-variant: #cac4d0;
+  --m3-inverse-surface: #322f35;
+  --m3-inverse-on-surface: #f5eff7;
+  --m3-error: #b3261e;
+  --m3-error-container: #f9dedc;
+  --m3-on-error-container: #410e0b;
+}
+
+:root[data-m3-theme="dark"] {
+  --m3-surface: #141218;
+  --m3-s1: #0f0d13;
+  --m3-s2: #1d1b20;
+  --m3-s3: #211f26;
+  --m3-s4: #2b2930;
+  --m3-s5: #36343b;
+  --m3-on-surface: #e6e0e9;
+  --m3-on-surface-variant: #cac4d0;
+  --m3-outline: #938f99;
+  --m3-outline-variant: #49454f;
+  --m3-inverse-surface: #e6e0e9;
+  --m3-inverse-on-surface: #322f35;
+  --m3-error: #f2b8b5;
+  --m3-error-container: #8c1d18;
+  --m3-on-error-container: #f9dedc;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* Follow the OS unless an explicit theme is pinned on the root. */
+  :root:not([data-m3-theme]) {
+    --m3-surface: #141218;
+    --m3-s1: #0f0d13;
+    --m3-s2: #1d1b20;
+    --m3-s3: #211f26;
+    --m3-s4: #2b2930;
+    --m3-s5: #36343b;
+    --m3-on-surface: #e6e0e9;
+    --m3-on-surface-variant: #cac4d0;
+    --m3-outline: #938f99;
+    --m3-outline-variant: #49454f;
+    --m3-inverse-surface: #e6e0e9;
+    --m3-inverse-on-surface: #322f35;
+    --m3-error: #f2b8b5;
+    --m3-error-container: #8c1d18;
+    --m3-on-error-container: #f9dedc;
+  }
+}
+
+/* ==========================================================================
+ * Accent seeds. --m3-inverse-primary is the OPPOSITE theme's primary, which is
+ * what the design's vars() computes; it is the token most easily got wrong.
+ * ======================================================================== */
+
+/* ---- purple (default) ---- */
+:root,
+:root[data-m3-seed="purple"] {
+  --m3-primary: #6750a4;
+  --m3-on-primary: #fff;
+  --m3-primary-container: #eaddff;
+  --m3-on-primary-container: #21005d;
+  --m3-secondary-container: #e8def8;
+  --m3-on-secondary-container: #1d192b;
+  --m3-tertiary-container: #ffd8e4;
+  --m3-on-tertiary-container: #31111d;
+  --m3-inverse-primary: #d0bcff;
+}
+
+:root[data-m3-theme="dark"],
+:root[data-m3-seed="purple"][data-m3-theme="dark"] {
+  --m3-primary: #d0bcff;
+  --m3-on-primary: #381e72;
+  --m3-primary-container: #4f378b;
+  --m3-on-primary-container: #eaddff;
+  --m3-secondary-container: #4a4458;
+  --m3-on-secondary-container: #e8def8;
+  --m3-tertiary-container: #633b48;
+  --m3-on-tertiary-container: #ffd8e4;
+  --m3-inverse-primary: #6750a4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-m3-theme]):not([data-m3-seed]),
+  :root[data-m3-seed="purple"]:not([data-m3-theme]) {
+    --m3-primary: #d0bcff;
+    --m3-on-primary: #381e72;
+    --m3-primary-container: #4f378b;
+    --m3-on-primary-container: #eaddff;
+    --m3-secondary-container: #4a4458;
+    --m3-on-secondary-container: #e8def8;
+    --m3-tertiary-container: #633b48;
+    --m3-on-tertiary-container: #ffd8e4;
+    --m3-inverse-primary: #6750a4;
+  }
+}
+
+/* ---- blue ---- */
+:root[data-m3-seed="blue"] {
+  --m3-primary: #0b57d0;
+  --m3-on-primary: #fff;
+  --m3-primary-container: #d3e3fd;
+  --m3-on-primary-container: #041e49;
+  --m3-secondary-container: #dbe2f9;
+  --m3-on-secondary-container: #131c2b;
+  --m3-tertiary-container: #c2e7ff;
+  --m3-on-tertiary-container: #001d35;
+  --m3-inverse-primary: #a8c7fa;
+}
+
+:root[data-m3-seed="blue"][data-m3-theme="dark"] {
+  --m3-primary: #a8c7fa;
+  --m3-on-primary: #062e6f;
+  --m3-primary-container: #0842a0;
+  --m3-on-primary-container: #d3e3fd;
+  --m3-secondary-container: #3f4759;
+  --m3-on-secondary-container: #dbe2f9;
+  --m3-tertiary-container: #004a77;
+  --m3-on-tertiary-container: #c2e7ff;
+  --m3-inverse-primary: #0b57d0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-m3-seed="blue"]:not([data-m3-theme]) {
+    --m3-primary: #a8c7fa;
+    --m3-on-primary: #062e6f;
+    --m3-primary-container: #0842a0;
+    --m3-on-primary-container: #d3e3fd;
+    --m3-secondary-container: #3f4759;
+    --m3-on-secondary-container: #dbe2f9;
+    --m3-tertiary-container: #004a77;
+    --m3-on-tertiary-container: #c2e7ff;
+    --m3-inverse-primary: #0b57d0;
+  }
+}
+
+/* ---- green ---- */
+:root[data-m3-seed="green"] {
+  --m3-primary: #146c2e;
+  --m3-on-primary: #fff;
+  --m3-primary-container: #c4eed0;
+  --m3-on-primary-container: #072711;
+  --m3-secondary-container: #dce5dc;
+  --m3-on-secondary-container: #131f14;
+  --m3-tertiary-container: #cfe7ec;
+  --m3-on-tertiary-container: #051f23;
+  --m3-inverse-primary: #6dd58c;
+}
+
+:root[data-m3-seed="green"][data-m3-theme="dark"] {
+  --m3-primary: #6dd58c;
+  --m3-on-primary: #0a3818;
+  --m3-primary-container: #0f5223;
+  --m3-on-primary-container: #c4eed0;
+  --m3-secondary-container: #3f4a3f;
+  --m3-on-secondary-container: #dce5dc;
+  --m3-tertiary-container: #334b4f;
+  --m3-on-tertiary-container: #cfe7ec;
+  --m3-inverse-primary: #146c2e;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-m3-seed="green"]:not([data-m3-theme]) {
+    --m3-primary: #6dd58c;
+    --m3-on-primary: #0a3818;
+    --m3-primary-container: #0f5223;
+    --m3-on-primary-container: #c4eed0;
+    --m3-secondary-container: #3f4a3f;
+    --m3-on-secondary-container: #dce5dc;
+    --m3-tertiary-container: #334b4f;
+    --m3-on-tertiary-container: #cfe7ec;
+    --m3-inverse-primary: #146c2e;
+  }
+}
+
+/* ---- orange ---- */
+:root[data-m3-seed="orange"] {
+  --m3-primary: #8c4a00;
+  --m3-on-primary: #fff;
+  --m3-primary-container: #ffdcc2;
+  --m3-on-primary-container: #2e1500;
+  --m3-secondary-container: #f5dfd0;
+  --m3-on-secondary-container: #241a12;
+  --m3-tertiary-container: #ffdea6;
+  --m3-on-tertiary-container: #261a00;
+  --m3-inverse-primary: #ffb77c;
+}
+
+:root[data-m3-seed="orange"][data-m3-theme="dark"] {
+  --m3-primary: #ffb77c;
+  --m3-on-primary: #4a2500;
+  --m3-primary-container: #6a3600;
+  --m3-on-primary-container: #ffdcc2;
+  --m3-secondary-container: #53443a;
+  --m3-on-secondary-container: #f5dfd0;
+  --m3-tertiary-container: #584400;
+  --m3-on-tertiary-container: #ffdea6;
+  --m3-inverse-primary: #8c4a00;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-m3-seed="orange"]:not([data-m3-theme]) {
+    --m3-primary: #ffb77c;
+    --m3-on-primary: #4a2500;
+    --m3-primary-container: #6a3600;
+    --m3-on-primary-container: #ffdcc2;
+    --m3-secondary-container: #53443a;
+    --m3-on-secondary-container: #f5dfd0;
+    --m3-tertiary-container: #584400;
+    --m3-on-tertiary-container: #ffdea6;
+    --m3-inverse-primary: #8c4a00;
+  }
+}
+
+/* ==========================================================================
+ * Motion. The design defines m3-rise and m3-fade and honours reduced motion;
+ * both are reproduced here so animation lives with the tokens.
+ * ======================================================================== */
+
+@keyframes m3-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes m3-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --m3-motion-duration: 1ms;
+  }
+}

@@ -32,6 +32,9 @@
   <link rel="stylesheet" href="chrome://messenger/skin/shared/quickFilterBar.css" />
   <link rel="stylesheet" href="chrome://messenger/skin/shared/tree-listbox.css" />
   <link rel="stylesheet" href="chrome://messenger/skin/searchBox.css" />
+<!-- Material Design 3 tokens must load before about3Pane.css so the rewritten
+     rules can resolve --m3-* custom properties. -->
+  <link rel="stylesheet" href="chrome://messenger/skin/material-tokens.css" />
   <link rel="stylesheet" href="chrome://messenger/skin/about3Pane.css" />
 
   <link rel="localization" href="calendar/calendar.ftl" />

@@ -122,6 +122,27 @@ still do*. Nothing here may be dropped silently; anything intentionally cut need
 3. **Inline styles** — the design uses heavy inline `style="..."`. Thunderbird ships CSS files and
    the CSP forbids much of this. Styles must move into `about3Pane.css`.
 
+## Progress
+
+**Foundation — M3 design tokens** (`mail/themes/shared/mail/material-tokens.css`)
+
+Ported from the design's `vars()` generator and `app-data.js`. Packaged via
+`mail/themes/shared/jar.inc.mn`, loaded from `about3Pane.xhtml` *before*
+`about3Pane.css` so rewritten rules can resolve the custom properties.
+
+- All **24** `--m3-*` custom properties the design emits
+- **4 seeds** (purple/blue/green/orange) × light / explicit-dark / OS-dark = 12
+  accent blocks, verified complete
+- 3 density scales, shape scale, `m3-rise` / `m3-fade`, reduced-motion
+- `--m3-inverse-primary` correctly resolves to the *opposite* theme's primary
+- **No remote font fetch.** Roboto and Noto Sans HK are named first so a local
+  copy wins, then fall back to platform UI fonts. Noto Sans HK matters — without
+  a CJK fallback the Cantonese strings in `app-data.js` render as tofu.
+
+This is groundwork, not a feature. No checkbox below is ticked by it, and
+`about3Pane.js` / `about3Pane.xhtml` markup are untouched apart from the one
+`<link>`.
+
 ## Verification
 
 A rewrite is not "done" until every box above is ticked. Minimum gates:
