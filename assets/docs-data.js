@@ -86,9 +86,9 @@ export const CATEGORIES = [
             rows: [
               [{ en: "Design", zh: "設計" }, "complete — a334d745c32a7ab3, 140,780 bytes"],
               [{ en: "M3 token layer", zh: "M3 色彩變數層" }, "landed — material-tokens.css"],
-              [{ en: "Section stylesheets", zh: "各段樣式" }, { en: "in progress", zh: "做緊" }],
-              [{ en: "Feature parity", zh: "功能對等" }, { en: "not started — no checkbox ticked yet", zh: "未開始 —— 一個剔都未剔" }],
-              [{ en: "Windows installer CI", zh: "Windows 安裝檔 CI" }, { en: "no green build yet", zh: "未綠過" }],
+              [{ en: "Section stylesheets", zh: "各段樣式" }, { en: "six landed — 3,219 lines", zh: "六個做起咗 —— 3,219 行" }],
+              [{ en: "Feature parity", zh: "功能對等" }, { en: "verification in progress — a box is ticked only with named evidence", zh: "驗證緊 —— 要有實證先剔得" }],
+              [{ en: "Windows installer CI", zh: "Windows 安裝檔 CI" }, { en: "green — tb-155.0a1-b18-char-siu-bao, 81 MB", zh: "綠燈 —— tb-155.0a1-b18-char-siu-bao,81 MB" }],
             ],
           }},
           { p: {
