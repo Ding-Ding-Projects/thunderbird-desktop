@@ -18,7 +18,131 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
   is the entire safety argument.
 - Scope is **Windows only**. That does not relax parity, accessibility or localization,
   and macOS/Linux code paths must not be deleted.
-- **Nothing has ever been built and launched.** Every proof is static.
+- ~~**Nothing has ever been built and launched.** Every proof is static.~~
+  **NO LONGER TRUE — this is the single most important change since the last handoff.
+  See §0.1.**
+
+---
+
+## 0.1 STATE AT HANDOFF — 2026-07-29, and the one thing you must read first
+
+**The browser tests ran. This project is no longer static-proof-only.** For the whole of its
+life until today every claim here rested on reading selectors and computing specificity.
+There is now runtime evidence, and it is **not green**.
+
+`HEAD` = `48cc94017df` on `design-import/thunderbird-3pane`, pushed. **0 behind `upstream/main`.**
+Contract: **33 / 38**. Guards, comments-stripped: **133** total, `material-tokens.css` at **0**.
+`about3Pane.js` untouched. `git diff --shortstat upstream/main...HEAD -- mail/` = 12 files,
+**6120 insertions, zero deletions**.
+
+### The test results, honestly
+
+| Suite | Verdict |
+|---|---|
+| harness self-test (asserts a failure IS reported) | ✅ so the suite is **not** vacuous in that respect |
+| `static` — `browser_parsable_css` over the **packaged** M3 sheets | ✅ **success** — our CSS parses in a real build |
+| `chrome` — spaces toolbar, tabmail | ✅ success |
+| project-authored M3 tests | ⚠️ step said **success** while the log holds **13 failures** — see below |
+| `3-pane` — thread tree, folder tree, pane focus, findbar | ❌ failure |
+| `widgets` — tree-view, pane-splitter, thread-card tags | ❌ failure |
+| `folder pane`, folder modes, quick filter | ❌ failure |
+
+**128 real failures** across **25 distinct sites** once the `changed preference:` noise class is
+excluded. That noise is genuinely noise: the `chrome` suite logged 7 such entries and still
+passed, so the gate tolerates them.
+
+**The failures are deterministic, not flaky.** Runs `30495583685` (`4bc02b0`) and `30498533920`
+(`6548235`, after merging 4 upstream commits) produced **byte-identical** failure sets: 128 and
+128, zero fixed, zero new. Do not spend time on a flakiness theory.
+
+### The two open questions, and the experiment already running for one of them
+
+**1. Are those failures ours?** Unresolved, and it decides five contract boxes. Evidence both ways:
+
+- *Toward upstream's*: incoming upstream commit `fb6114783cc` is **"Bug 2056142 — Fix bct1
+  failures part 1 — Handle virtual tree a11y click checks"**, which matches the exact text of
+  the worst cluster (`browser_paneSplitter.js`, **59** failures, "handleEvent() was unable to
+  perform a11y checks on hidden node ... tagName: html"). Upstream is mid-way through fixing
+  its own browser-chrome breakage. Note "part 1" — the rest has not landed.
+- *Toward ours*: `browser_folderPaneVisibility.js` and `browser_messagePaneVisibility.js` both
+  time out on **"the pane should reach the stored width — timed out after 50 tries"**. A test
+  polling for a **width** that never arrives is the classic CSS-regression signature, and we
+  style the splitters. If those two are ours, the **session/state persistence** box — ticked on
+  the argument that splitter sizes are inline custom properties that out-rank our rules — is
+  **void** and must be revoked.
+
+> [!IMPORTANT]
+> **A decisive experiment is in flight: run `30499955896` on branch `experiment/no-m3-css`
+> (commit `3ea83aad517`).** That branch is `HEAD` with **only** the eight `<link>` elements this
+> project added removed — 6 from `about3Pane.xhtml`, 2 from `messenger.xhtml` — so no M3 rule
+> applies while DOM, JS and manifests stay byte-identical. **Read its result first, before
+> theorising:**
+> - same 25 sites still fail ⇒ the restyle is **exonerated by construction**;
+> - failures vanish ⇒ they are **ours**, and the contract must record it.
+>
+> ```bash
+> gh run view 30499955896 --repo Ding-Ding-Projects/thunderbird-desktop --json conclusion,jobs
+> ```
+>
+> The branch is a **throwaway — never merge it.** Delete it once the answer is recorded.
+> It was built with `git hash-object` / `update-index` / `write-tree` / `commit-tree` /
+> `update-ref` against an isolated `GIT_INDEX_FILE`, so this working tree was never checked
+> out — the same discipline `gh-pages` uses, and for the same reason.
+
+**2. Can our own suite's "success" ever be trusted?** `m3.raw.json` records **13** `test_status`
+FAIL entries in `browser_m3Accessibility.js` (subtest `testDecorativeRowButtons`), each of the
+form *`button-flat tree-button-thread should use aria-hidden="true" — "hidden" is not a valid
+ARIA token (audit A4, upstream markup, not ours to change)`* — and the workflow reported that
+step **`success`**. Either the gate is tolerating real failures, or those assertions are written
+as expected-failures. **This matters because the accessibility box is supposed to close on a
+green run of exactly this suite**, so if the gate passes a failing suite, a green verdict from it
+proves nothing. Worse, the assertion asserts a **known-broken upstream** behaviour (the
+pre-existing `aria-hidden="hidden"` invalid-token bug, 11 occurrences, recorded in
+`A11Y-L10N-AUDIT.md` as **A4**), so it can *never* go green against unmodified upstream markup.
+Decide whether it should instead assert the invalid token is *present*, be marked `todo`, or be
+scoped to nodes we own.
+
+Also still to verify: **does the test enable accessibility at all?** `aria-level` does not exist
+until a screen reader runs, because `_setRowAriaAttributes` short-circuits unless
+`Services.appinfo.accessibilityEnabled`. If the test asserts `aria-level` without enabling
+accessibility, those assertions are **vacuous** and a green run is worthless.
+
+### Where the logs are
+
+Both runs' artefacts are downloaded, including **four `mozilla-test-fail-screenshot_*.png`** —
+the first images of this restyle actually running, which nobody has yet described:
+
+```
+<scratchpad>/testlogs/m3-browser-test-logs/          # run 30495583685, pre-merge
+<scratchpad>/testlogs-merged/m3-browser-test-logs/   # run 30498533920, post-merge
+```
+
+They are mozlog JSONL — one JSON object per line with an `action` field. Parse with python;
+`grep` will mislead you. Re-download with
+`gh run download <id> --repo Ding-Ding-Projects/thunderbird-desktop --dir <path>`.
+
+### Work that was in flight and is NOT finished
+
+- A **triage wave** (`wf_3b162655-6b6`) was running when this handoff was written: three
+  per-suite triage agents, a result-gate auditor, and a synthesiser. Its verdict has not been
+  read or acted on. Journal:
+  `.claude/projects/…/subagents/workflows/wf_3b162655-6b6/journal.jsonl`.
+- An earlier wave (`wf_a3fb50ee-5d6`) was **killed mid-flight** when the process exited. Its
+  phase-1 output was salvaged, verified by hand and committed as `5413799559b`; phases 2-5
+  never ran. Resume with
+  `Workflow({scriptPath: …/material-mail-five-boxes-wf_a3fb50ee-5d6.js, resumeFromRunId: "wf_a3fb50ee-5d6"})`
+  if you want those five boxes attacked again.
+- `design/REWRITE-CONTRACT.md` has **not** been updated with anything from the test run. No box
+  should move until the `experiment/no-m3-css` result is in.
+
+### Two process lessons worth more than the code
+
+1. **Do not commit a wave's output before its completion notification arrives.** Doing so split
+   one wave across three commits, put two agents in `m3-thread-pane.css` simultaneously, and the
+   extra push is what cancelled the first browser-test run. Now written up as §5.8 of `AGENTS.md`.
+2. **A cancelling concurrency group is only safe when the run's output is disposable.** That is
+   CI blocker #10 below, and it was introduced in a file whose own comment was correctly
+   reasoning about the identical blocker #3 four lines above.
 
 ---
 
@@ -75,7 +199,12 @@ surface and are owned together.
 
 ---
 
-## 2. The nine CI blockers, and their fixes
+## 2. The CI blockers, and their fixes
+
+> [!WARNING]
+> **Blockers 1-9 below are fixed. Blocker #10 is listed at the end of this section and was
+> fixed in `65482350c23` / `48cc94017df`.** It is the reason the browser tests could never
+> finish, and it is the same shape as #7 (the concurrency group that ate queued releases).
 
 Nine independent things had to be cleared before the Windows installer workflow
 went green. Each cost at least one red run. They are recorded here in the order a
@@ -228,6 +357,37 @@ mozilla-central. On Windows the NSIS installer is a side effect of `make package
 `packager.mk`'s `make-package` rule runs `$(MAKE) -C windows ZIP_IN=$(PACKAGE) installer`
 when `OS_ARCH=WINNT` and `MOZ_PKG_FORMAT=ZIP`, and `comm/mail/installer/windows/Makefile.in`
 supplies that target through `makensis.mk`.
+
+### 10. A cancelling concurrency group meant the browser tests could never finish
+
+`browser-tests-m3.yml` triggered on every push to `design-import/**` while declaring
+`cancel-in-progress: true` — but the job needs a **full** build and carries
+`timeout-minutes: 330`, and this project's own rules mandate pushing frequently. Every run was
+superseded minutes in.
+
+Proof: run `30495182348` on `f85b5d7` was **cancelled** 6m33s into `Bootstrap build
+environment`, five seconds after the push of `4bc02b0` started run #2. Fifteen steps had
+succeeded; Configure, Build and all six suites were skipped.
+
+The comment defending the group argued that *"cancelling an in-flight test run is safe: unlike
+the installer it produces no artefact anyone needs"* — four lines below a correct explanation of
+blocker #7. It is the same bug, written while looking straight at the write-up of the same bug.
+The artefact **is** what someone needs: the accessibility box cannot close on static proof, so a
+green run of this suite is the only evidence that can ever tick it.
+
+Fixed by removing the `push` and `pull_request` triggers and the concurrency block entirely,
+leaving `workflow_dispatch` plus a nightly cron. **Verified empirically:** run #3 survived two
+pushes that landed during it, and no duplicate run spawned.
+
+**Caveat you must know:** the nightly cron **cannot fire**. GitHub runs scheduled workflows only
+from the default branch, and this workflow exists only on `design-import/thunderbird-3pane`
+(`git ls-tree origin/main -- .github/workflows/` is empty). It is labelled inert in the file.
+`workflow_dispatch` *does* work from a non-default branch, contrary to folklore — verified:
+`gh workflow run browser-tests-m3.yml --ref design-import/thunderbird-3pane -f suite=all`
+returned run `30498533920`. So **the suite runs only when someone dispatches it.**
+
+The general rule: **a cancelling group is only safe when the run's output is genuinely
+disposable.** Ask what depends on the output, not what the job is called.
 
 ### Three more that cost runs but are not on the list of nine
 
