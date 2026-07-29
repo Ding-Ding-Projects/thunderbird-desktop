@@ -134,7 +134,19 @@ body:is(.layout-classic, .layout-wide) #messagePane {
    * tinted through -moz-context-properties, NOT through mask-image the way the
    * design does it — as a mask these SVGs resolve context-fill to `none` and
    * render nothing. Using --icon-mail-lg rather than shipping design/icons/*
-   * keeps the compact/touch icon variants and theme switching working. */
+   * keeps the compact/touch icon variants and theme switching working.
+   *
+   * NOT GUARDED, and that is the deliberate call rather than an oversight. The
+   * ::before does not exist in upstream's DOM — this file invents it with
+   * `content: ""` — so there is no themed declaration anywhere in the cascade
+   * for a :root:not([lwtheme]) guard to hand the element back to. Guarding these
+   * two would leave fill and stroke at their initial values (black / none) and
+   * paint a solid black glyph on every themed profile, dark themes included:
+   * standing the paint down would not theme the watermark, it would break it.
+   * Same reasoning, and the same wording, as m3-quick-filter.css's
+   * .qfb-search-button-icon. The prefers-contrast counterpart at the foot of
+   * this file is unguarded for the matching reason — it undoes an unguarded
+   * rule, so the pair ties and source order decides. */
   -moz-context-properties: fill, stroke, fill-opacity;
   fill: color-mix(in srgb, var(--m3-outline-variant) 35%, transparent);
   stroke: var(--m3-outline-variant);

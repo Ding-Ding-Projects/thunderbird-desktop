@@ -268,7 +268,20 @@
 #threadPane > #threadPaneHeaderBar > .list-header-bar-container-end {
   flex: 0 0 auto;
   gap: 4px;
-  padding: 8px 0;
+  /* The inline 4px is a focus-ring gutter, not decoration, and it must not be
+   * rounded down to 0. threadPane.css:590-596 puts `overflow: hidden` on this
+   * container, which clips the INK of its descendants — a button's own outline
+   * is not clipped by its own overflow, but it is clipped by an ancestor's.
+   * Upstream sized the gutter at 3px against its own 2px ring at
+   * `outline-offset: 1px` (threadPane.css:603) — 1 + 2 = 3, exact. This file
+   * draws the same two buttons with --m3-tp-focus-ring, which is 3px wide, so
+   * the ink reaches 1 + 3 = 4px. At `padding: 8px 0` the first button's
+   * inline-start edge and the last button's inline-end edge sat flush against
+   * the clip edge and lost that side of the ring outright. 4px each side, and
+   * both rings close.
+   *
+   * The block half is already safe at 8px and is unrelated to this. */
+  padding: 8px 4px;
 }
 
 #threadPane #threadPaneFolderName.list-header-title {
@@ -445,11 +458,40 @@
     border-radius: 0;
     font-size: var(--m3-menu-item-font-size, var(--m3-font-size));
 
-    /* Deliberately unguarded. This pair is not a surface: it is the radio /
-     * checkbox tick itself, drawn by stroking and filling the menuitem's own
-     * indicator. Standing it down under a theme would leave "which sort order
-     * is active" with no mark at all, which is a loss of state, not a loss of
-     * palette. */
+    /* Deliberately unguarded, but NOT for the reason an earlier revision of
+     * this comment gave: it claimed the pair draws the radio / checkbox tick
+     * and that standing it down would leave "which sort order is active" with
+     * no mark. That is wrong on Windows, and Windows is this project's
+     * exclusive target. Re-derived against the platform sheets:
+     *
+     *   toolkit menu.css, `@media (-moz-platform: windows)`:
+     *     menuitem[checked] > .menu-icon {
+     *       -moz-context-properties: fill, fill-opacity;
+     *       fill: currentColor;
+     *       fill-opacity: var(--menu-arrow-opacity);
+     *       content: url("chrome://global/skin/icons/menu-check.svg");
+     *     }
+     *
+     * Three consequences, none of which leave the tick to us:
+     *   1. `fill` is declared ON `.menu-icon`, so the icon's own explicit value
+     *      beats anything this rule inherits down from the menuitem.
+     *   2. `stroke` is not in that -moz-context-properties list at all, so a
+     *      stroke can never enter menu-check.svg however it is spelt.
+     *   3. That rule is (0,2,1) and out-ranks menu.css's iconic-item
+     *      `content: var(--menuitem-icon)` at (0,1,1), so it also wins for a
+     *      checked .menuitem-iconic row — i.e. it is the only content path.
+     *      mail/themes/windows/mail/contextMenu.css touches .menu-icon only
+     *      for display / margin, never content or fill.
+     *
+     * So on Windows the tick is upstream's, painted in currentColor at
+     * --menu-arrow-opacity, and it survives with or without this pair — which
+     * is exactly what the "commands stay correctly checked" contract box
+     * needed to be true. The pair is kept, not deleted, because it is still
+     * the correct expression of the M3 accent for the platforms whose
+     * indicator does read fill/stroke, and deleting a live cross-platform
+     * declaration is out of scope for a Windows-only pass. It stays unguarded
+     * because a state mark must not depend on which theme is installed; that
+     * part of the original reasoning was sound. */
     &[checked],
     &[selected="true"] {
       stroke: var(--m3-primary);
@@ -539,12 +581,24 @@
 
   & tr.card-layout > td > .card-container {
     border-radius: var(--m3-radius-l);
-    /* Kept at 1px transparent rather than removed: the border is inside the
-     * border-box, so dropping it would change the card's usable height. The
-     * colour is `transparent`, i.e. the absence of paint — it takes no palette
-     * decision away from a theme, and dropping it under [lwtheme] would resize
-     * every card. */
-    border: 1px solid transparent;
+    /* Kept at 1px rather than removed: the border is inside the border-box, so
+     * dropping it would change the card's usable height, and tree-view.mjs
+     * sizes its spacers from ThreadCard.ROW_HEIGHT rather than from the rendered
+     * row. WIDTH AND STYLE ONLY — the colour is split out into the guarded rule
+     * below.
+     *
+     * It used to be the `border: 1px solid transparent` shorthand, defended as
+     * "transparent is the absence of paint, so it takes no palette decision away
+     * from a theme". It does take one. This selector is (2,3,2) and every
+     * competitor in tree-listbox.css is class/attribute-only, so the shorthand
+     * beat `& .card-container { border-color: var(--tree-card-border) }`
+     * (tree-listbox.css:226) and the whole --tree-card-border-* family under a
+     * lightweight theme too — the themed card border simply never painted.
+     * Splitting keeps the metrics argument intact (width and style are still
+     * unconditional) while handing the colour back, exactly as
+     * m3-quick-filter.css:362-364 already does for the chip hairline. */
+    border-width: 1px;
+    border-style: solid;
     column-gap: 8px;
 
     /* Only the inline half of --m3-row-padding is honoured. The block half is
@@ -563,6 +617,30 @@
     @media (-moz-overlay-scrollbars) {
       padding-inline-end: max(env(scrollbar-inline-size), 8px);
     }
+  }
+
+  /* The colour half of the border above.
+   *
+   * SPELT DELIBERATELY SHORT. `&` carries the parent's own weight, so this
+   * resolves to :root (0,1,0) + :not([lwtheme]) (0,1,0) + #threadPane +
+   * #threadTree + [rows="thread-card"] (2,1,0) + .card-container (0,1,0) =
+   * (2,4,0). Two ids is already more than every card-border rule in
+   * tree-listbox.css can reach — that file is class/attribute-only throughout —
+   * so this wins wherever it applies. And (2,4,0) is deliberately NOT enough to
+   * beat the prefers-contrast fallback at the foot of this file,
+   * `#threadPane #threadTree[rows="thread-card"] tr.card-layout.selected > td >
+   * .card-container` at (2,4,2), which takes the element column 2-0.
+   *
+   * That gap is the whole point of the arithmetic. Guarding a colour creates a
+   * guarded competitor for whatever undoes it, and a media query adds no
+   * specificity — so the obvious spelling (`& tr.card-layout > td >
+   * .card-container`, (2,5,2)) would have silently deleted the high-contrast
+   * selected-card border for everyone. Staying under the fallback lets it stay
+   * unguarded, which is what it must be: it paints currentColor, it overrides
+   * nothing of ours once this rule has stood down, and a theme user in high
+   * contrast has to keep it. */
+  :root:not([lwtheme]) & .card-container {
+    border-color: transparent;
   }
 
   /* The current row. Selection is a flat fill, so the keyboard cursor needs
@@ -638,7 +716,12 @@
 
     &:focus-visible {
       outline: 2px solid var(--m3-primary);
-      outline-offset: 1px;
+      /* NEGATIVE, like every other in-row ring in this file. threadPane.css:462
+       * puts `contain: strict` on `tr:is(.table-layout, .card-layout)`, and
+       * paint containment clips descendants at the row's overflow clip edge. A
+       * positive offset spends 3px of ink outside the button's border box with
+       * no guarantee the row has 3px of slack to give. */
+      outline-offset: -1px;
     }
   }
 
@@ -655,7 +738,11 @@
 
     &:focus-visible {
       outline: 2px solid var(--m3-primary);
-      outline-offset: 1px;
+      /* Negative for the `contain: strict` reason given at the twisty above,
+       * and to match `tbody .button-column .button-flat:focus-visible` in
+       * section 7, which is these same six buttons in table view and already
+       * uses -2px. */
+      outline-offset: -1px;
     }
   }
 
@@ -941,7 +1028,14 @@
 
   &:focus-visible {
     outline: 2px solid var(--m3-primary);
-    outline-offset: 1px;
+    /* This is the one where the clip is not a risk but arithmetic.
+     * threadPane.css:454 sizes `.table-layout .twisty` at exactly 16px square;
+     * about3Pane.js:5242 floors the row at `Math.max(rowHeight, 18)`. So at the
+     * tightest density the twisty has 1px of block slack inside a row carrying
+     * `contain: strict` (threadPane.css:462), and a 1px offset plus a 2px width
+     * asks for 3 - two thirds of the ring was being clipped away, top and
+     * bottom. Inside the button it always paints in full. */
+    outline-offset: -1px;
   }
 }
 
@@ -1093,9 +1187,11 @@
    * have already stood down and about3Pane.css / list-container.css run their own
    * forced-colors fallbacks.
    *
-   * The focus-ring group at the end is deliberately NOT prefixed - the rings it
-   * overrides are themselves unguarded, so it already out-ranks them, and a
-   * high-contrast focus ring must never depend on the installed theme. */
+   * The focus-ring group at the end is deliberately NOT prefixed - a
+   * high-contrast focus ring must never depend on the installed theme, and the
+   * rings it overrides are themselves unguarded so there is nothing to match.
+   * It does NOT follow that it out-ranks them: the guard was never the problem
+   * there, the ID COUNT is. See the note on that group for the arithmetic. */
   /* Hand every surface back to the system palette. The tonal fills above are
    * scoped to `not (forced-colors)`; these are the few places that set a
    * colour outright rather than through a variable. */
@@ -1173,9 +1269,118 @@
     color: CanvasText;
   }
 
-  /* Focus rings must not rely on the accent role, which forced-colors flattens. */
+  /* Focus rings must not rely on the accent role, which forced-colors flattens.
+   *
+   * The first two selectors are the original catch-all. They are (1,2,0) and
+   * (2,2,2), and EVERY focus ring this file draws out-specifies them, because
+   * each one is written under #threadPane #threadTree - two IDs, not one:
+   *
+   *   base rule                                        spec     catch-all
+   *   ------------------------------------------------ -------- ---------
+   *   tbody:focus-visible:not(:has(> tr.current))       (2,3,1)  (1,2,0)
+   *   #threadPaneDisplayButton.button:focus-visible     (2,2,0)  (1,2,0)
+   *   #threadPaneQuickFilterButton.button:focus-visible (2,2,0)  (1,2,0)
+   *   [rows=thread-card] td button.twisty               (2,3,2)  (1,2,0)
+   *   [rows=thread-card] .card-container row buttons    (2,4,0)  (1,2,0)
+   *   [rows=thread-card] current .card-container        (2,6,2)  (2,2,2)
+   *   thead .tree-table-cell-container button           (2,3,2)  (1,2,0)
+   *   thead .button-column-picker                       (2,3,1)  (1,2,0)
+   *   [rows=thread-row] current tr.table-layout         (2,5,1)  (1,2,0)
+   *   [rows=thread-row] .button-column .button-flat     (2,4,2)  (1,2,0)
+   *   tr.table-layout .twisty                           (2,3,1)  (1,2,0)
+   *
+   * So the catch-all lost every one of them and Highlight never landed. The
+   * rings still PAINTED - forced colors does not flatten the losing
+   * var(--m3-primary) to a fixed CanvasText, it REVERTS the declaration
+   * (tweak_when_ignoring_colors in servo/.../properties/cascade.rs rewrites any
+   * non-system, non-currentColor value to `revert`), and outline-color's
+   * initial value is currentColor, so the ring took the row's own foreground -
+   * so nothing disappeared, which is exactly why it went unnoticed; the accent
+   * that says "this is the focused thing" is what was lost. Note what that
+   * means before touching the group: on a SELECTED row that foreground is
+   * SelectedItemText, and Highlight there is the ground's own colour. The
+   * correction below exists for precisely that case and must move with any
+   * selector added here.
+   * The fix is m3-folder-pane.css's: restate each base selector verbatim
+   * so the pair ties and this block wins on source order. Never !important, and
+   * never a guard - see the block header.
+   *
+   * The catch-all is KEPT as the first selector, not replaced: it is the only
+   * cover for focusable controls in #threadPane that this file styles no ring
+   * for at all (#threadPaneNotificationBox buttons, and the quick-filter bar's
+   * own controls where m3-quick-filter.css draws no forced-colors ring). */
   #threadPane :is(button, [is="tree-view-table-body"]):focus-visible,
-  #threadPane #threadTree tr.current > td > .card-container {
+  #threadPane #threadTree tr.current > td > .card-container,
+  #threadPane #threadTree [is="tree-view-table-body"]:focus-visible:not(:has(> tr.current)),
+  #threadPane #threadPaneDisplayButton.button:focus-visible,
+  #threadPane #threadPaneQuickFilterButton.button:focus-visible,
+  #threadPane #threadTree[rows="thread-card"] td button.twisty:focus-visible,
+  #threadPane #threadTree[rows="thread-card"] .card-container :is(.button-star, .button-spam, .tree-button-more):focus-visible,
+  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.card-layout.current > td > .card-container,
+  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"] > tr.card-layout.current:focus-within > td > .card-container,
+  #threadPane #threadTree thead[is="tree-view-table-header"] .tree-table-cell-container button:focus-visible,
+  #threadPane #threadTree thead[is="tree-view-table-header"] .button-column-picker:focus-visible,
+  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.table-layout.current,
+  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"] > tr.table-layout.current:focus-within,
+  #threadPane #threadTree[rows="thread-row"] tbody .button-column .button-flat:focus-visible,
+  #threadPane #threadTree tr.table-layout .twisty:focus-visible {
     outline-color: Highlight;
+  }
+
+  /* GROUND-AWARE CORRECTION. Highlight IS SelectedItem, so it must never be
+   * painted on a SelectedItem ground.
+   *
+   * `Highlight` and `SelectedItem` are two names for one colour on Windows:
+   * widget/windows/nsLookAndFeel.cpp:147-196 answers ColorID::Highlight and
+   * ColorID::Selecteditem from the same GetColorForSysColorIndex(COLOR_HIGHLIGHT).
+   * Every ring in the group above is drawn on the CURRENT row, and the current
+   * row is also the selected row for every ordinary arrow-key move through the
+   * list. In forced colors that row's ground is SelectedItem outright:
+   *   - cards: tree-listbox.css declares --tree-card-background-selected-current:
+   *     SelectedItem in its own forced-colors block, applied through
+   *     --tree-card-background by `.card-layout.selected.current` in a focused
+   *     tbody;
+   *   - table: tree-listbox.css paints `.table-layout.selected` in a focused
+   *     tbody with --listbox-focused-selected-bg, which the same block sets to
+   *     SelectedItem.
+   * Highlight on that ground is the ground's own colour - 1:1 - so the keyboard
+   * cursor disappears in Windows High Contrast on the one row the user is
+   * actually on. Measured against the stock themes: white CanvasText on
+   * #1AEBFF SelectedItem (High Contrast Black) is 1.55:1; the ring this
+   * corrects to is 13.6:1 there.
+   *
+   * currentColor rather than a second system keyword, because the ground is NOT
+   * always SelectedItem: threadPane.css paints a TAGGED selected row with
+   * var(--tag-color), an absolute colour, and forced colors swaps absolute
+   * background colours for the default background instead of honouring them
+   * (servo/components/style/properties/cascade.rs, tweak_when_ignoring_colors) -
+   * on that row SelectedItemText would be the invisible one. currentColor
+   * tracks whichever foreground upstream chose for the ground it actually
+   * painted (SelectedItemText on SelectedItem, CanvasText on Canvas) and is
+   * honoured verbatim in forced colors - Color::CurrentColor returns true from
+   * honored_in_forced_colors_mode, unlike a token, which is reverted. It is
+   * also exactly what these rings resolved to while the group above was dead,
+   * so this restores a rendering that was already right instead of inventing
+   * one.
+   *
+   * Specificity, one class above each arm it corrects, so it wins on weight and
+   * not on source order: (2,7,2) vs the cards' (2,6,2), (2,6,1) vs the table's
+   * (2,5,1), and the two button arms at (2,6,3) / (2,6,2) vs (2,4,0), (2,3,2),
+   * (2,4,2) and (2,3,1). The in-row buttons are included because they sit
+   * INSIDE the selected row, so their ground is SelectedItem too; `.selected`
+   * alone is the right condition for them, while the row's own ring needs
+   * `.current.selected` - a selected but non-current card is painted
+   * color-mix(Canvas 90%, SelectedItem), i.e. near-Canvas, where Highlight is
+   * correct and currentColor would be the weaker choice.
+   *
+   * Unguarded, like the group it corrects: a high-contrast keyboard cursor must
+   * not depend on whether a lightweight theme is installed. */
+  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.card-layout.current.selected > td > .card-container,
+  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"] > tr.card-layout.current.selected:focus-within > td > .card-container,
+  #threadPane #threadTree[rows="thread-card"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.card-layout.selected > td button:focus-visible,
+  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.table-layout.current.selected,
+  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"] > tr.table-layout.current.selected:focus-within,
+  #threadPane #threadTree[rows="thread-row"] [is="tree-view-table-body"]:is(:focus, :focus-within) > tr.table-layout.selected button:focus-visible {
+    outline-color: currentColor;
   }
 }

@@ -48,25 +48,44 @@ body#paneLayout {
   font-size: var(--m3-font-size);
   font-weight: var(--m3-font-weight);
 
-  /* Re-declared in px *in the same rule that sets font-size*. about3Pane.css
-   * defaults these to 18em/54em/36em, which resolve against body's font-size,
-   * so a body font-size and these three defaults have to be reasoned about
-   * together. 864/576 are 54em/36em at a 16px basis; 272px is the design's
-   * folder pane width — all three are only *defaults*: PaneSplitter writes the
-   * live value as an inline custom property on this element, which still wins.
+  /* Re-declared *in the same rule that sets font-size*. about3Pane.css:75-77
+   * defaults these to 18em/54em/36em on `body`, which resolve against body's
+   * font-size, so a body font-size and these three defaults have to be reasoned
+   * about together. All three are only *defaults*: PaneSplitter writes the live
+   * value as an inline custom property on this same element
+   * (`pane-splitter.js` _updateStyling -> parentNode.style), and inline beats
+   * any stylesheet by origin, so a dragged pane is unaffected by this block.
    *
-   * NOTE (a11y pass): --m3-font-size is now `1rem`, not a hard 14px, so the
-   * `font-size` above no longer shrinks the body and these px values no longer
-   * compensate for anything — they are a plain design default. The residual
-   * cost is that they do not grow with the UIFontSize setting the way
-   * about3Pane.css's em defaults would, for the one case of a user who has
-   * raised the font size and never dragged a splitter. Left alone rather than
-   * re-derived here because pane sizing is the layout contract's call, not the
-   * accessibility pass's. Do NOT "restore" an absolute px --m3-font-size to
-   * justify this block: that is what severed the font-size control. */
-  --folderPaneSplitter-width: 272px;
-  --messagePaneSplitter-width: 864px;
-  --messagePaneSplitter-height: 576px;
+   * MUST STAY IN `em`, NOT px. `about3Pane.js:169` calls
+   * `UIFontSize.registerWindow(window)`, and `UIFontSize.updateWindow`
+   * (`mail/modules/UIFontSize.sys.mjs:194-198`) implements the font-size
+   * accessibility control by writing an inline `font-size: <n>px` onto THIS
+   * document's documentElement. `--m3-font-size` is a calc of 1rem scaled by
+   * --m3-font-scale (material-tokens.css:60; the scale is 100 and is never
+   * rewritten at runtime), so the `font-size` above makes 1em on this element
+   * equal 1rem, and an `em` default therefore tracks `mail.uifontsize` exactly
+   * the way upstream's 18em/54em/36em do.
+   * A px default does not: for a user who raises the UI font size and has never
+   * dragged a splitter, the setting restores and stops changing the pane's
+   * default width. That is a session-persistence regression, and it is why
+   * `design/REWRITE-CONTRACT.md` held the persistence box open.
+   *
+   * `em` is safe here even though these are custom properties: an unregistered
+   * custom property carries its `em` token unresolved and the unit is resolved
+   * at the *using* element. The only consumers are about3Pane.css's four
+   * `body.layout-*` / `body.account-central` grid-template rules — the same
+   * element these are declared on — so the basis is identical either way.
+   *
+   * Values: 17em is the design's 272px folder pane at the 16px default basis
+   * (upstream's own default is 18em); 54em/36em are byte-identical to
+   * about3Pane.css and were only ever spelt 864px/576px here. Nothing changes
+   * at the default font size; everything now scales with the pref.
+   *
+   * Do NOT "restore" an absolute px --m3-font-size to justify a px block here:
+   * that is what severed the font-size control in the first place. */
+  --folderPaneSplitter-width: 17em;
+  --messagePaneSplitter-width: 54em;
+  --messagePaneSplitter-height: 36em;
 }
 
 /* ==========================================================================

@@ -538,5 +538,21 @@
     button.tab-close-button {
       transition: none;
     }
+
+    /* The close button's fade needs its base selector restated, exactly like a
+     * prefers-contrast fallback does. A media query adds no specificity, and the
+     * transition it stands down is not declared on `button.tab-close-button`
+     * (0,3,1 with the guard) — it is declared inside the hover/fine gate on
+     * `.tabmail-tab:not(:hover, [selected]):not(:focus-within)
+     * button.tab-close-button`, which is (0,6,1). The short form above lost, so
+     * a user who asked for no motion still got the 150ms opacity fade:
+     * --m3-chrome-transition is a literal `150ms ease`, not
+     * var(--m3-motion-duration), so material-tokens.css's 1ms clamp never
+     * reached it. Restated at (0,6,1) it ties and wins on source order.
+     * #alltabs-button above needs no such help: its base is
+     * `:root:not([lwtheme]) #alltabs-button`, (1,2,0) against (1,2,0). */
+    .tabmail-tab:not(:hover, [selected]):not(:focus-within) button.tab-close-button {
+      transition: none;
+    }
   }
 }

@@ -389,12 +389,37 @@
  * have to be excluded by hand or selecting an Inbox would silently drop its
  * colour. Excluding them hands those rows straight back to about3Pane.css.
  *
- * NOT guarded, deliberately: this is the folder-colour path. The whole rule is
- * calibrated against about3Pane.css's own specificity (see LOAD ORDER at the
- * top of the file), and prefixing it would escalate that specificity and break
- * the hand-off it depends on. --icon-color is also a definition consumed by
- * -moz-context-properties, not a paint of its own. */
-#folderTree li.selected:not([data-folder-type], [data-server-type], [data-tag-key]) > .container > .icon {
+ * GUARDED, like every other colour-bearing rule in this file. An earlier
+ * revision left it unprefixed and defended that with "prefixing it would
+ * escalate the specificity and break the hand-off to about3Pane.css". The
+ * arithmetic disproves it. This selector is (1,4,1) unguarded — #folderTree
+ * (1,0,0) + li (0,0,1) + .selected (0,1,0) + :not() taking its most specific
+ * argument, an attribute selector (0,1,0) + .container (0,1,0) + .icon (0,1,0)
+ * — and (1,6,1) with the guard's +(0,2,0). Its only non-!important competitor
+ * for this element is about3Pane.css's `#folderTree { & .icon }`, which expands
+ * to `#folderTree .icon` = (1,1,0): three class components below us BEFORE the
+ * guard, so the guard cannot change who wins when no theme is installed. The
+ * one other candidate, `#folderTree li[data-server-type="rss"] > ul >
+ * li:not(...) .icon` at (1,3,3), loses on the same column. Nothing is
+ * "calibrated" here and nothing was pinned; the hand-off never depended on the
+ * missing prefix.
+ *
+ * What the guard buys is the case it exists for. With a lightweight theme
+ * installed this rule stops matching, `--icon-color` falls back to
+ * about3Pane.css:258's `--folder-color-folder`, and the theme's own selection
+ * fill keeps its own icon colour — instead of a fixed M3 lilac being painted
+ * over it. That was a real bug, not a hypothetical one.
+ *
+ * --icon-color is consumed by -moz-context-properties rather than painted
+ * directly, but the value it carries IS a colour and it is set on a live
+ * element, so rule 1 applies. The zero-guard exemption belongs to
+ * material-tokens.css, whose definitions sit on no element at all.
+ *
+ * The prefers-contrast counterpart at the foot of this file
+ * (`#folderTree li.selected > .container > .icon { --icon-color: currentColor
+ * !important }`) is unaffected either way: it is !important, so it outranks
+ * this rule guarded or not. No rule-2 fallback regression is possible here. */
+:root:not([lwtheme]) #folderTree li.selected:not([data-folder-type], [data-server-type], [data-tag-key]) > .container > .icon {
   --icon-color: var(--m3-on-secondary-container);
 }
 
@@ -503,13 +528,20 @@
   color: var(--m3-error);
 }
 
-/* about3Pane.css marks this !important, so matching it is the only way to
- * retint. Busy and errored rows are excluded so they keep beating the TLS tint,
- * exactly as source order made them do before this file existed.
+/* about3Pane.css marks its TLS tint !important, so this one must be !important
+ * too or it never enters the contest. Busy and errored rows are excluded so
+ * they keep beating the TLS tint, exactly as source order made them do before
+ * this file existed.
  *
- * NOT guarded, same reason as the selected-row --icon-color above: this is the
- * folder-colour path, it is pinned to about3Pane.css's specificity on purpose,
- * and a prefix would break that pinning. */
+ * NOT guarded — rule 3, the !important exemption, not the reason the
+ * selected-row --icon-color above used to give (that rule is guarded now, and
+ * the reason it cited was wrong). Both this rule and its competitor
+ * `#folderTree li.tls-error > .container > .icon` (1,3,1) are !important, so
+ * the winner is decided on specificity alone and ours at (1,4,1) already takes
+ * it; a guard would neither help nor hurt the contest. It stays off because an
+ * !important rule needs no specificity help and because a broken-TLS warning is
+ * a safety affordance, which per rule 3 must not depend on whether someone
+ * installed a theme. */
 #folderTree li.tls-error:not([data-is-busy="true"], [data-has-error="true"]) > .container > .icon {
   --icon-color: var(--m3-error) !important;
 }
@@ -783,6 +815,28 @@
       color: var(--treeitem-text-active);
     }
 
+    /* The keyboard cursor, for the same reason and by the same means as the
+     * correction in the forced-colors block below: the rule immediately above
+     * repaints the selected row with --treeitem-background-active, and the
+     * current row is the selected row for every ordinary arrow-key move, so the
+     * ring's guarded base colour (--m3-primary, set at the `li.current` rules in
+     * section "Row states") would be an M3 accent sitting on the platform's own
+     * high-contrast selection fill — two palettes, no contrast guarantee
+     * between them. currentColor resolves to --treeitem-text-active, the
+     * foreground upstream pairs with that exact background.
+     *
+     * .current.selected only: an unselected current row still sits on the pane
+     * background, where the accent ring is correct and is the cue that
+     * distinguishes cursor from selection.
+     *
+     * Guarded like the rules it corrects — (1,5,1) and (1,6,1) against their
+     * (1,4,1) and (1,5,1). The ring's WIDTH, STYLE and OFFSET are untouched and
+     * stay unguarded where they are; only the colour is decided here. */
+    #folderTree li.current.selected > .container,
+    #folderTree:focus-within li.current.selected > .container {
+      outline-color: currentColor;
+    }
+
     #folderTree li.selected > .container > .name,
     #folderTree li.selected.unread > .container > .name,
     #folderTree li.selected.new-messages > .container > .name,
@@ -859,6 +913,37 @@
       background-color: SelectedItem;
       color: SelectedItemText;
     }
+
+    /* GROUND-AWARE CORRECTION for the keyboard cursor. The rule three
+     * declarations up is what makes it necessary: it paints the SELECTED row
+     * SelectedItem, and the current row IS the selected row for every ordinary
+     * arrow-key move in this single-selection tree — so `outline-color:
+     * CanvasText` above was drawing the cursor in the one colour guaranteed to
+     * contrast with Canvas, on a ground that is no longer Canvas. Measured
+     * against the two stock Windows themes: white CanvasText on #1AEBFF
+     * SelectedItem (High Contrast Black) is 1.55:1 and black CanvasText on
+     * #37006E (High Contrast White) is 1.6:1 — both under the 3:1 that WCAG
+     * 1.4.11 asks of a non-text indicator, against 13:1+ for the foreground
+     * upstream picks for that ground (list-container.css puts a 1px
+     * SelectedItemText outline on the same element for the same reason).
+     *
+     * currentColor rather than SelectedItemText spelled out, so the pair cannot
+     * drift: it resolves to exactly the `color: SelectedItemText` the rule above
+     * sets on this container, and it is honoured verbatim in forced colors
+     * (Color::CurrentColor, servo/.../values/specified/color.rs) where a token
+     * would be reverted.
+     *
+     * Scoped to .current.selected, NOT .current: a current row that is not
+     * selected still sits on Canvas, where CanvasText above is the right answer.
+     *
+     * Guarded, because the rules it corrects are: (1,5,1) and (1,6,1) against
+     * their (1,4,1) and (1,5,1). Under [lwtheme] none of the four matches and
+     * the ring falls back to currentColor anyway — the same rendering — because
+     * the M3 outline colours in the ring's base rules are guarded too. */
+    #folderTree li.current.selected > .container,
+    #folderTree:focus-within li.current.selected > .container {
+      outline-color: currentColor;
+    }
   }
 
   /* Unprefixed: the focus rings it overrides are unguarded too, so it already
@@ -871,5 +956,21 @@
   #folderTree .container > .name:focus-visible,
   #folderTree .container > .status-icon:focus-visible {
     outline-color: CanvasText;
+  }
+
+  /* The same correction for the two controls that live INSIDE a row, and so
+   * inherit the row's ground. `span.name` and the status-icon button both carry
+   * tabindex="-1" (about3Pane.xhtml) and are reachable programmatically — the
+   * mixin even has a workaround for overflowing tabindex=-1 elements stealing
+   * focus — so their ring is not theoretical. On a selected row it would be
+   * CanvasText on SelectedItem, the 1.55:1 case above.
+   *
+   * Unguarded, unlike the row ring: the rule it corrects is unguarded, so
+   * (1,4,1) already beats its (1,3,0) without help, and adding the guard here
+   * would delete the correction for anyone with a lightweight theme installed —
+   * the over-guarding failure m3-layout.css's splitter comment documents. */
+  #folderTree li.selected > .container > .name:focus-visible,
+  #folderTree li.selected > .container > .status-icon:focus-visible {
+    outline-color: currentColor;
   }
 }
