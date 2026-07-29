@@ -369,6 +369,44 @@ enough. Its real competitor is a *nested* rule expanding to (2,5,0), so the fall
 gain `[rows="thread-card"]` and `.card-container` as well to reach (2,5,0) and win on order.
 Prefixing is the usual answer, not an automatic one — **count both sides**.
 
+### The fourth failure mode: the fallback that wins and hands back the wrong value
+
+Three shapes of broken fallback were known before: the fallback **loses** on specificity, the
+fallback is **shorter** than the rule it undoes, and the fallback was **never written**. There is a
+fourth, and it is the hardest to see because everything about it looks correct — the rule exists,
+carries the right guard, and *wins* its cascade fight. It just hands back the wrong token.
+
+Upstream `about3Pane.css:52-56` defines **two** distinct tokens inside one
+`@media (prefers-contrast)` block, and applies them to different states:
+
+| arm | upstream token | applied at |
+|---|---|---|
+| `.unread` | `--folderpane-unread-count-background` | `about3Pane.css:594-597` |
+| `.new-messages` | `--folderpane-unread-new-count-background` = **`ButtonShadow`** | `about3Pane.css:599-601`, `:611-614` |
+
+Our fallbacks gave **both** arms the plain-unread token in a single rule:
+
+```
+ours     :root:not([lwtheme]) #folderTree li.new-messages > .container > .unread-count
+         a=1  b=1+1+1+1+1=5  c=1                                          -> (1,5,1)
+upstream .new-messages > .container > :is(.unread-count)
+         a=0  b=3  c=0                                                    -> (0,3,0)
+```
+
+`(1,5,1)` beats `(0,3,0)` on `a`, so **`ButtonShadow` never applies** — and the collapsed/outlined
+arm repeats it, ours (1,9,2) against upstream's (0,7,1). In Windows High Contrast with no theme
+installed, a folder with **new** mail is painted identically to one with merely **unread** mail:
+exactly the defect this box was revoked for, reintroduced one token deeper. Upstream picked a
+*system* colour deliberately, because a system colour survives forced-colors rewriting and a token
+does not.
+
+**The check this adds to step 4 of the checklist:** having found the `@media` counterpart, do not
+stop at "it exists and it wins." Read what it *assigns*. If upstream splits a state into two tokens,
+the fallback must split too. A single rule covering two arms is the tell.
+
+The in-file comment claimed "only the palette hands back" — true of the mechanism, false of the
+value. Comments asserting a cascade outcome are exactly what the audit was created to distrust.
+
 ### The mirror-image bug: over-guarding
 
 Adding the guard where there is nothing to match it is just as destructive, and it fails
@@ -528,9 +566,10 @@ The policy, all of it enforced in the "Publish release" step:
 Version comes from `mail/config/version_display.txt` (currently `155.0a1`; `version.txt`
 agrees). The installer is located at `obj-tb\dist\*installer.exe`.
 
-### The nine CI blockers already fixed — do not reintroduce any of them
+### The CI blockers already hit — do not reintroduce any of them
 
-Each was a real red run. Each has a commit.
+Each was a real red run. **Blockers 1-9 are fixed and each names its commit. Blocker 10 is OPEN** —
+it has no fix SHA, and it is listed here because it is diagnosed, not because it is solved.
 
 1. **MAX_PATH on the gecko clone** — mozilla-central has web-platform-test paths over 260
    chars; without `git config --system core.longpaths true` + `LongPathsEnabled=1` the clone
@@ -565,6 +604,28 @@ Each was a real red run. Each has a commit.
    where build and packaging both succeeded. Real path, verified in the log:
    `D:\gecko\obj-tb\dist\thunderbird-155.0a1.en-US.win64.installer.exe`. Filter out
    `maintenanceservice_installer.exe`, which also matches `*installer.exe`. (`35feb3666a1`)
+
+10. **A cancelling concurrency group on the browser-test job means it can never finish** — the
+    same shape as blocker #3, and it went in *despite* a comment in the same file reasoning about
+    blocker #3. `browser-tests-m3.yml` triggered on every push to `design-import/**` while
+    declaring `concurrency: {group: m3-browser-tests-${github.ref}, cancel-in-progress: true}`, but
+    the job needs a **full** build (`timeout-minutes: 330`) and this project pushes every few
+    minutes by mandate. Proof: run `30495182348` on `f85b5d7` was **cancelled** 6m33s in at
+    `Bootstrap build environment`, five seconds after the push of `4bc02b0` started run #2. Fifteen
+    steps succeeded; Configure, Build and all six suites were skipped. **The suite has never
+    reached a single assertion.**
+
+    The file's comment defended the group with *"cancelling an in-flight test run is safe: unlike
+    the installer it produces no artefact anyone needs."* That is wrong here, and the reason is
+    specific: the **accessibility** box in `design/REWRITE-CONTRACT.md` cannot close on static
+    proof — `aria-level` does not exist until a screen reader runs, because
+    `_setRowAriaAttributes` short-circuits unless `Services.appinfo.accessibilityEnabled` — so a
+    green browser-test run is the *only* thing that can ever tick it. This run's artefact **is**
+    the evidence. A hours-long test job does not belong on a push trigger in a repository whose
+    own rules demand frequent pushes; it belongs on `workflow_dispatch` plus a `schedule`.
+
+    Generalise it: **a cancelling group is only safe when the run's output is genuinely
+    disposable.** Ask what depends on the output before adding one, not what the job is called.
 
 Two more standing traps: `fetch-depth: 500` on the comm checkout is load-bearing (artifact
 resolution walks *comm* history for a revision comm-central actually built — depth 1 gives
@@ -842,6 +903,28 @@ The distinction is load-bearing in practice: the accessibility half is what keep
 `Accessibility` box honest, and the guard pass in [§3](#3-the-two-cascade-rules) had to be
 redone precisely because guarding colour rules broke the `@media (prefers-contrast)` /
 `(forced-colors)` fallbacks that exist to undo them.
+
+### 5.8 Never commit a wave's output before the wave has actually returned
+
+If you orchestrate sub-agents, wait for the completion notification before staging anything they
+produced. Committing a wave's files while the wave is still running has already cost this project
+real work:
+
+- A wave's own ratifier committed `fc2ea74120c` and merged upstream as `4bc02b085dd` *after* its
+  files had been committed as `f85b5d786f0`, splitting one wave across three commits.
+- That extra push is what triggered browser-test run #2, whose concurrency group cancelled run #1
+  five seconds later — blocker #10 above. **The cancelled run was the evidence the accessibility
+  box needed.**
+- Two agents briefly held `m3-thread-pane.css` at the same time.
+
+A finished-looking working tree is not a finished wave. `git status` going quiet means the agent
+currently holding a file has stopped writing to it, not that the wave is done.
+
+Two related habits that prevent the same class of damage: **assign each file a single owner per
+phase** and say so in the prompt (the sheets are interdependent and two concurrent editors produce
+plausible nonsense), and have agents **report** defects in files they do not own rather than edit
+them. A wave that found a real bug and declined to fix it in someone else's file did the right
+thing.
 
 ---
 

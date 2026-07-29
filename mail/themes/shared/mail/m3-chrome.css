@@ -467,7 +467,47 @@
   --spaces-button-text-color: var(--m3-on-surface-variant);
   --spaces-button-active-bg-color: var(--m3-primary);
   --spaces-button-active-text-color: var(--m3-on-primary);
-  --spaces-button-badge-bg-color: var(--m3-error);
+
+  /* --spaces-button-badge-bg-color IS DELIBERATELY NOT RE-POINTED. It used to be
+   * `var(--m3-error)`, and that was a WCAG failure in dark mode, not a tint.
+   *
+   * The badge is a text-bearing pill: spacesToolbar.js:1071-1073 creates
+   * `<span class="spaces-badge-container">` and :1158 writes
+   * `badge.textContent = nativeButtonProperties.badgeText`. spacesToolbar.css
+   * paints it from a PAIR of variables — :340 `background-color:
+   * var(--spaces-button-badge-bg-color)` and :341 `color:
+   * var(--spaces-button-badge-text-color)` — and the text half defaults to
+   * `var(--color-white)` (spacesToolbar.css:16). Overriding only the background
+   * left white text on whatever the background became.
+   *
+   * --m3-error INVERTS with the theme: #b3261e light, #f2b8b5 dark
+   * (material-tokens.css:143 / :161). White on #b3261e is 6.54:1, but white on
+   * #f2b8b5 is 1.71:1 — below the 4.5:1 AA floor for the badge's 0.9rem/600 text
+   * (spacesToolbar.css:39; 0.9rem is ~14.4px, which is NOT WCAG "large text"),
+   * and below even the 3:1 non-text floor. Upstream's own value is the static
+   * palette entry --color-red-70 = #b91c1c (colors.css:12, no dark variant —
+   * every consumer wanting one wraps it in light-dark(), e.g. threadCard.css:39),
+   * so upstream is 6.47:1 in BOTH themes.
+   *
+   * Setting the text half too does not rescue it. spacesToolbar.css:344-346
+   * paints the inactive-window badge as
+   * `color-mix(in srgb, var(--spaces-button-badge-bg-color) 50%, black)`, which
+   * hardcodes the assumption that the badge background is already dark. In dark
+   * mode that mixes #f2b8b5 down to #795c5a — a mid-tone where neither a light
+   * nor a dark foreground reaches 4.5:1 (white 6.01:1 but the active state then
+   * fails; --m3-inverse-on-surface 7.72:1 active but 2.19:1 inactive). An
+   * exhaustive search over all 19 M3 colour tokens as (background, text) found
+   * ZERO pairs satisfying active + inactive in both themes plus 3:1 badge-vs-
+   * toolbar object contrast, because every M3 token inverts with the theme while
+   * that 50%-toward-black mix does not.
+   *
+   * So the badge keeps upstream's colours entirely. Nothing is lost visually:
+   * #b3261e and #b91c1c are both dark reds and near-indistinguishable in light
+   * mode, and upstream's dark-mode badge-vs-toolbar figure (2.52:1 against
+   * --m3-s3) is what upstream already ships against --color-surface-lower, so
+   * this introduces no new shortfall. Do NOT re-point this variable without also
+   * owning --spaces-button-badge-text-color AND the :-moz-window-inactive mix;
+   * a token that is light in dark mode cannot satisfy all three. */
 
   #spacesToolbar {
     border-inline-end-color: var(--m3-outline-variant);
@@ -521,6 +561,41 @@
     .tabmail-tab[selected] .tab-background {
       outline: 1px solid var(--m3-outline);
       outline-offset: -1px;
+    }
+
+    /* THE COUNTERPART THAT WAS NEVER WRITTEN. The base rule above re-points the
+     * spaces toolbar's trailing edge to --m3-outline-variant, and that edge is
+     * #cac4d0-on-#f3edf7 light / #49454f-on-#211f26 dark — 1.48:1 and 1.74:1,
+     * under the 3:1 non-text floor. Both sibling sheets already harden the same
+     * class of boundary hairline here (m3-layout.css:322 for the pane splitters,
+     * 3.96:1/5.14:1; m3-message-pane.css:257 for the findbar divider,
+     * 4.13:1/5.39:1). This file had no such rule, so the spaces toolbar was the
+     * one boundary in the chrome that stayed at 1.5:1 in high contrast.
+     *
+     * It is worse than a missing fallback: it DISCONNECTS one upstream already
+     * had. spacesToolbar.css:87 is `#spacesToolbar { border-inline-end: 1px solid
+     * var(--sidebar-border) }`, and upstream hardens that through the VARIABLE —
+     * --sidebar-border -> --sidebar-border-color (variables.css:81, :78) ->
+     * --layout-border-0, which layout.css:52 sets to the system colour
+     * `ThreeDShadow` inside its own @media (prefers-contrast). Our base rule sets
+     * the `border-inline-end-color` LONGHAND at (1,2,0) against upstream's
+     * (1,0,0), so it wins in every media state and upstream's variable
+     * substitution never reaches the painted colour. forced-colors self-heals
+     * (the UA force-adjusts border-color), but prefers-contrast WITHOUT forced
+     * colors does not — which is precisely the configuration this rule is for.
+     *
+     * Guarded, because the rule it overrides is guarded. Both are
+     * `:root:not([lwtheme]) #spacesToolbar` = :root (0,1,0) + :not([lwtheme])
+     * (0,1,0) + #spacesToolbar (1,0,0) = (1,2,0). A media query adds no
+     * specificity, so the pair ties and source order decides — this block sits
+     * after the base rule, so it wins. Under [lwtheme] neither matches and the
+     * edge falls back to upstream's var(--sidebar-border), which is both
+     * theme-aware and ThreeDShadow-hardened: the right answer, and the reason
+     * this must NOT be left unguarded. Only the colour is restored; upstream's
+     * 1px width and solid style were never overridden, so unlike the splitters
+     * in m3-layout.css there is no width half to put back. */
+    #spacesToolbar {
+      border-inline-end-color: var(--m3-outline);
     }
   }
 }

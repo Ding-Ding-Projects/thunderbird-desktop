@@ -596,11 +596,83 @@
   padding-block: 1px;
 }
 
+/* Second, non-colour cue for the same new-vs-unread split the two guarded rules
+ * below draw in colour. It exists because the colour cue alone is weak in dark
+ * mode: --m3-on-surface-variant (#cac4d0, relative luminance 0.566) and
+ * --m3-primary are within 1.06:1 of each other in EVERY dark palette shipped in
+ * material-tokens.css — purple #d0bcff 0.566 (1.00:1), blue #a8c7fa 0.561
+ * (1.01:1), orange #ffb77c 0.566 (1.00:1), green #6dd58c 0.527 (1.06:1) — so the
+ * split there is chroma-only, the "distinguishable in theory" case. Upstream's
+ * own split is neutral gray-50 against saturated blue-50/60, a much larger
+ * chroma AND luminance gap, so matching it needs help here.
+ *
+ * NOT guarded: font-weight is not paint, and a lightweight theme must not be
+ * able to delete the only cue that survives a colour-vision deficiency. It also
+ * restores upstream's own weight for this badge — about3Pane.css's
+ * `.folder-count-badge { font-weight: bold }` is what `#folderTree .container >
+ * .folder-count-badge { font-weight: 500 }` (1,3,0) above overrides.
+ *   ours   #folderTree 1 id, 4 classes + :has(ul > .new-messages) 1 + .container 1
+ *          + .unread-count 1 = 7 classes, li + ul = 2 elements      = (1,7,2)
+ *   beaten #folderTree .container > .folder-count-badge             = (1,3,0)
+ * No geometry risk: .container has `contain: strict`, the badge carries
+ * `min-inline-size` and `font-variant-numeric: tabular-nums`, and tabular digits
+ * do not change advance width with weight. */
+#folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
+  font-weight: 700;
+}
+
 :root:not([lwtheme]) #folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
 :root:not([lwtheme]) #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
   background-color: transparent;
+  color: var(--m3-on-surface-variant);
+  border: 1px solid var(--m3-on-surface-variant);
+}
+
+/* The collapsed half of the new-vs-unread flattening. The rule above used to
+ * hand BOTH arms --m3-primary, and it out-ranks upstream's own collapsed
+ * new-mail arm, so upstream's distinction was erased in the DEFAULT
+ * configuration — no theme, no high contrast, the one everybody runs:
+ *   ours   :root 1 + :not 1 + 4 classes + :has(ul > .new-messages) 1
+ *          + .container 1 + .unread-count 1 = 9 classes, #folderTree 1 id,
+ *          li + ul = 2 elements                                    = (1,9,2)
+ *   theirs .new-messages.unread.children.collapsed:has(ul > .new-messages)
+ *          > .container > :is(.unread-count)  (about3Pane.css:611-614)
+ *          4 classes + :has arg 1 + .container 1 + .unread-count 1 = 7 classes,
+ *          ul = 1 element                                          = (0,7,1)
+ * (1,9,2) beats (0,7,1) on the id column, so
+ * --folderpane-unread-new-count-background never landed and a collapsed parent
+ * hiding NEW mail was painted identically to one hiding merely unread mail —
+ * same transparent fill, same --m3-primary text, same --m3-primary border. The
+ * prefers-contrast fallback at the foot of this file already restores the split
+ * for high contrast; this is the same repair for the default palette, which had
+ * no fallback at all.
+ *
+ * The split follows upstream's semantics rather than inventing one: upstream
+ * gives the plain-unread arm a NEUTRAL (--color-gray-50) and the new-mail arm
+ * the ACCENT (light-dark(--color-blue-60, --color-blue-50)). Hence the rule
+ * above moves to --m3-on-surface-variant, which is also the row's own inherited
+ * meta colour, and the accent is freed for new mail here. Measured against both
+ * grounds the badge can sit on, purple palette, WCAG 2.1 relative luminance:
+ *   --m3-on-surface-variant on --m3-surface        8.88:1 light  10.91:1 dark
+ *   --m3-on-surface-variant on --m3-secondary-container (selected row)
+ *                                                  7.23:1 light   5.45:1 dark
+ *   --m3-primary            on --m3-surface        6.12:1 light  10.91:1 dark
+ *   --m3-primary            on --m3-secondary-container
+ *                                                  4.98:1 light   5.45:1 dark
+ * Every one clears 4.5:1 for the digits and 3:1 for the 1px border. --m3-outline
+ * was the first candidate for the neutral and was rejected on measurement: as a
+ * border on a dark selected row it is 2.93:1, under WCAG 1.4.11's 3:1.
+ *
+ * Restated at the same (1,9,2) so source order carries it. Nothing needs to be
+ * ordered after it here — there is no base `.selected` collapsed arm in this
+ * sheet — and it still sits ahead of the whole prefers-contrast block, which
+ * restates both arms in system colours at (1,8,2) / (1,9,2) and therefore keeps
+ * the last word under high contrast. The outlined shape is
+ * untouched: transparent fill and the 1px border are inherited from the rule
+ * above, so the "this count is not local" cue survives for both states. */
+:root:not([lwtheme]) #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
   color: var(--m3-primary);
-  border: 1px solid var(--m3-primary);
+  border-color: var(--m3-primary);
 }
 
 #folderTree .container > .total-count {
@@ -835,6 +907,53 @@
     #folderTree li.current.selected > .container,
     #folderTree:focus-within li.current.selected > .container {
       outline-color: currentColor;
+    }
+
+    /* The THIRD carrier of the new-mail state, and the one with no fallback at
+     * all until now. Upstream tints the folder NAME as well as the badge:
+     * `.new-messages > .container > .name { color: var(--new-folder-color) }`
+     * (about3Pane.css:541-543), and on this platform
+     * mail/themes/windows/mail/variables.css:31 redefines
+     * `--new-folder-color: Highlight` inside its own `@media (prefers-contrast)`
+     * — a SYSTEM colour, chosen precisely so the cue survives forced colours.
+     *
+     * `:root:not([lwtheme]) #folderTree li.new-messages > .container > .name`
+     * (m3-folder-pane.css, section "Row internals") out-ranks it:
+     *   ours   :root 1 + :not 1 + .new-messages 1 + .container 1 + .name 1
+     *          = 5 classes, #folderTree 1 id, li 1 element           = (1,5,1)
+     *   theirs .new-messages > .container > :is(.name)               = (0,3,0)
+     * and it pays --m3-primary, an absolute colour. Under `forced-colors: active`
+     * (Thunderbird's own "Override the colours specified by the page: Always",
+     * i.e. browser.display.document_color_use = 2, and any BrowsingContext
+     * forced-colours override) servo rewrites a non-system author colour to
+     * `revert` — tweak_when_ignoring_colors, cascade.rs:482-608, where
+     * `Color::System(..) => true` (specified/color.rs:723) is the only escape.
+     * `revert` at author origin then discards EVERY author declaration for that
+     * longhand, upstream's `Highlight` included, so the name fell back to the
+     * inherited row colour and a folder with new mail read exactly like a folder
+     * with merely unread mail. Regression shape 3: the fallback was never
+     * written, so nothing lost a specificity contest — there was no contestant.
+     *
+     * Handing back upstream's own token fixes both configurations at once. Under
+     * `forced-colors: active` it is `Highlight`, a system colour, so it is
+     * honoured verbatim. Under Windows high contrast with default prefs — where
+     * nsPresContext::UpdateForcedColors returns `Requested`, NOT `Active`
+     * (nsPresContext.cpp:761-763), so `@media (forced-colors)` matches but
+     * ForcedColors::is_active() is false and nothing is reverted — it is still
+     * `Highlight`, which is the colour upstream pairs with the system background
+     * this block has just restored to #folderPane. Measured on the two stock
+     * Windows themes: Highlight #1AEBFF on Canvas #000000 is 14.4:1 and
+     * #37006E on #FFFFFF is 15.1:1.
+     *
+     * (1,5,1), restating our own selector verbatim so it wins on source order,
+     * and deliberately ABOVE the `.selected` arms below: those are (1,5,1) and
+     * (1,6,1) and must keep the last word, because on the high-contrast
+     * selection fill the only safe foreground is the one upstream pairs with it.
+     * The plain-unread arm needs no counterpart — upstream sets no colour on
+     * `.unread > .container > .name` at all, so reverting our --m3-on-surface to
+     * the inherited row colour IS parity. */
+    #folderTree li.new-messages > .container > .name {
+      color: var(--new-folder-color);
     }
 
     #folderTree li.selected > .container > .name,
