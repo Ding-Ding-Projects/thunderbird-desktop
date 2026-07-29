@@ -3,6 +3,18 @@
 **Mandate:** full ground-up rewrite of the 3-pane UI to the "Material Mail" design. No stock
 Thunderbird markup carried over. **Every feature below must survive.**
 
+**Platform: Windows only.** Per the user's scope override, this targets the Windows desktop app
+exclusively. That is a deliberate simplification, not a licence to delete:
+
+- **Relaxed** — the new UI targets Windows directly instead of threading every style and behaviour
+  through a three-platform abstraction. No `-moz-platform` forks to carry in the new markup,
+  Windows-native scrollbar/focus/titlebar conventions may be assumed, and only the Windows test
+  matrix must stay green.
+- **Not relaxed** — the feature checklist below, accessibility, and localization. Those hold
+  regardless of platform count.
+- **Not permitted** — deleting or disabling existing macOS/Linux code paths. They are out of scope,
+  which means left alone, not removed.
+
 This file is the checklist the rewrite is graded against. It is derived from the current
 implementation, not from the design — the design defines *how it looks*, this defines *what it must
 still do*. Nothing here may be dropped silently; anything intentionally cut needs an explicit note.
