@@ -113,13 +113,15 @@ name: Browser tests (Material Mail)
 # So: nightly, plus on demand. A schedule cannot be superseded by a developer
 # push, which is the whole point.
 #
-# HONEST CAVEAT about the schedule below: GitHub runs scheduled workflows only
-# from the DEFAULT branch, and this workflow exists only on
-# design-import/thunderbird-3pane - `git ls-tree origin/main -- .github/workflows/`
-# is empty. So the cron CANNOT fire today. It is kept because it is the correct
-# configuration the moment this branch reaches the default branch (a merge this
-# project has deliberately not made - see AGENTS.md 5.1), and because a
-# schedule that fires is the right long-term answer.
+# The schedule below is LIVE as of 2026-07-29. It was not always: GitHub runs
+# scheduled workflows only from the DEFAULT branch, and for most of this
+# project's life this workflow existed solely on design-import/thunderbird-3pane,
+# so the cron was inert and said so here. `main` was fast-forwarded to
+# 4f23a444d0e on explicit user direction, `git ls-tree origin/main --
+# .github/workflows/` now lists this file, and the nightly therefore fires.
+#
+# Keep main in step with the working branch or this silently reverts to inert:
+# the cron always runs main's copy of this file, not the branch you last pushed.
 #
 # The trigger that actually works right now is workflow_dispatch, and it works
 # even from a non-default branch - verified, not assumed:
@@ -129,8 +131,7 @@ name: Browser tests (Material Mail)
 on:
   schedule:
     # 04:07 UTC. Not on the hour - every cron in the world fires at :00, and an
-    # off-minute costs nothing and queues faster. Inert until this workflow lands
-    # on the default branch; see the caveat above.
+    # off-minute costs nothing and queues faster.
     - cron: '7 4 * * *'
   workflow_dispatch:
     inputs:

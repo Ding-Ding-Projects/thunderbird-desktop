@@ -445,7 +445,7 @@ Fixed by removing the `push` and `pull_request` triggers and the concurrency blo
 leaving `workflow_dispatch` plus a nightly cron. **Verified empirically:** run #3 survived two
 pushes that landed during it, and no duplicate run spawned.
 
-**Caveat you must know:** the nightly cron **cannot fire**. GitHub runs scheduled workflows only
+**Caveat that NO LONGER APPLIES (kept because the mechanism is worth knowing):** the nightly cron could not fire while this workflow lived only on the working branch. `main` was fast-forwarded to `4f23a444d0e` on explicit user direction on 2026-07-29, so the cron is now **live**. The mechanism still binds, though: the cron runs **`main`'s** copy of the workflow, so letting `main` fall behind makes it inert again. Historic wording follows. GitHub runs scheduled workflows only
 from the default branch, and this workflow exists only on `design-import/thunderbird-3pane`
 (`git ls-tree origin/main -- .github/workflows/` is empty). It is labelled inert in the file.
 `workflow_dispatch` *does* work from a non-default branch, contrary to folklore — verified:
