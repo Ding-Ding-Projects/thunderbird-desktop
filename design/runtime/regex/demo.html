@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regex builder · 正規表達式建立器</title>
+  <link rel="stylesheet" href="regex-builder.css">
+  <style>
+    body { box-sizing: border-box; max-inline-size: 880px; margin: 0 auto; padding: 32px 20px; background: var(--rb-surface); color: var(--rb-on-surface); }
+    main { display: grid; gap: 18px; }
+    h1 { margin: 0; font-size: clamp(24px, 5vw, 38px); font-weight: 650; }
+    .zh { color: var(--rb-on-surface-variant); font-size: .85em; }
+    .intro { max-inline-size: 70ch; color: var(--rb-on-surface-variant); line-height: 1.55; }
+    .search-anchor { position: relative; display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+    .search-anchor label { display: grid; flex: 1 1 360px; gap: 6px; font-weight: 600; }
+    input[type="search"] { min-block-size: 48px; padding: 0 14px; border: 1px solid var(--rb-outline); border-radius: 24px; background: var(--rb-surface); color: var(--rb-on-surface); font: inherit; }
+    .open-builder { min-block-size: 48px; padding-inline: 18px; border: 0; border-radius: 24px; background: var(--rb-primary-container); color: var(--rb-on-primary-container); cursor: pointer; font: inherit; font-weight: 650; }
+    .open-builder:focus-visible, input:focus-visible { outline: 3px solid var(--rb-primary); outline-offset: 2px; }
+    .result { min-block-size: 80px; padding: 16px; border-radius: 16px; background: var(--rb-surface-container); white-space: pre-wrap; }
+    .status { min-block-size: 20px; color: var(--rb-on-surface-variant); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Regex builder <span class="zh" lang="zh-HK">· 正規表達式建立器</span></h1>
+      <p class="intro">Plain text stays the default. Open the anchored builder to construct guided tokens, edit a raw JavaScript RegExp pattern, validate it, test sample text, inspect captures, and copy or export the state. <span class="zh" lang="zh-HK">預設使用純文字。打開貼住搜尋欄嘅建立器，可以用引導式符號砌模式、編輯 JavaScript RegExp 原始模式、驗證、測試範例文字、查看捕獲組，再複製或匯出狀態。</span></p>
+    </header>
+
+    <section class="search-anchor" aria-label="Regex builder demo · 正規表達式建立器示範">
+      <label for="search">Search field <span class="zh" lang="zh-HK">· 搜尋欄</span>
+        <input id="search" type="search" value="invoice" autocomplete="off" spellcheck="false">
+      </label>
+      <button id="open-builder" class="open-builder" type="button" aria-controls="builder-panel">Regex builder · 正規建立器</button>
+      <div id="builder-panel" hidden></div>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <section id="result" class="result" aria-live="polite">Type in the search field to see bounded local results. <span class="zh" lang="zh-HK">喺搜尋欄輸入文字，就會見到有界限嘅本機結果。</span></section>
+  </main>
+
+  <script type="module">
+    import { RegexBuilder, evaluateBounded } from "./regex-builder.mjs";
+
+    const input = document.querySelector("#search");
+    const result = document.querySelector("#result");
+    const status = document.querySelector("#status");
+
+    function showResult(state) {
+      evaluateBounded({ ...state, sampleText: state.sampleText || "Invoice #20261 arrived, receipt 4471 is attached." }).then((data) => {
+        if (!data.ok) {
+          result.textContent = `Validation error · 驗證錯誤: ${data.error}`;
+          return;
+        }
+        result.textContent = `${data.matches.length}${data.capped ? "+" : ""} match(es) · 匹配${data.capped ? "（已封頂）" : ""}\n${data.matches.map((match) => `${JSON.stringify(match.text)} @ ${match.index}  ${JSON.stringify({ groups: match.groups, named: match.namedGroups })}`).join("\n") || "No matches · 沒有匹配"}`;
+      });
+    }
+
+    const builder = new RegexBuilder({
+      anchor: document.querySelector("#open-builder"),
+      input,
+      panel: document.querySelector("#builder-panel"),
+      scope: "Applies to this search field · 套用到此搜尋欄",
+      initialState: {
+        mode: "plain",
+        query: input.value,
+        pattern: "(invoice|receipt)\\s*#?\\d+",
+        flags: "gi",
+        sampleText: "Invoice #20261 arrived, receipt 4471 is attached.",
+      },
+      onApply: showResult,
+      onStatus: (message) => { status.textContent = `${message.en} · ${message.zh}`; },
+    });
+
+    input.addEventListener("input", () => showResult(builder.getState()));
+    showResult(builder.getState());
+  </script>
+</body>
+</html>

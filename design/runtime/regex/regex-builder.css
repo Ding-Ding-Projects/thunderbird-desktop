@@ -1,0 +1,142 @@
+:root {
+  color-scheme: light dark;
+  --rb-primary: #6750a4;
+  --rb-on-primary: #ffffff;
+  --rb-primary-container: #eaddff;
+  --rb-on-primary-container: #21005d;
+  --rb-surface: #fffbfe;
+  --rb-surface-container: #f3edf7;
+  --rb-on-surface: #1d1b20;
+  --rb-on-surface-variant: #49454f;
+  --rb-outline: #79747e;
+  --rb-error: #ba1a1a;
+  --rb-error-container: #ffdad6;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --rb-primary: #d0bcff;
+    --rb-on-primary: #381e72;
+    --rb-primary-container: #4f378b;
+    --rb-on-primary-container: #eaddff;
+    --rb-surface: #141218;
+    --rb-surface-container: #211f26;
+    --rb-on-surface: #e6e0e9;
+    --rb-on-surface-variant: #cac4d0;
+    --rb-outline: #938f99;
+    --rb-error: #ffb4ab;
+    --rb-error-container: #93000a;
+  }
+}
+
+.regex-builder-panel {
+  box-sizing: border-box;
+  z-index: 1000;
+  inline-size: min(560px, calc(100vw - 24px));
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--rb-outline);
+  border-radius: 24px;
+  background: var(--rb-surface-container);
+  color: var(--rb-on-surface);
+  box-shadow: 0 8px 12px 6px rgb(0 0 0 / 15%);
+}
+
+.regex-builder-panel[hidden] { display: none; }
+
+.regex-builder-header,
+.regex-builder-actions,
+.regex-builder-modes,
+.regex-builder-flags,
+.regex-builder-guided {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.regex-builder-header { justify-content: space-between; margin-block-end: 4px; }
+.regex-builder-title { font-size: 18px; font-weight: 650; }
+.regex-builder-zh { color: var(--rb-on-surface-variant); font-size: .9em; }
+.regex-builder-scope,
+.regex-builder-note { color: var(--rb-on-surface-variant); font-size: 12px; line-height: 1.45; }
+.regex-builder-note { margin-block: 14px 0; }
+.regex-builder-modes { margin-block: 14px; }
+
+.regex-builder-mode,
+.regex-builder-action,
+.regex-builder-apply,
+.regex-builder-close,
+.regex-builder-token,
+.regex-builder-flag {
+  min-block-size: 36px;
+  border: 1px solid var(--rb-outline);
+  border-radius: 18px;
+  background: transparent;
+  color: var(--rb-on-surface);
+  cursor: pointer;
+  font: inherit;
+}
+
+.regex-builder-mode,
+.regex-builder-action,
+.regex-builder-apply { padding-inline: 14px; }
+.regex-builder-mode.is-selected,
+.regex-builder-flag[aria-pressed="true"] {
+  border-color: var(--rb-primary);
+  background: var(--rb-primary-container);
+  color: var(--rb-on-primary-container);
+}
+
+.regex-builder-close {
+  inline-size: 36px;
+  padding: 0;
+  border: 0;
+  font-size: 22px;
+}
+
+.regex-builder-close::before { content: "×"; }
+.regex-builder-close .regex-builder-zh { display: none; }
+.regex-builder-apply { margin-inline-start: auto; border: 0; background: var(--rb-primary); color: var(--rb-on-primary); }
+.regex-builder-section-title { flex: 0 0 100%; font-size: 13px; font-weight: 650; }
+.regex-builder-flags,
+.regex-builder-guided { flex-wrap: wrap; margin-block: 14px; }
+.regex-builder-flags > .regex-builder-section-title,
+.regex-builder-guided > .regex-builder-section-title { flex-basis: 100%; }
+.regex-builder-flag { min-inline-size: 36px; padding-inline: 8px; font-family: ui-monospace, monospace; }
+.regex-builder-token { min-block-size: 32px; padding-inline: 10px; border-radius: 16px; font-size: 12px; }
+.regex-builder-token .regex-builder-zh { display: none; }
+
+.regex-builder-field-label {
+  display: grid;
+  gap: 6px;
+  margin-block: 12px;
+  color: var(--rb-on-surface-variant);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.regex-builder-field-label textarea {
+  box-sizing: border-box;
+  inline-size: 100%;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid var(--rb-outline);
+  border-radius: 12px;
+  background: var(--rb-surface);
+  color: var(--rb-on-surface);
+  font: 14px/1.45 ui-monospace, "Cascadia Code", monospace;
+}
+
+.regex-builder-panel button:focus-visible,
+.regex-builder-panel textarea:focus-visible {
+  outline: 3px solid var(--rb-primary);
+  outline-offset: 2px;
+}
+
+.regex-builder-validation { margin-block: 12px; font-size: 13px; line-height: 1.45; }
+.regex-builder-validation.is-valid { color: var(--rb-on-surface-variant); }
+.regex-builder-validation.is-invalid { color: var(--rb-error); }
+.regex-builder-panel h3 { margin-block: 14px 6px; font-size: 14px; }
+.regex-builder-match-list { max-block-size: 180px; margin: 0; overflow: auto; padding-inline-start: 24px; font: 12px/1.5 ui-monospace, monospace; }
+.regex-builder-match-list small { display: block; color: var(--rb-on-surface-variant); white-space: pre-wrap; overflow-wrap: anywhere; }
