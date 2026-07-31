@@ -6,8 +6,8 @@ snapshot or CSS token is not counted as a shipped interaction.
 
 ## Baseline
 
-- Shipped artifact: `tb-155.0a1-b54-wu-gok`.
-- Material source: `e4867411c3aa81de4527d843913b966d0ef89c1c`.
+- Current shipped artifact: `tb-155.0a1-b59-lin-yung-bao`.
+- Current main source: `484c0b786f1a66624efbdcd618b55176597ae3ed`.
 - The seven Material sheets are packaged byte-for-byte in that artifact.
 - Current implementation boundary: CSS plus stylesheet links; upstream behavior
   and the 3-pane markup are preserved.

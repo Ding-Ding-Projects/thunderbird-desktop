@@ -36,17 +36,15 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **The parity contract is at 33 / 38**, with five boxes deliberately open.
   A tick certifies that the named upstream behaviour still *functions* against named
   selectors and specificity. It is **not** a visual sign-off.
-- **CI is mixed:** lint run
-  [30621742858](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742858)
-  and Windows installer run
-  [30621742853](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742853)
-  are green for `067445d0f69`. They published the non-draft release
-  [`tb-155.0a1-b52-dan-tat`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b52-dan-tat),
-  whose downloaded package matches all seven Material sheets byte-for-byte. The
-  current browser dispatch [30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
-  completed with static, chrome, and authored M3 groups passing. The 3-pane,
-  widgets, and folder gates remain red at 92, 2, and 12 unexpected results;
-  artifact `8790660197` contains the raw logs and genuine runtime screenshots.
+- **CI is mixed:** final-main lint run
+  [30628482667](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628482667)
+  is green, and installer run
+  [30628482764](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628482764)
+  published the non-draft release
+  [`tb-155.0a1-b59-lin-yung-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b59-lin-yung-bao)
+  from `484c0b786f1`. It carries a real 85,317,666-byte installer. The final
+  browser dispatch [30628513547](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628513547)
+  is still running; earlier b54 browser evidence remains recorded below.
 - **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, manual
   visual sign-off is absent, and the markup rewrite itself has not started. See
   `ROADMAP.md` §"What is explicitly NOT done".
@@ -75,12 +73,12 @@ not evidence for current runtime coverage.
 
 ### Current CI evidence
 
-Build 54 is the non-draft release
-[`tb-155.0a1-b54-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok),
-published by the successful [Windows installer run 30625833498](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833498)
-with the installer from the exact source SHA above. The matching
+Build 59 is the current non-draft release
+[`tb-155.0a1-b59-lin-yung-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b59-lin-yung-bao),
+published by the successful [Windows installer run 30628482764](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628482764)
+with the installer from exact main SHA `484c0b786f1`. The matching
 [browser run 30625878368](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368)
-completed with the packaged-CSS and chrome suites passing; the 3-pane, widgets,
+is historical b54 evidence: it completed with the packaged-CSS and chrome suites passing; the 3-pane, widgets,
 folder-pane, and project-authored M3 gates failed. The M3 gate recorded 137 checks,
 132 expected results, and 5 unexpected density-token results in
 `testM3DensityTokensFollowLiveAttributes`. Its

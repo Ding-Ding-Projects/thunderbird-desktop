@@ -23,54 +23,57 @@
   "verification": {
     "release": {
       "status": "verified",
-      "build": 54,
-      "tag": "tb-155.0a1-b54-wu-gok",
-      "name": "🥔 Wu Gok · 芋角 — Thunderbird 155.0a1 (build 54)",
-      "publishedAt": "2026-07-31T11:23:00Z",
-      "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+      "build": 59,
+      "tag": "tb-155.0a1-b59-lin-yung-bao",
+      "name": "🥮 Lin Yung Bao · 蓮蓉包 — Thunderbird 155.0a1 (build 59)",
+      "publishedAt": "2026-07-31T12:06:08Z",
+      "sourceCommit": "484c0b786f1a66624efbdcd618b55176597ae3ed",
       "buildRun": {
-        "runId": 30625833498,
+        "runId": 30628482764,
         "status": "passed",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833498"
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628482764"
       },
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b59-lin-yung-bao",
       "assets": [
         {
           "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-          "sizeBytes": 85307604,
-          "sha256": "1a7b761e4d000c96193f04966ca2d3c71a99d0748ac0a1618e1ecbb4d8740ae2"
+          "sizeBytes": 85317666,
+          "sha256": "0bee4ddf010bc99e78acbd9da429585ad195c5311044706aa52594dcdc129114"
         }
       ]
     },
     "browserRun": {
-      "status": "failed",
-      "runId": 30625878368,
+      "status": "running",
+      "runId": 30628513547,
       "event": "workflow_dispatch",
-      "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368",
+      "sourceCommit": "484c0b786f1a66624efbdcd618b55176597ae3ed",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628513547",
       "artifact": {
-        "name": "m3-browser-test-logs",
-        "id": 8791840623,
-        "sizeBytes": 504317,
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368/artifacts/8791840623"
+        "status": "pending",
+        "note": "The final run has not completed, so no final log artifact is claimed yet."
       },
       "screenshotCapture": {
         "status": "mapped",
         "note": "The workflow used screenshot-on-fail and uploaded the artifact. The repository also records the genuine local b54 onboarding capture and CI 3-pane captures below; they are evidence states, not complete visual sign-off."
       },
       "suites": {
-        "3-pane": { "status": "failed", "unexpectedResults": null },
-        "widgets": { "status": "failed", "unexpectedResults": null },
-        "static-packaged-css": { "status": "passed", "unexpectedResults": 0 },
-        "folder-pane": { "status": "failed", "unexpectedResults": null },
-        "chrome": { "status": "passed", "unexpectedResults": 0 },
+        "3-pane": { "status": "running", "unexpectedResults": null },
+        "widgets": { "status": "running", "unexpectedResults": null },
+        "static-packaged-css": { "status": "pending", "unexpectedResults": null },
+        "folder-pane": { "status": "running", "unexpectedResults": null },
+        "chrome": { "status": "pending", "unexpectedResults": null },
         "project-authored-m3": {
-          "status": "failed",
-          "passed": 119,
-          "failed": 4,
-          "todo": 13,
-          "failingTest": "testM3DensityTokensFollowLiveAttributes"
+          "status": "pending",
+          "passed": null,
+          "failed": null,
+          "todo": null
         }
+      },
+      "historicalB54": {
+        "runId": 30625878368,
+        "status": "failed",
+        "artifactId": 8791840623,
+        "m3": { "passed": 119, "failed": 4, "todo": 13, "failingTest": "testM3DensityTokensFollowLiveAttributes" }
       }
     },
     "referenceAssets": [
