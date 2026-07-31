@@ -22,7 +22,7 @@ snapshot or CSS token is not counted as a shipped interaction.
 | GM-02 | Persisted English, playful HK Cantonese, and bilingual modes | Preview controls plus `design/runtime/i18n/model.mjs` | Foundation shipped; app-wide wiring open |
 | GM-03 | Independent persisted funny sliders, levels 1–5, affecting all copy | Preview controls plus persisted tone model | Foundation shipped; app-wide copy wiring open |
 | GM-04 | Non-blocking notifications plus history/centre | Packaged local notification centre with search, regex builder, all/unread/dismissed filters, and retained dismissal state; upstream event wiring remains open | Partial / open |
-| GM-05 | One-percent local dim-sum startup card and opt-out | `assets/dimsum/*.svg` glyphs only | Open |
+| GM-05 | One-percent local dim-sum startup card and opt-out | Packaged Classic har gow catalog image, first-run suppression, persisted opt-out, and 1% non-blocking draw | Partial / open: probabilistic built-artifact capture pending |
 | GM-06 | Full anchored regex builder on every search bar | `design/runtime/regex/` module and packaged preview entry point | Foundation shipped; every app search surface open |
 | GM-07 | Per-element appearance editor and Word-depth typography | M3 tokens and CSS only | Open |
 | GM-08 | Continuous color picker and bidirectional color-space translator | No runtime picker | Open |

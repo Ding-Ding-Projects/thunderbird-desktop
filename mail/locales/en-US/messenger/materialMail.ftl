@@ -88,3 +88,4 @@ material-mail-notification-filter = Show
 material-mail-notification-all = All notifications
 material-mail-notification-unread = Unread
 material-mail-notification-dismissed = Dismissed history
+material-mail-dimsum-delight = A tiny local dim-sum surprise.

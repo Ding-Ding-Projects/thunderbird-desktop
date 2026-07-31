@@ -11,6 +11,7 @@ SCRIPT = ROOT / "mail/base/content/materialMail.js"
 LAUNCHER = ROOT / "mail/base/content/materialMailLauncher.js"
 REGEX_LAUNCHER = ROOT / "mail/base/content/materialMailRegex.js"
 STYLE = ROOT / "mail/themes/shared/mail/material-mail.css"
+DIMSUM = ROOT / "mail/themes/shared/mail/material-dimsum-har-gow.png"
 FTL = ROOT / "mail/locales/en-US/messenger/materialMail.ftl"
 JAR = ROOT / "mail/base/jar.mn"
 SKIN_JAR = ROOT / "mail/themes/shared/jar.inc.mn"
@@ -21,7 +22,7 @@ def fail(message):
     raise SystemExit(1)
 
 
-for path in (PAGE, SCRIPT, LAUNCHER, REGEX_LAUNCHER, STYLE, FTL):
+for path in (PAGE, SCRIPT, LAUNCHER, REGEX_LAUNCHER, STYLE, FTL, DIMSUM):
     if not path.is_file():
         fail(f"missing {path.relative_to(ROOT)}")
 
@@ -74,13 +75,15 @@ if "ArrowLeft" not in script or "ArrowRight" not in script:
     fail("keyboard tab movement is missing")
 if "prefers-reduced-motion" not in style:
     fail("reduced-motion fallback is missing")
+if "mm-dimsum-surprise" not in page or "Math.random()" not in script or "hasLaunched" not in script:
+    fail("one-percent dim-sum startup contract is incomplete")
 
 ftl_ids = set(re.findall(r"^([a-z0-9-]+)\s*=", ftl, re.MULTILINE))
 page_ids = set(re.findall(r'data-l10n-id="([^"]+)"', page))
 missing = sorted(page_ids - ftl_ids)
 if missing:
     fail(f"page localization ids missing from en-US FTL: {missing}")
-if "materialMail.xhtml" not in jar or "materialMail.js" not in jar or "materialMailRegex.js" not in jar or "materialRegexBuilder.mjs" not in jar or "material-mail.css" not in skin_jar or "material-mail-regex.css" not in skin_jar:
+if "materialMail.xhtml" not in jar or "materialMail.js" not in jar or "materialMailRegex.js" not in jar or "materialRegexBuilder.mjs" not in jar or "material-mail.css" not in skin_jar or "material-mail-regex.css" not in skin_jar or "material-dimsum-har-gow.png" not in skin_jar:
     fail("jar packaging entries are incomplete")
 
 print(f"Material preview OK: {len(tab_ids)} tabs, {len(panel_ids)} panels, {len(page_ids)} localized ids, local persistence, keyboard navigation, reduced motion, and packaging.")

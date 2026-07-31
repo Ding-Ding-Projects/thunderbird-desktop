@@ -152,7 +152,7 @@ the following design-folder surfaces or their required behavior:
 | English / playful HK Cantonese / bilingual modes | Existing Thunderbird localization only | Add persisted mode selection and compact bilingual rendering for the new Material surfaces. |
 | Independent funny-level sliders | Missing | Add persisted English and Cantonese levels 1–5 and apply them to all user-facing copy without changing facts. |
 | Notifications and notification history | Upstream notifications only | Add non-blocking toast stack plus a reviewable centre/history. |
-| Dim-sum startup delight | Design glyphs only | Bundle approved local assets, add the one-percent non-blocking launch draw, setting, alt text, and release-code-name display. |
+| Dim-sum startup delight | Packaged Classic har gow local image, first-run suppression, opt-out, and 1% non-blocking draw | Add the full catalog rotation, release-code-name display, and deterministic built-artifact capture. |
 | Anchored regex builder | Design component only | Implement the full local builder and bind an independent instance to every search field. |
 | Appearance editor and infinite color translator | Token CSS only | Add per-element anchored editing, Word-depth typography, color-space translation, persistence, presets, import/export, and reset. |
 | Browser-style tabs | Existing Thunderbird tabs, no design parity | Add overflow, reorder, pinning, grouping, four tab searches, and safe bulk-close actions. |
