@@ -68,6 +68,11 @@
   --m3-qfb-gap: 8px;
   --m3-qfb-chip: 32px;
   --m3-qfb-control: var(--m3-control-size); /* 48px comfortable */
+  /* SearchField.dc.html keeps its `size="small"` field at 44px; that is a
+   * field metric, not the 40/48/56px control target used by the sticky and
+   * overflow buttons below. Keep the two axes separate so density does not
+   * silently change the design's small-field height. */
+  --m3-qfb-field-height: 44px;
   /* Secondary text (the results count, the scope-row lead-in) is expressed as
    * a ratio of the type ramp rather than a hard 12px, so the appearance
    * surface's font scale — an accessibility control — still reaches it. */
@@ -78,7 +83,7 @@
    * for the padding. Writing the design's flat 44px as a block-size would be
    * overridden by that min-block-size and, at a raised --m3-font-scale, would
    * overflow the host. */
-  --m3-qfb-field-padding: max(6px, calc((var(--m3-qfb-control) - 1.2 * var(--m3-font-size)) / 2));
+  --m3-qfb-field-padding: max(6px, calc((var(--m3-qfb-field-height) - 1.2 * var(--m3-font-size)) / 2));
 }
 
 :root[uidensity="compact"] #quick-filter-bar {
