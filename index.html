@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Material Mail — Thunderbird 3-Pane Rewrite</title>
-<meta name="description" content="A ground-up rewrite of Thunderbird's 3-pane UI to Material Design 3. Unofficial fork; builds here are not official Thunderbird releases.">
+<meta name="description" content="Material Design 3 evidence and roadmap for Thunderbird's 3-pane CSS-layer restyle. Unofficial fork; builds here are not official Thunderbird releases.">
 <link rel="stylesheet" href="assets/m3.css">
 <link rel="stylesheet" href="assets/docs.css">
 <style>
@@ -39,8 +39,8 @@
 
     <section class="hero">
       <h1>Material Mail</h1>
-      <p>A ground-up rewrite of Thunderbird's 3-pane interface to Material Design 3.</p>
-      <p class="zh" lang="zh-HK">將 Thunderbird 三欄介面由頭到尾重寫做 Material Design 3。</p>
+      <p>A Material Design 3 CSS-layer restyle of Thunderbird's 3-pane, with a larger runtime rewrite tracked openly in the roadmap.</p>
+      <p class="zh" lang="zh-HK">而家係 Thunderbird 三欄介面嘅 Material Design 3 CSS 外皮；更完整嘅 runtime 重寫照住 roadmap 公開追蹤。</p>
       <div class="cta">
         <a class="btn" href="docs.html">Read the docs</a>
         <a class="btn outline" href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/discussions/1">Live progress</a>
@@ -63,25 +63,26 @@
             <tr><th>Design</th><td><span class="pill ok">complete</span> <code>a334d745c32a7ab3</code> · 140,780 bytes</td></tr>
             <tr><th>M3 token layer</th><td><span class="pill ok">landed</span> <code>material-tokens.css</code> — 24 tokens, 4 seeds × light/dark</td></tr>
             <tr><th>Section stylesheets</th><td><span class="pill ok">landed</span> — six <code>m3-*.css</code> files, 4,062 lines</td></tr>
-            <tr><th>Feature parity</th><td><span class="pill">32 / 38</span> boxes ticked in <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/design-import/thunderbird-3pane/design/REWRITE-CONTRACT.md">REWRITE-CONTRACT.md</a> — was 38 / 38; an independent audit revoked six</td></tr>
-            <tr><th>Windows installer</th><td><span class="pill ok">green</span> — 7 releases published, latest <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b24-pai-gwat">🍖 Pai Gwat · 豉汁排骨</a>, 85,211,580 bytes, built by CI</td></tr>
+            <tr><th>Feature parity</th><td><span class="pill">33 / 38</span> static contract boxes currently ticked in <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/main/design/REWRITE-CONTRACT.md">REWRITE-CONTRACT.md</a>; visual sign-off remains open</td></tr>
+            <tr><th>Windows installer</th><td><span class="pill ok">green</span> — build 54 <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok">🥔 Wu Gok · 芋角</a>, 85,307,604 bytes, built by CI</td></tr>
             <tr><th>Lint CI</th><td><span class="pill ok">green</span> — stylelint + eslint, and its known-bad-file self-test passes</td></tr>
-            <tr><th>Run-time verification</th><td><span class="pill">not done</span> — no build has been installed and launched</td></tr>
+            <tr><th>Run-time verification</th><td><span class="pill">partial</span> — hosted browser captures and a local headless b54 capture exist; browser gates remain red</td></tr>
             <tr><th>Platform</th><td>Windows only — macOS/Linux paths untouched, not deleted</td></tr>
             <tr><th>Scope</th><td>~18,450 lines · 167 <code>cmd_*</code> commands, all to be preserved</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="secondary">32 / 38 is a <strong>static-evidence</strong> result, and it used to read 38 / 38.
-        Eleven independent audit agents re-derived every box from primary sources and an adversarial
-        reviewer attacked both the ticks and the challenges; <strong>six ticks did not survive</strong>.
-        Every remaining tick names a file, a selector, and the DOM element or attribute it styles. Nobody
-        has installed a build and clicked through the interface. Green CI means the installer was produced
-        and uploaded — not that it has been run.</p>
-      <p class="secondary zh" lang="zh-HK">32 / 38 係<strong>靜態證據</strong>嚟嘅,而且佢本來寫住 38 / 38。
-        十一個獨立審計 agent 由原始碼逐格重新推導,再有一個踢館嘅反過來拆晒啲結論同挑戰,
-        <strong>六個剔頂唔住</strong>。淨低嘅每個剔都指名邊個檔案、邊條 selector、改緊邊粒 DOM 元素或者屬性。
-        但係冇人真係裝過個 build 撳過。CI 綠嘅意思係「砌到同上載到」,唔等於有人開過。</p>
+      <p class="secondary">The static contract is currently 33 / 38. The b54 installer is real and was captured locally, while the hosted browser run still has red 3-pane, widget, folder, and authored-M3 gates. Screenshots in the repository are labelled as evidence, diagnostics, or explicit gaps; none are silently promoted to sign-off.</p>
+      <p class="secondary zh" lang="zh-HK">靜態契約而家係 33 / 38。b54 installer 係真嘅,亦有本機 capture；不過 hosted browser run 嘅三欄、widget、folder 同 authored-M3 gate 仲係紅燈。repo 入面啲截圖會標明係證據、診斷定明確 gap,唔會偷換成 sign-off。</p>
+    </div>
+
+    <div class="card">
+      <h2>Current evidence and rewrite ledger</h2>
+      <p>Five genuine runtime captures are mapped in the repository's <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/main/design/evidence/manifest.json">evidence manifest</a>:
+        three-pane shell, message pane, chrome, splitter diagnostics, and the upstream onboarding gap.</p>
+      <p>The refreshed global-memory requirements are tracked in the <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/main/design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md">rewrite gap audit</a>:
+        language modes, funny sliders, notifications, dim sum, anchored regex builders, per-element appearance, tabs, history, changelog, and optional narration remain runtime work.</p>
+      <p class="secondary zh" lang="zh-HK">五張真實 runtime capture 已經入 evidence manifest；global memory 更新要求嘅語言模式、funny slider、通知、點心、regex builder、逐元素外觀、tabs、history、changelog 同 narrator 就逐項列入 rewrite gap audit,仲未扮完成。</p>
     </div>
 
     <div class="grid">
