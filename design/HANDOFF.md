@@ -35,8 +35,8 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!NOTE]
 > **Current-SHA browser checkpoint — 2026-07-31.** Dispatch
-> [30613526616](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30613526616)
-> built and launched the application from `ba782707848`. The harness self-test,
+> [30617422725](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30617422725)
+> built and launched the application from `143a01dc6c1`. The harness self-test,
 > static packaged-CSS group, chrome group, and project-authored M3 group passed;
 > the M3 group recorded **98 passed / 0 failed / 13 TODO** with zero unexpected
 > results. The 3-pane group failed with **92 unexpected results** and a truncated
@@ -46,7 +46,9 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > seen in earlier runs. This is current runtime evidence, not a green parity
 > sign-off. Installer run
 > [30612253410](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30612253410)
-> is still running and has not produced a release yet.
+> is the current verified release for this tree. The older installer run
+> [30612253410](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30612253410)
+> remains active but is not required for the current release proof.
 
 ---
 
