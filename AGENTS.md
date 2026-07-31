@@ -478,9 +478,10 @@ Since this is comm only, `.github/workflows/windows-installer.yml` assembles the
 every push:
 
 1. Reads the pinned gecko SHA out of this repo's tree with `git ls-tree HEAD vendor/gecko`
-   (a gitlink — currently `079065d33b0b788f93395938d10660927761dceb`, pointing at
-   `https://github.com/mozilla-firefox/firefox.git` per `.gitmodules`). The live log for
-   build 24 prints the same revision, so gitlink and built revision match.
+   (a gitlink — currently `fdd583cd5a10d051053acda8b760c3bd5d800034`, pointing at
+   `https://github.com/mozilla-firefox/firefox.git` per `.gitmodules`). The current
+   pin is the Firefox checkout that matches the merged comm Rust manifests after
+   `6765288e170`; the failed `e7af05a2cd5` build proved the older pin was stale.
 2. Fetches that exact commit `--depth 1` **directly into `D:\gecko`**.
 3. Moves this checkout in as `D:\gecko\comm`, then runs `mach bootstrap` → `mach configure`
    → `mach build` → `mach package` from `D:\gecko`.
