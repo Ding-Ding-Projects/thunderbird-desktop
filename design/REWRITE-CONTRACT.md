@@ -1270,7 +1270,12 @@ This audit corrected the current-state claims without changing historical entrie
   also failed. These results do not justify ticking any remaining box.
 - The latest lint run [30501542141](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542141)
   passed its self-test and failed the real CSS formatting check; the next run
-  must verify the merged Gecko pin and current files.
+  must verify the merged Gecko pin and current files. That next lint run is now
+  green at [30605874495](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874495).
+- Installer run [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503)
+  reached the build and failed its vendored-Rust consistency check because
+  `vendor/gecko` was still `ca6e9493686`; the corrective pin is
+  `079065d33b0b` and no release asset exists for the failed run.
 
 ## Verification
 

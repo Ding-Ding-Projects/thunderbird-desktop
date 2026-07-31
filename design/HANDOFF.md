@@ -7,25 +7,28 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 `A11Y-L10N-AUDIT.md` (what must not break), `README.md` (the design snapshot).
 
 > [!IMPORTANT]
-> **Current integration status — 2026-07-31.** The working branch has pulled
-> `origin` first, merged `upstream/main` through `0c20bfcd944`, and recorded the
-> Gecko gitlink update `ca6e9493686`. The current integration work is headed to
-> `main`; do not treat the historical branch names below as the final target.
+> **Current integration status — 2026-07-31.** `main` is pushed at
+> `6a507323779`; it pulled `origin` first, is level with `upstream/main` at
+> `49 ahead / 0 behind`, and records Gecko gitlink
+> `079065d33b0b788f93395938d10660927761dceb`. The task-owned worktree and
+> branches were removed after ancestry proof.
 >
 > Windows run [30538853820](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30538853820)
 > built the application and passed setup/build, static packaged CSS, chrome, and
 > the authored M3 suite, but failed the 3-pane, widgets, and folder suites. The
 > no-M3 experiment [30499955896](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30499955896)
-> also failed. Installer run [30501542153](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542153)
-> passed; lint run [30501542141](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542141)
-> passed its self-test but failed the real CSS formatting gate. The roadmap and
-> contract are now corrected to distinguish these facts from historical reports.
+> also failed. Lint run [30605874495](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874495)
+> is verified green. Installer run [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503)
+> failed at `vendored-rust-check` because the old `ca6e9493686` Gecko pin was out
+> of sync with comm's Rust manifests; no release was published from that run.
+> The corrective Gecko pin is now in the working tree and needs a fresh run.
 
 ---
 
 ## 0. The thirty-second briefing
 
-- Branch: **`design-import/thunderbird-3pane`**. Never touch `main`. Never push upstream.
+- Branch: **`main`**, pushed to `origin`. Never push upstream; the old
+  `design-import/thunderbird-3pane` name below is historical.
 - This repo is the **comm tree only**. No `mach`, no `mozconfig`, no `mozilla/`. It has
   to sit at `comm/` inside a mozilla-central checkout to build anything.
 - The work is a **CSS restyle** of upstream's 3-pane. Seven stylesheets, plus link

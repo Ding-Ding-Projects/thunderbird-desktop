@@ -11,6 +11,13 @@
 > Where the two differ, the global instructions win and this file is the thing that needs
 > fixing. Nothing below is an exemption from them — see [§5.1](#51-global-instructions-live-in-a-submodule-and-they-change-under-you).
 
+> [!NOTE]
+> **Post-integration state — 2026-07-31:** the completed work is now on `main` and
+> pushed to `origin`; the task-owned `design-import/thunderbird-3pane`,
+> `bugs-fix-work`, and `experiment/no-m3-css` refs were removed after ancestry
+> proof. Branch names in older worked examples below are historical examples;
+> use `main` for the current checkout.
+
 ## What this repository is
 
 A **fork of Thunderbird, comm tree only**. There is no `mach`, no `mozconfig` and no
@@ -19,15 +26,14 @@ repository holds the platform code and "The Thunderbird repository is added as a
 subdirectory `comm/` under Firefox." **Nothing here builds on its own** (see
 [Build, CI and releases](#4-build-ci-and-releases)).
 
-The work on this branch is a **Material Design 3 restyle of the 3-pane, implemented as a
+The work in this repository is a **Material Design 3 restyle of the 3-pane, implemented as a
 CSS layer over upstream's existing behaviour**. It is not a behaviour rewrite. The whole
-diff against upstream inside `mail/` is **10 files, 4325 insertions, 0 deletions**, and
+diff against upstream inside `mail/` is **12 files, 6509 insertions, 0 deletions**, and
 `mail/base/content/about3Pane.js` has never been modified. That untouched-behaviour fact
 is the entire safety argument for claiming features survive the restyle — everything in
 [§2](#2-what-must-never-be-edited-and-what-we-own) exists to protect it.
 
-- Working branch: **`design-import/thunderbird-3pane`**, tracking
-  `origin/design-import/thunderbird-3pane`.
+- Current branch: **`main`**, tracking `origin/main`.
 - `origin` = `https://github.com/Ding-Ding-Projects/thunderbird-desktop.git` — the fork,
   the **only** remote you ever push to.
 - `upstream` = `https://github.com/thunderbird/thunderbird-desktop.git` — Thunderbird's
@@ -472,7 +478,7 @@ Since this is comm only, `.github/workflows/windows-installer.yml` assembles the
 every push:
 
 1. Reads the pinned gecko SHA out of this repo's tree with `git ls-tree HEAD vendor/gecko`
-   (a gitlink — currently `ca6e9493686b3e5ed1cddb8d3a3974068463df71`, pointing at
+   (a gitlink — currently `079065d33b0b788f93395938d10660927761dceb`, pointing at
    `https://github.com/mozilla-firefox/firefox.git` per `.gitmodules`). The live log for
    build 24 prints the same revision, so gitlink and built revision match.
 2. Fetches that exact commit `--depth 1` **directly into `D:\gecko`**.

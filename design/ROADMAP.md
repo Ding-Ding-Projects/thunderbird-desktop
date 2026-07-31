@@ -65,7 +65,11 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   installer attached, tagged monotonically off `run_number` and code-named from a
   16-dish dim sum rotation.
 - Every release states that it is an unofficial fork build.
-- The latest observed run on `fd3ce8c8f83` was successful: [30501542153](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542153).
+- The previous successful run was on `fd3ce8c8f83`: [30501542153](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542153).
+- The post-integration run on `6a507323779` failed at `vendored-rust-check`: [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503).
+  Its log identified comm/Gecko Rust-manifest skew before compilation; the gitlink
+  has since advanced from `ca6e9493686` to `079065d33b0b` and awaits the next
+  installer run. No release was published by the failed run.
 
 ### 4. Lint wiring is live; the latest main run is red
 
@@ -79,6 +83,7 @@ matches zero files, and it carries a self-test that lints a deliberately broken
 file and fails the job if stylelint reports it clean. The self-test passed, while
 the real CSS lint failed on the pre-Gecko-bump main run because the six M3 sheets
 were reported as needing Prettier formatting: [30501542141](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542141).
+The current post-integration lint is verified green: [30605874495](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874495).
 
 ### 5. The behaviour layer is provably untouched
 
