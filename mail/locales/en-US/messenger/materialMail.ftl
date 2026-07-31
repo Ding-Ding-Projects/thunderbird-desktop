@@ -97,3 +97,4 @@ material-mail-font-size = Font size
 material-mail-font-weight = Font weight
 material-mail-reset-element = Reset element
 material-mail-reset-all-appearance = Reset all appearance
+material-mail-narrator-language = Narrator language

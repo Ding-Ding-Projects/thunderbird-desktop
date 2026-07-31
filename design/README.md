@@ -159,7 +159,7 @@ the following design-folder surfaces or their required behavior:
 | External editor integration | Not present in the Material layer | Add editor discovery, selection, persistence, and graceful failure. |
 | Local Git-backed history | Not present in the Material layer | Snapshot every user-managed record and setting, with diff, restore-as-new-revision, retention, and export. |
 | In-app changelog viewer | Design-only page | Add all-release entries, date/calendar filtering, regex search, copy, and export. |
-| TTS narrator | Not present | Optional off-by-default serialized English/Cantonese narrator with accessibility and quiet-hours rules. |
+| TTS narrator | Packaged off-by-default English/Cantonese/Both selector and serialized platform speech queue foundation | Add natural HK voice selection, screen-reader ducking, quiet-hours, and full event-category wiring. |
 
 This matrix is an implementation ledger, not a completion claim. The CSS-only
 release remains useful evidence for the existing 3-pane shell, while the rewrite

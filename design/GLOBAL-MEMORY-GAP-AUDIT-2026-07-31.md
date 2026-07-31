@@ -30,7 +30,7 @@ snapshot or CSS token is not counted as a shipped interaction.
 | GM-10 | External editor discovery and persisted choice | No Material integration | Open |
 | GM-11 | Local Git-backed history for every owned record and setting | Packaged local preview history with search/action/date filters and append-only restore record; production Git-backed store remains open | Partial / open |
 | GM-12 | All-release changelog viewer with date filter, regex search, copy, and export | Packaged Changelog tab with local entries, anchored search builder, date filters, copy, and Markdown export | Foundation shipped; release-data wiring remains open |
-| GM-13 | Optional serialized English/Cantonese TTS narrator | Not present | Open |
+| GM-13 | Optional serialized English/Cantonese TTS narrator | Packaged off-by-default narrator language selector and serialized platform speech queue with replacement/cooldown | Partial / open: voice, a11y ducking, and full event wiring pending |
 | GM-14 | Full screenshot and accessibility matrix from the built artifact | Five diagnostic/gap captures; no sign-off | Open |
 
 ## Acceptance gates for the rewrite

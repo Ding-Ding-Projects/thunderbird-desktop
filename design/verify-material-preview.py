@@ -69,12 +69,13 @@ for required in (
     "mm-appearance-radius",
     "mm-appearance-font-size",
     "mm-appearance-weight",
+    "mm-narrator-language",
 ):
     if f'id="{required}"' not in page:
         fail(f"missing runtime feature control {required}")
 if "localStorage" not in script or "mail.material.preview.settings" not in script:
     fail("preferences are not persisted locally")
-for required in ("CHANGELOG", "renderChangelog", "renderHistory", "renderNotifications", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all"):
+for required in ("CHANGELOG", "renderChangelog", "renderHistory", "renderNotifications", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis"):
     if required not in script:
         fail(f"runtime feature implementation is incomplete: {required}")
 if "ArrowLeft" not in script or "ArrowRight" not in script:

@@ -4,7 +4,7 @@
 const STORAGE_KEY = "mail.material.preview.settings";
 const HISTORY_KEY = "mail.material.preview.history";
 const NOTIFICATION_KEY = "mail.material.preview.notifications";
-const DEFAULTS = Object.freeze({ theme: "light", density: "comfortable", language: "en", funnyEn: 2, funnyZh: 3, narrator: false, dimsum: true, hasLaunched: false });
+const DEFAULTS = Object.freeze({ theme: "light", density: "comfortable", language: "en", funnyEn: 2, funnyZh: 3, narrator: false, narratorLanguage: "en", dimsum: true, hasLaunched: false });
 const CHANGELOG = Object.freeze([
   { version: "155.0a1", date: "2026-07-31", tag: "Added", title: ["Evidence-first Material workspace", "以證據先行嘅 Material 工作區"], items: [["Packaged Material Mail preview with six browser-style pages.", "打包 Material Mail 預覽，提供六個瀏覽器式頁面。"], ["Persisted language, tone, appearance, narrator, and dim-sum controls.", "保存語言、語氣、外觀、旁白同點心控制。"]] },
   { version: "155.0a1", date: "2026-07-29", tag: "Verified", title: ["M3 evidence capture", "M3 證據擷取"], items: [["Recorded genuine hosted and headless captures with explicit boundaries.", "記錄真實 hosted 同 headless 擷取，清楚寫明驗證邊界。"]] },
@@ -28,6 +28,9 @@ let notificationRecords = [];
 let notificationFilter = "all";
 let appearanceOverrides = {};
 let appearanceTarget = null;
+let narratorQueue = [];
+let narratorBusy = false;
+let narratorLastAt = 0;
 const searchState = Object.create(null);
 const historyActionSelection = new Set();
 
@@ -37,6 +40,18 @@ function pick(pair) {
   if (settings.language === "zh") return pair[1];
   if (settings.language === "both") return `${pair[0]} · ${pair[1]}`;
   return pair[0];
+}
+function drainNarrator() {
+  if (narratorBusy || !narratorQueue.length || !settings.narrator || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+  narratorBusy = true;
+  const pair = narratorQueue.shift();
+  const lines = settings.narratorLanguage === "zh" ? [[pair[1], "zh-HK"]] : settings.narratorLanguage === "both" ? [[pair[0], "en-US"], [pair[1], "zh-HK"]] : [[pair[0], "en-US"]];
+  const speakNext = () => { const next = lines.shift(); if (!next) { narratorBusy = false; drainNarrator(); return; } const utterance = new SpeechSynthesisUtterance(next[0]); utterance.lang = next[1]; utterance.onend = speakNext; utterance.onerror = speakNext; window.speechSynthesis.speak(utterance); };
+  speakNext();
+}
+function speakPair(pair) {
+  if (!settings.narrator || Date.now() - narratorLastAt < 1200 || !window.speechSynthesis) return;
+  narratorLastAt = Date.now(); narratorQueue = [pair]; drainNarrator();
 }
 function readSettings() {
   try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") }; } catch (error) { console.warn("Material preview preferences unavailable", error); }
@@ -78,6 +93,7 @@ function showToast(message) {
   toast.hidden = false;
   clearTimeout(showToast.timer);
   showToast.timer = setTimeout(() => (toast.hidden = true), 3500);
+  speakPair([message, message]);
 }
 function applySettings() {
   document.documentElement.dataset.theme = settings.theme;
@@ -87,6 +103,7 @@ function applySettings() {
   for (const [id, value] of [["mm-funny-en-value", settings.funnyEn], ["mm-funny-zh-value", settings.funnyZh]]) { document.getElementById(id).value = value; document.getElementById(id).textContent = value; }
   document.getElementById("mm-narrator").checked = settings.narrator;
   document.getElementById("mm-dimsum").checked = settings.dimsum;
+  document.getElementById("mm-narrator-language").value = settings.narratorLanguage;
   document.querySelectorAll(".mm-secondary").forEach(node => (node.hidden = settings.language === "en"));
   filterSettings();
   renderChangelog();
@@ -101,7 +118,8 @@ function bindSettings() {
   bind("mm-language", "language", value => value, ["Changed preview language", "改變預覽語言"]);
   bind("mm-funny-en", "funnyEn", Number, ["Changed English funny level", "改變英文幽默等級"]);
   bind("mm-funny-zh", "funnyZh", Number, ["Changed Cantonese funny level", "改變廣東話幽默等級"]);
-  for (const [id, key, reason] of [["mm-narrator", "narrator", ["Changed narrator preference", "改變旁白偏好"]], ["mm-dimsum", "dimsum", ["Changed dim-sum preference", "改變點心偏好"]]]) document.getElementById(id).addEventListener("change", event => { settings[key] = event.target.checked; saveSettings(reason); applySettings(); });
+  bind("mm-narrator-language", "narratorLanguage", value => value, ["Changed narrator language", "改變旁白語言"]);
+  for (const [id, key, reason] of [["mm-narrator", "narrator", ["Changed narrator preference", "改變旁白偏好"]], ["mm-dimsum", "dimsum", ["Changed dim-sum preference", "改變點心偏好"]]]) document.getElementById(id).addEventListener("change", event => { settings[key] = event.target.checked; saveSettings(reason); applySettings(); if (key === "narrator" && settings.narrator) speakPair(["Narrator enabled", "旁白已啟用"]); });
   document.getElementById("mm-reset").addEventListener("click", () => { settings = { ...DEFAULTS }; saveSettings(["Reset preview preferences", "重設預覽偏好"]); applySettings(); showToast("Preview preferences reset · 預覽偏好已重設"); });
   document.getElementById("mm-theme-toggle").addEventListener("click", () => { settings.theme = settings.theme === "light" ? "dark" : "light"; saveSettings(["Toggled preview theme", "切換預覽主題"]); applySettings(); });
 }

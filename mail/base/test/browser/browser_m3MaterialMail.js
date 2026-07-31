@@ -55,6 +55,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     "mm-appearance-radius",
     "mm-appearance-font-size",
     "mm-appearance-weight",
+    "mm-narrator-language",
   ]) {
     Assert.ok(page.getElementById(id), `${id} is present in the runtime feature surface`);
   }
