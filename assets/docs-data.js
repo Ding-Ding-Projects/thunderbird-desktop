@@ -88,14 +88,14 @@ export const CATEGORIES = [
               [{ en: "M3 token layer", zh: "M3 色彩變數層" }, "landed — material-tokens.css"],
               [{ en: "Section stylesheets", zh: "各段樣式" }, { en: "six landed — 4,062 lines across the six m3-*.css files", zh: "六個做起咗 —— 六個 m3-*.css 合共 4,062 行" }],
               [{ en: "Feature parity", zh: "功能對等" }, { en: "33 / 38 static contract boxes currently ticked; visual sign-off remains open", zh: "靜態契約而家剔咗 33 / 38 格；視覺 sign-off 仲未開" }],
-              [{ en: "Windows installer CI", zh: "Windows 安裝檔 CI" }, { en: "green — build 59, tb-155.0a1-b59-lin-yung-bao, 85,317,666 bytes", zh: "綠燈 —— build 59, tb-155.0a1-b59-lin-yung-bao,85,317,666 bytes" }],
+              [{ en: "Windows installer CI", zh: "Windows 安裝檔 CI" }, { en: "published — build 72, tb-155.0a1-b72-pai-gwat, 85,323,940 bytes", zh: "已發佈 —— build 72, tb-155.0a1-b72-pai-gwat, 85,323,940 bytes" }],
               [{ en: "Lint CI", zh: "Lint CI" }, { en: "green — stylelint + eslint, and its known-bad-file self-test passes", zh: "綠燈 —— stylelint + eslint,連「攞壞檔案考自己」嗰個自我測試都過到" }],
               [{ en: "Run-time verification", zh: "實機驗證" }, { en: "partial — genuine hosted captures and a local headless capture exist; final browser run is still being verified", zh: "部分完成 —— 有真 hosted capture 同本機 headless capture；final browser run 仲驗緊" }],
             ],
           }},
           { callout: { kind: "warn", text: {
-            en: "The static contract is currently 33 / 38. The b59 installer is real; the final browser run is still being verified. Repository screenshots are labelled as evidence, diagnostics, or explicit gaps; none are silently promoted to visual sign-off.",
-            zh: "靜態契約而家係 33 / 38。b59 installer 係真嘅；final browser run 仲驗緊。repo 截圖會標明係證據、診斷定明確 gap,唔會偷換成視覺 sign-off。",
+            en: "The static contract is currently 33 / 38. The b72 installer is real; the new Changelog/History interactions still need captures from the new built artifact. Repository screenshots are labelled as evidence, diagnostics, or explicit gaps; none are silently promoted to visual sign-off.",
+            zh: "靜態契約而家係 33 / 38。b72 installer 係真嘅；新 Changelog/History 互動仲要由新 artifact 擷取。repo 截圖會標明係證據、診斷定明確 gap,唔會偷換成視覺 sign-off。",
           }}},
           { p: {
             en: [
