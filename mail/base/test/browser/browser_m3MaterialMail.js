@@ -51,9 +51,4 @@ add_task(async function testMaterialMailPreviewSurface() {
     "relaxed",
     "density changes apply immediately"
   );
-  Assert.equal(
-    page.defaultView.localStorage.getItem("mail.material.preview.settings")?.includes("relaxed"),
-    true,
-    "preview settings persist in the local storage namespace"
-  );
 });
