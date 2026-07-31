@@ -145,13 +145,16 @@ touch any of them.
 
 ### A. Manual visual and interaction sign-off is still missing
 
-CI has built and launched a headless test application, but no manual Windows
-installation and click-through has been recorded. The automated application gate
-is also red, so the skin remains unapproved for release.
+CI has built and launched the real Windows test application and uploaded genuine
+runtime screenshots, but no manual Windows installation and click-through has
+been recorded. The automated application gate is also red, so the skin remains
+unapproved for manual parity sign-off.
 
-Not yet observed by anybody, in any form:
+The default captured 3-pane render is now observed in CI screenshots. The
+following are still not manually observed or signed off:
 
-- The skin rendering at all, in any layout, theme, seed or density.
+- The skin in all supported layouts, themes, seeds, and densities beyond the
+  captured default runtime state.
 - `layout-classic` and `layout-wide`. The design covers exactly one arrangement,
   matching `layout-vertical`; the other two are styled only by inheritance and have
   never been looked at deliberately.
