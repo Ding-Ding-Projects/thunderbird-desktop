@@ -19,8 +19,8 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Current integration status — 2026-07-31.** The current pushed source is
-> `5a5ba2a87052cfb740c5a8af27deeb64c2511911` on `main`; upstream check is
-> **94 ahead / 0 behind** and the Gecko gitlink remains
+> `3d2334a8a5c0cdb905ce3b5ec08d93b56bbd1720` on `main`; upstream check is
+> **100 ahead / 0 behind** and the Gecko gitlink remains
 > `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b70 release
 > [`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok)
 > contains the real 85,328,686-byte Windows installer from exact source `5a4f35f3ba36`.
@@ -33,6 +33,11 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > Material suite passed **186 / 0 failed / 13 TODO** with zero unexpected results. Artifact
 > `8795330528` contains the exact logs. These results do not promote parity, accessibility,
 > layout, or visual sign-off.
+>
+> The public latest release remains [`tb-155.0a1-b72-pai-gwat`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b72-pai-gwat),
+> tagged to `4fe4f0135921`; the newer runtime waves on `3d2334a8a5c0` are waiting on
+> installer run [30638279388](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30638279388)
+> before built-artifact captures can be taken. The queued state is not a CI success claim.
 
 > [!NOTE]
 > **Prior current-source browser checkpoint — 2026-07-31.** Dispatch
