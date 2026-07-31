@@ -1,8 +1,10 @@
 # Lints the files the Material Mail 3-pane rewrite actually touches.
 #
-# Deliberately a SEPARATE workflow from windows-installer.yml. It shares no job,
-# no `needs:`, no concurrency group and no permissions with the installer, so it
-# cannot make the installer fail, cancel it, or change what it publishes.
+# The installer calls this file as a reusable, read-only pre-build gate. It is
+# also independently dispatchable and runs on pull requests. Keeping the lint
+# implementation here gives both routes the same non-vacuous checks without
+# repeating a Windows `mach commlint` dependency bootstrap that can stall with
+# all npm output suppressed.
 #
 # Why this needs gecko at all
 # ---------------------------
@@ -30,25 +32,14 @@
 name: Lint (Material Mail)
 
 on:
-  push:
-    branches:
-      - main
-      - 'design-import/**'
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 # Read-only. The installer workflow needs `contents: write` to publish releases;
 # this one must never be able to write anything.
 permissions:
   contents: read
-
-# Scoped to this workflow by a name nothing else uses. The installer workflow
-# declares no concurrency group at all, so it cannot be a member of this one and
-# cannot be cancelled by it. Superseding an in-flight lint run is fine: unlike
-# the installer, a lint run produces no artefact that can be lost.
-concurrency:
-  group: m3-lint-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   lint:
@@ -179,6 +170,15 @@ jobs:
           # (`comm/`) are written against.
           shopt -s nullglob
           css=(comm/mail/themes/shared/mail/m3-*.css)
+          scripts=(
+            comm/mail/base/content/materialMail*.js
+            comm/mail/base/content/materialMail*.mjs
+          )
+          packaged_runtime_scripts=(
+            comm/design/runtime/color/color-translator.mjs
+            comm/design/runtime/regex/regex-builder.mjs
+            comm/design/runtime/tabs/tab-model.mjs
+          )
           shopt -u nullglob
 
           # A lint job that finds nothing to lint and exits 0 is decoration. If
@@ -188,8 +188,16 @@ jobs:
             echo "::error::no comm/mail/themes/shared/mail/m3-*.css found - nothing would have been linted"
             exit 1
           fi
+          if [[ ${#scripts[@]} -eq 0 ]]; then
+            echo "::error::no packaged Material JavaScript found - nothing would have been linted"
+            exit 1
+          fi
           for f in comm/mail/themes/shared/mail/material-tokens.css \
-                   comm/mail/base/content/about3Pane.xhtml; do
+                   comm/mail/themes/shared/mail/material-mail.css \
+                   comm/design/runtime/regex/regex-builder.css \
+                   comm/mail/base/content/about3Pane.xhtml \
+                   comm/mail/base/content/materialMail.xhtml \
+                   "${packaged_runtime_scripts[@]}"; do
             if [[ ! -f "$f" ]]; then
               echo "::error::$f is missing - it is part of the rewrite's lint surface"
               exit 1
@@ -200,7 +208,12 @@ jobs:
             echo "### Lint surface"
             echo
             for f in "${css[@]}" comm/mail/themes/shared/mail/material-tokens.css \
-                     comm/mail/base/content/about3Pane.xhtml; do
+                     comm/mail/themes/shared/mail/material-mail.css \
+                     comm/design/runtime/regex/regex-builder.css \
+                     comm/mail/base/content/about3Pane.xhtml \
+                     comm/mail/base/content/materialMail.xhtml \
+                     "${scripts[@]}" \
+                     "${packaged_runtime_scripts[@]}"; do
               echo "- \`$f\`"
             done
           } >> "$GITHUB_STEP_SUMMARY"
@@ -237,7 +250,7 @@ jobs:
           fi
           echo "Self-test OK: mach commlint exited $rc on a known-bad file."
 
-      - name: stylelint - m3-*.css and material-tokens.css
+      - name: stylelint - packaged Material styles
         working-directory: ${{ env.GECKO_DIR }}
         run: |
           set -euo pipefail
@@ -259,18 +272,27 @@ jobs:
           # error fails this step and therefore this job.
           ./mach commlint -l stylelint \
             "${css[@]}" \
-            comm/mail/themes/shared/mail/material-tokens.css
+            comm/mail/themes/shared/mail/material-tokens.css \
+            comm/mail/themes/shared/mail/material-mail.css \
+            comm/design/runtime/regex/regex-builder.css
 
-      - name: eslint - about3Pane.xhtml
+      - name: eslint - packaged Material chrome
         # Runs even when stylelint failed, so one push reports both. A failure
         # here still fails the job.
         if: ${{ !cancelled() }}
         working-directory: ${{ env.GECKO_DIR }}
         run: |
-          # comm's eslint.config.mjs applies eslint-plugin-html to **/*.xhtml,
-          # which extracts and lints the <script> blocks. about3Pane.xhtml
-          # currently has 19 <script> elements and all of them are src-only, so
-          # today this checks that no inline script is added that breaks the
-          # rules - it is a regression guard, not a source of current findings.
           set -euo pipefail
-          ./mach commlint -l eslint comm/mail/base/content/about3Pane.xhtml
+          shopt -s nullglob
+          scripts=(
+            comm/mail/base/content/materialMail*.js
+            comm/mail/base/content/materialMail*.mjs
+          )
+          shopt -u nullglob
+          ./mach commlint -l eslint \
+            comm/mail/base/content/about3Pane.xhtml \
+            comm/mail/base/content/materialMail.xhtml \
+            "${scripts[@]}" \
+            comm/design/runtime/color/color-translator.mjs \
+            comm/design/runtime/regex/regex-builder.mjs \
+            comm/design/runtime/tabs/tab-model.mjs

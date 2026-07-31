@@ -63,7 +63,13 @@ permissions:
 # naturally instead of eating each other.
 
 jobs:
+  release-lint:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/lint-m3.yml
+
   build:
+    needs: release-lint
     runs-on: windows-latest
     # GitHub caps a hosted job at 6h. Use nearly all of it for a full build.
     timeout-minutes: 355
@@ -75,9 +81,9 @@ jobs:
       #
       # D: on an Azure-backed hosted runner is the temporary/resource disk. It is
       # persistent for the lifetime of the VM, which is the lifetime of THIS job,
-      # so everything below is safe. It does NOT survive into a second job: if
-      # this workflow ever grows a `needs:` job, that job will not see D:\gecko
-      # and everything it wants must be uploaded as an artifact first.
+      # so everything below is safe. It does NOT survive across jobs: the reusable
+      # Linux release-lint gate owns a separate checkout, and this Windows build
+      # always creates its own D:\gecko after that gate succeeds.
       MOZBUILD_STATE_PATH: D:\mozbuild
       GECKO_DIR: D:\gecko
 
@@ -410,54 +416,6 @@ jobs:
             ConvertFrom-Json -Depth 100 | Out-Null
           git diff --check "${{ github.sha }}^" "${{ github.sha }}"
           if ($LASTEXITCODE -ne 0) { throw "git diff --check failed ($LASTEXITCODE)" }
-
-      - name: Prove and run release linters
-        shell: pwsh
-        working-directory: ${{ env.GECKO_DIR }}
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $PSNativeCommandUseErrorActionPreference = $false
-
-          # First prove that the lint route can report a real error. A linter that
-          # silently checks zero files is just a very expensive green sticker.
-          $selfTestDir = Join-Path $env:GECKO_DIR 'comm\mail\themes\shared\mail\release-lint-selftest'
-          $selfTestFile = Join-Path $selfTestDir 'broken.css'
-          New-Item -ItemType Directory -Force -Path $selfTestDir | Out-Null
-          Set-Content -LiteralPath $selfTestFile -Encoding utf8 -Value @(
-            '/* CI self-test, removed immediately. */',
-            '.m3-release-lint-selftest {',
-            '  colour: red;',
-            '}'
-          )
-          $selfTestRc = 0
-          try {
-            python mach commlint -l stylelint $selfTestFile
-            $selfTestRc = $LASTEXITCODE
-          } finally {
-            Remove-Item -LiteralPath $selfTestDir -Recurse -Force -ErrorAction SilentlyContinue
-          }
-          if ($selfTestRc -eq 0) {
-            throw 'stylelint accepted a known-invalid property; release validation is not trustworthy.'
-          }
-          Write-Host "Lint self-test correctly failed with exit code $selfTestRc."
-
-          $css = @(
-            Get-ChildItem -LiteralPath 'comm\mail\themes\shared\mail' -Filter 'm3-*.css' -File
-          )
-          $css += Get-Item -LiteralPath 'comm\mail\themes\shared\mail\material-tokens.css'
-          $css += Get-Item -LiteralPath 'comm\mail\themes\shared\mail\material-mail.css'
-          if ($css.Count -lt 3) { throw 'The Material CSS lint surface is unexpectedly empty.' }
-          python mach commlint -l stylelint @($css.FullName)
-          if ($LASTEXITCODE -ne 0) { throw "Material stylelint failed ($LASTEXITCODE)" }
-
-          $eslint = @(
-            Get-Item -LiteralPath 'comm\mail\base\content\about3Pane.xhtml',
-              'comm\mail\base\content\materialMail.xhtml'
-            Get-ChildItem -LiteralPath 'comm\mail\base\content' -File |
-              Where-Object { $_.Name -match '^material(?:Mail|Color).*\.(?:js|mjs)$' }
-          )
-          python mach commlint -l eslint @($eslint.FullName)
-          if ($LASTEXITCODE -ne 0) { throw "Material eslint failed ($LASTEXITCODE)" }
 
       - name: Write mozconfig
         shell: pwsh

@@ -132,6 +132,16 @@
         "todo": 13,
         "note": "The Material test failed because dynamically injected controls were absent at binding and the test called an unavailable wait helper. This containing source repairs both and does not treat the failed run as verification."
       },
+      "latestFailedRun": {
+        "runId": 30668637582,
+        "sourceCommit": "13f4d059865321d97b1cd5a2639e9621f3ecc501",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30668637582",
+        "passed": 123,
+        "failedAssertions": 0,
+        "todo": 13,
+        "crashes": 1,
+        "note": "The 123 passes and 13 TODO belong to the preceding accessibility test. The Material Mail test then crashed immediately on an unpackaged resource://gre/modules/Services.sys.mjs import, before the prior seven assertions could be re-exercised. This containing source uses Thunderbird's privileged Services global and makes the static verifier reject that URL; the failed run is diagnosis, not verification."
+      },
       "surfaces": [
         { "surface": "Changelog search/date/copy/export", "status": "capture-pending" },
         { "surface": "History action/date/search/restore/export", "status": "capture-pending" },

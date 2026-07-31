@@ -43,10 +43,17 @@ The first hosted tab-wave browser run
 rejected the runtime with **222 passed / 7 failed / 13 TODO**. The failures
 established that dynamically inserted settings/guide controls were absent when
 the packaged page bound them and that the test used an unavailable wait helper.
-The containing source moves those controls into static XHTML, uses the supported
-test helper, and replaces privileged-page `localStorage` with profile
-preferences. Those repairs remain pending exact-source hosted and installed-
-artifact proof rather than borrowing the failed run's partial passes.
+The next exact-source run
+[`30668637582`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30668637582)
+completed the preceding accessibility test with **123 passes / 0 assertion
+failures / 13 TODO**, then exposed a separate packaging boundary as soon as the
+Material Mail test began: `resource://gre/modules/Services.sys.mjs` is absent
+from this Thunderbird artifact, so the preview process crashed before the prior
+seven assertions could be re-exercised. The containing source uses the privileged
+`Services` global already relied on throughout Thunderbird chrome modules and
+makes the verifier reject that unpackaged import. Exact-source hosted and
+installed-artifact proof remain pending rather than borrowing either failed
+run's partial passes.
 
 ---
 

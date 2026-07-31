@@ -1,9 +1,8 @@
 /* Material Mail runtime preview controls and local-first feature surfaces. */
 "use strict";
 
-const { Services: MaterialServices } = ChromeUtils.importESModule(
-  "resource://gre/modules/Services.sys.mjs"
-);
+// Thunderbird chrome scripts receive the privileged Services global. The
+// equivalent Firefox-style module URL is not packaged in this application.
 const STORAGE_KEY = "mail.material.preview.settings";
 const HISTORY_KEY = "mail.material.preview.history";
 const NOTIFICATION_KEY = "mail.material.preview.notifications";
@@ -214,11 +213,11 @@ function speakPair(pair) {
 }
 function readPreferenceJson(name, fallback) {
   return JSON.parse(
-    MaterialServices.prefs.getStringPref(name, JSON.stringify(fallback))
+    Services.prefs.getStringPref(name, JSON.stringify(fallback))
   );
 }
 function writePreferenceJson(name, value) {
-  MaterialServices.prefs.setStringPref(name, JSON.stringify(value));
+  Services.prefs.setStringPref(name, JSON.stringify(value));
 }
 function readSettings() {
   try { settings = { ...DEFAULTS, ...readPreferenceJson(STORAGE_KEY, {}) }; } catch (error) { console.warn("Material preview preferences unavailable", error); }

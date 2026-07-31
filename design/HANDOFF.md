@@ -37,11 +37,15 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > [30666929947](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30666929947)
 > failed with **222 passed / 7 failed / 13 TODO**. Its exact failures were the
 > dynamically injected typography/guide controls missing at bind time and an
-> unavailable `BrowserTestUtils.waitForCondition` helper. The containing source
-> makes both control groups static, switches to `TestUtils.waitForCondition`,
-> and moves tabs plus every preview setting/history/notification/appearance
-> record from rejected chrome-page `localStorage` into Thunderbird profile
-> preferences. Do not call those repairs verified until their own hosted run.
+> unavailable `BrowserTestUtils.waitForCondition` helper. Run
+> [30668637582](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30668637582)
+> completed the preceding test with **123 passes / 0 assertion failures / 13
+> TODO**, then crashed as soon as Material Mail began because this artifact does
+> not package
+> `resource://gre/modules/Services.sys.mjs`. The containing source removes that
+> import and uses Thunderbird's privileged `Services` global, while the static
+> verifier now rejects the unpackaged URL. Do not call the repair verified until
+> its own hosted run is green.
 >
 > The verified pre-wave source is
 > `77fe409183e580db6dd59ef2e65d093864a4f241`, **120 ahead / 0 behind** upstream

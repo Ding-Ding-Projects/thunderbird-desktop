@@ -124,7 +124,7 @@ for required in (
     if f'id="{required}"' not in page:
         fail(f"missing runtime feature control {required}")
 for required in (
-    "MaterialServices.prefs",
+    "Services.prefs",
     "getStringPref",
     "setStringPref",
     "mail.material.preview.settings",
@@ -141,6 +141,15 @@ for required in ("Services.prefs", "getStringPref", "setStringPref", "mail.mater
         fail("tab order, pinning, and active state are not persisted in a profile preference")
 if "localStorage" in tabs_script:
     fail("privileged tab state must not use unavailable chrome-page localStorage")
+for source_name, source in (
+    ("materialMail.js", script),
+    ("materialMailTabs.mjs", tabs_script),
+):
+    if "Services.sys.mjs" in source:
+        fail(
+            f"{source_name} imports an unpackaged Services resource instead of using "
+            "Thunderbird's privileged Services global"
+        )
 for required in ("CHANGELOG", "FEATURE_GUIDE", "FEATURE_ARTICLES", "renderChangelog", "renderHistory", "renderNotifications", "renderGuide", "openGuideDetails", "closeGuideDetails", "bindGuideDetails", "guideDetailsAnchor", "data-guide-article", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis", "ensureSettingsCustomization", "ensureToolsGuide", "ACCENTS", "FUNNY_EN", "FUNNY_ZH", "function tone", "mm-funny-preview", "mm-tools-search", "mm-font-scale"):
     if required not in script:
         fail(f"runtime feature implementation is incomplete: {required}")

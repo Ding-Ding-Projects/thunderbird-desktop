@@ -11,9 +11,8 @@ import {
 } from "chrome://messenger/content/materialTabModel.mjs";
 import { validatePattern } from "chrome://messenger/content/materialRegexBuilder.mjs";
 
-const { Services } = ChromeUtils.importESModule(
-  "resource://gre/modules/Services.sys.mjs"
-);
+// Thunderbird chrome modules receive the privileged Services global. The
+// equivalent Firefox-style module URL is not packaged in this application.
 const PREF_NAME = "mail.material.preview.tabs";
 const DEFAULT_PINNED = ["mail"];
 const MAX_SEARCH_LENGTH = 512;
