@@ -124,6 +124,18 @@ The no-M3 experiment [30499955896](https://github.com/Ding-Ding-Projects/thunder
 also failed, so it did not exonerate or isolate the restyle. No box is promoted
 from static evidence based on these failures.
 
+A fresh dispatch against the current pushed SHA `ba782707848` reached the same
+runtime surface in [30613526616](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30613526616).
+Setup, build, harness self-test, static packaged-CSS, chrome, and the
+project-authored M3 group passed; M3 recorded **98 passed / 0 failed / 13 TODO**
+and zero unexpected results. The 3-pane gate recorded **92 unexpected** with
+`17 resolved / 14 finished`, widgets recorded **2 unexpected**, and folder
+recorded **12 unexpected**. The uploaded raw logs show the same stored-pane-width,
+folder-tree/mode, pane-splitter, and folder-header families, so the current SHA
+confirms the runtime gap without attributing it to the M3 CSS. The installer
+run [30612253410](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30612253410)
+was still running at this checkpoint; no release is claimed for `ba782707848`.
+
 ---
 
 ## What is explicitly NOT done

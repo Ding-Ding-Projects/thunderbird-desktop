@@ -9,7 +9,7 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > [!IMPORTANT]
 > **Current integration status — 2026-07-31.** `main` is pushed to `origin`; it pulled
 > `origin` first, is level with `upstream/main` at
-> `49 ahead / 0 behind`, and records Gecko gitlink
+> `54 ahead / 0 behind`, and records Gecko gitlink
 > `079065d33b0b788f93395938d10660927761dceb`. The task-owned worktree and
 > branches were removed after ancestry proof.
 >
@@ -32,6 +32,21 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > results from `browser_paneSplitter.js`, and folder ended with `12`. The same
 > failure families were present in the older run, so the handoff records them as
 > runtime/infrastructure gaps rather than silently blaming the design CSS.
+
+> [!NOTE]
+> **Current-SHA browser checkpoint — 2026-07-31.** Dispatch
+> [30613526616](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30613526616)
+> built and launched the application from `ba782707848`. The harness self-test,
+> static packaged-CSS group, chrome group, and project-authored M3 group passed;
+> the M3 group recorded **98 passed / 0 failed / 13 TODO** with zero unexpected
+> results. The 3-pane group failed with **92 unexpected results** and a truncated
+> `17 resolved / 14 finished` gate, widgets failed with **2** unexpected results,
+> and folder failed with **12**. The artifact records the same stored-pane-width,
+> folder-tree/mode, pane-splitter, and folder-header failure families already
+> seen in earlier runs. This is current runtime evidence, not a green parity
+> sign-off. Installer run
+> [30612253410](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30612253410)
+> is still running and has not produced a release yet.
 
 ---
 
