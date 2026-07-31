@@ -8,6 +8,10 @@ with guided literals/classes/anchors/groups/alternation/quantifiers, raw pattern
 editing, flags, sample text, validation, matches, capture groups, copy, and JSON
 export.
 
+The packaged launcher is `mail/base/content/materialMailRegex.mjs`, loaded as a
+module from its matching chrome URL. The preview verifier checks the file, jar
+entry, and module script URL together so an extension/type mismatch cannot pass.
+
 ## Configuration and limits
 
 The real engine is ECMAScript JavaScript `RegExp`. Pattern/query length is capped

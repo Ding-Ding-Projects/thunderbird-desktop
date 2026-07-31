@@ -30,7 +30,9 @@ has its own anchored regex builder and defaults to plain text.
 
 Conversion is bounded numeric work in the document. It uses no network, remote
 fonts, CDN assets, analytics, account data, or untrusted code evaluation.
-Clipboard access occurs only after the user activates a Copy button.
+Clipboard access occurs only after the user activates a Copy button. Translation
+labels and values are assigned as literal DOM text, and the copy payload lives in
+the button's dataset; colour values are never interpolated into HTML.
 
 ## Accessibility and verification
 
@@ -43,8 +45,7 @@ node --test design/runtime/color/color-translator.test.mjs
 python design/verify-material-preview.py
 ```
 
-The source/browser contracts are covered; a built-artifact screenshot of this
-new picker remains `capture-pending` while Windows installer run
-[30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
-is queued. Word-depth typography, eyedropper support, presets/import-export, and
-every-element appearance coverage remain open.
+The source/browser contracts cover all representations and prove the displayed
+value matches the copy dataset. A new exact-source hosted run and built-artifact
+screenshot remain `capture-pending`. Word-depth typography, eyedropper support,
+presets/import-export, and every-element appearance coverage remain open.

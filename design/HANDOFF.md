@@ -23,7 +23,7 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Tab-core integration status — 2026-07-31.** `design/` is the complete tracked
-> authority: **162 files / 1,953,961 bytes**, with no project design ZIP.
+> authority: **162 files / 1,966,328 bytes**, with no project design ZIP.
 > `Material Mail.dc.html` remains 140,780 bytes with SHA-256
 > `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
 > The local source matrix is green: both Python verifiers, **12 / 12** preview
@@ -46,6 +46,28 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > import and uses Thunderbird's privileged `Services` global, while the static
 > verifier now rejects the unpackaged URL. Do not call the repair verified until
 > its own hosted run is green.
+>
+> Exact source `e7a65d87622dbe85563fabde4b156b384b22de46` proved that repair but
+> exposed two later gates. Installer run
+> [30670125511](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670125511)
+> stopped before the Windows job with **74 stylelint errors** and **169 ESLint
+> errors / 2 warnings** across the newly complete packaged-source inventory; no
+> installer or release was created. Browser run
+> [30670142906](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670142906)
+> completed all three discovered tests with **252 passed / 17 failed / 16 TODO,
+> zero crashes, and zero malformed results**. Its failures came from HTML-string
+> history rendering throwing an invalid-string exception, plus the unsupported
+> `Assert.match` method; the exception cascaded through later settings, guide,
+> data, and appearance assertions.
+>
+> This containing correction applies Thunderbird's formatter/logical-property
+> fixes, replaces every packaged Material data-surface `innerHTML` assignment
+> with DOM construction and literal `textContent`, whitelists notification kind
+> classes, packages the regex launcher as `materialMailRegex.mjs`, and uses
+> supported dedicated browser assertions. The exact local release-lint inventory
+> is now **0 stylelint errors / 0 ESLint errors**, browser-test ESLint is clean,
+> and the 36-check model/smoke matrix remains green. A new hosted run is still
+> required; local green is not installed-artifact proof.
 >
 > The verified pre-wave source is
 > `77fe409183e580db6dd59ef2e65d093864a4f241`, **120 ahead / 0 behind** upstream

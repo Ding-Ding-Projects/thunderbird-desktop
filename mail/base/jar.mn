@@ -56,7 +56,7 @@ messenger.jar:
     content/messenger/materialMailColor.mjs         (content/materialMailColor.mjs)
     content/messenger/materialMailTabs.mjs          (content/materialMailTabs.mjs)
     content/messenger/materialMailLauncher.js      (content/materialMailLauncher.js)
-    content/messenger/materialMailRegex.js          (content/materialMailRegex.js)
+    content/messenger/materialMailRegex.mjs         (content/materialMailRegex.mjs)
     content/messenger/materialColorTranslator.mjs   (../../design/runtime/color/color-translator.mjs)
     content/messenger/materialRegexBuilder.mjs      (../../design/runtime/regex/regex-builder.mjs)
     content/messenger/materialTabModel.mjs          (../../design/runtime/tabs/tab-model.mjs)

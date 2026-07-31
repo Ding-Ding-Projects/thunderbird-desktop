@@ -55,6 +55,21 @@ makes the verifier reject that unpackaged import. Exact-source hosted and
 installed-artifact proof remain pending rather than borrowing either failed
 run's partial passes.
 
+Exact source `e7a65d87622dbe85563fabde4b156b384b22de46` removed that crash. Its
+installer run
+[`30670125511`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670125511)
+then failed the expanded prerequisite inventory with **74 CSS errors** and
+**169 JavaScript errors / 2 warnings**; the dependent Windows build correctly
+skipped, so it produced no release. Its focused browser run
+[`30670142906`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670142906)
+ran every discovered test without a crash (**252 passed / 17 failed / 16 TODO**)
+and isolated an invalid-string exception in HTML-string history rendering plus
+one unsupported assertion method. The containing correction converts packaged
+data rendering to DOM nodes and literal text, whitelists notification classes,
+renames the regex launcher to its real `.mjs` type, and fixes the assertion API.
+Thunderbird's exact local stylelint/ESLint inventory and browser-test ESLint are
+green; a new hosted run and installed artifact remain required.
+
 ---
 
 ## What is done

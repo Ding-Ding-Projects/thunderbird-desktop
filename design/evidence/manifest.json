@@ -21,7 +21,7 @@
       ".github/workflows/windows-installer.yml",
       "mail/base/content/materialMail.js",
       "mail/base/content/materialMail.xhtml",
-      "mail/base/content/materialMailRegex.js",
+      "mail/base/content/materialMailRegex.mjs",
       "mail/base/content/materialMailTabs.mjs",
       "mail/base/jar.mn",
       "mail/base/test/browser/browser_m3MaterialMail.js",
@@ -122,7 +122,7 @@
       "baseCommit": "77fe409183e580db6dd59ef2e65d093864a4f241",
       "buildRun": null,
       "status": "source-verified-capture-pending",
-      "note": "This manifest's containing source adds the persisted tab core and retains the searchable 14-entry guide, article details, Changelog/History filters, Notifications, dim-sum startup, appearance/color/funny-level, and narrator foundations. It also makes the guide and typography controls static and moves privileged preview persistence to Thunderbird profile preferences after the first tab-wave browser run exposed those boundaries. Local authored checks pass, but no run, release, or capture is predicted here. Resolve the exact pushed commit and immutable verdict through rolling Discussion #1 before promoting any surface to runtime sign-off.",
+      "note": "This manifest's containing source adds the persisted tab core and retains the searchable 14-entry guide, article details, Changelog/History filters, Notifications, dim-sum startup, appearance/color/funny-level, and narrator foundations. It also replaces packaged Material HTML-string rendering with DOM construction and literal text, whitelists notification classes, packages the regex launcher as a real module, and uses supported browser assertions after exact-source runs exposed those boundaries. The exact local release-lint inventory and authored checks pass, but no run, release, or capture is predicted here. Resolve the exact pushed commit and immutable verdict through rolling Discussion #1 before promoting any surface to runtime sign-off.",
       "knownFailedRun": {
         "runId": 30666929947,
         "sourceCommit": "6a24a7cea8bc0d8be44e029e9b946ea8bc07742b",
@@ -132,7 +132,7 @@
         "todo": 13,
         "note": "The Material test failed because dynamically injected controls were absent at binding and the test called an unavailable wait helper. This containing source repairs both and does not treat the failed run as verification."
       },
-      "latestFailedRun": {
+      "servicesCrashRun": {
         "runId": 30668637582,
         "sourceCommit": "13f4d059865321d97b1cd5a2639e9621f3ecc501",
         "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30668637582",
@@ -140,7 +140,29 @@
         "failedAssertions": 0,
         "todo": 13,
         "crashes": 1,
-        "note": "The 123 passes and 13 TODO belong to the preceding accessibility test. The Material Mail test then crashed immediately on an unpackaged resource://gre/modules/Services.sys.mjs import, before the prior seven assertions could be re-exercised. This containing source uses Thunderbird's privileged Services global and makes the static verifier reject that URL; the failed run is diagnosis, not verification."
+        "note": "The 123 passes and 13 TODO belong to the preceding accessibility test. The Material Mail test then crashed immediately on an unpackaged resource://gre/modules/Services.sys.mjs import, before the prior seven assertions could be re-exercised. Later exact source removed the crash; this run remains diagnosis, not verification."
+      },
+      "releaseLintFailure": {
+        "runId": 30670125511,
+        "sourceCommit": "e7a65d87622dbe85563fabde4b156b384b22de46",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670125511",
+        "stylelintErrors": 74,
+        "eslintErrors": 169,
+        "eslintWarnings": 2,
+        "windowsBuild": "skipped",
+        "release": "not-created",
+        "note": "The expanded reusable prerequisite found real logical-property, formatting, DOM-safety, and module-type debt. The dependent Windows build correctly skipped. This containing source repairs the inventory and passes the exact gate locally; the failed run is diagnosis, not verification."
+      },
+      "latestFailedRun": {
+        "runId": 30670142906,
+        "sourceCommit": "e7a65d87622dbe85563fabde4b156b384b22de46",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670142906",
+        "passed": 252,
+        "failed": 17,
+        "todo": 16,
+        "crashes": 0,
+        "malformedResults": 0,
+        "note": "All three discovered tests ran. An invalid-string exception in HTML-string history rendering cascaded through later authored assertions, and Assert.match was unavailable in this harness. This containing source uses DOM construction and literal text, adds persisted markup-like payload coverage, and uses a supported assertion; the failed run is diagnosis, not verification."
       },
       "surfaces": [
         { "surface": "Changelog search/date/copy/export", "status": "capture-pending" },

@@ -30,15 +30,18 @@ not merely this preview's settings.
 Rows stay local and contain fixture descriptions only. The preview does not read
 Thunderbird accounts, messages, credentials, or project folders. The full
 production history implementation must preserve encryption and stable AAD when
-connected to real records.
+connected to real records. Action, title, and detail values are assigned through
+DOM properties rather than interpolated markup or selectors, so quotes, brackets,
+and markup-like persisted text remain data.
 
 ## Accessibility and verification
 
 Action filters are labelled checkboxes with counts, date fields have visible
 labels, result counts use `aria-live`, restore is a keyboard-operable button,
 and reduced motion remains inherited from the Material surface. The browser
-test proves seeded rows, derived action filters, and rendering; it does not yet
-prove a real Git-backed repository.
+test proves seeded rows, derived action filters, restore-as-new-revision, and a
+hostile selector/markup-like persisted fixture; it does not yet prove a real
+Git-backed repository.
 
 ## Related articles
 

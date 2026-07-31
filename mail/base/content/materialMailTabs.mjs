@@ -76,7 +76,9 @@ export class MaterialMailTabsController {
       icon: tab.dataset.tabIcon || "",
     }));
 
-    const initiallySelected = this.tabs.find(tab => tab.getAttribute("aria-selected") === "true");
+    const initiallySelected = this.tabs.find(
+      tab => tab.getAttribute("aria-selected") === "true"
+    );
     this.state = normalizeTabState(this.readState(), this.tabRecords, {
       defaultActive: initiallySelected?.dataset.page,
       defaultPinned: DEFAULT_PINNED,
@@ -95,14 +97,14 @@ export class MaterialMailTabsController {
   isReady() {
     return Boolean(
       this.strip &&
-        this.pinnedContainer &&
-        this.regularContainer &&
-        this.overflowButton &&
-        this.popover &&
-        this.searchInput &&
-        this.searchResults &&
-        this.contextMenu &&
-        this.tabs.length
+      this.pinnedContainer &&
+      this.regularContainer &&
+      this.overflowButton &&
+      this.popover &&
+      this.searchInput &&
+      this.searchResults &&
+      this.contextMenu &&
+      this.tabs.length
     );
   }
 
@@ -175,8 +177,8 @@ export class MaterialMailTabsController {
       this.scheduleMeasure();
     });
     this.prefObserver = {
-      observe: (_subject, _topic, name) => {
-        if (name !== PREF_NAME) {
+      observe: (_subject, _topic, preferenceName) => {
+        if (preferenceName !== PREF_NAME) {
           return;
         }
         const nextState = normalizeTabState(this.readState(), this.tabRecords, {
@@ -238,7 +240,10 @@ export class MaterialMailTabsController {
       if (!source || source === tab.dataset.page) {
         return;
       }
-      if (isTabPinned(this.state, source) !== isTabPinned(this.state, tab.dataset.page)) {
+      if (
+        isTabPinned(this.state, source) !==
+        isTabPinned(this.state, tab.dataset.page)
+      ) {
         return;
       }
       event.preventDefault();
@@ -248,7 +253,8 @@ export class MaterialMailTabsController {
     });
     tab.addEventListener("drop", event => {
       event.preventDefault();
-      const source = this.draggedId || event.dataTransfer?.getData("text/plain");
+      const source =
+        this.draggedId || event.dataTransfer?.getData("text/plain");
       if (!source || source === tab.dataset.page) {
         return;
       }
@@ -265,7 +271,11 @@ export class MaterialMailTabsController {
 
   bindStrip() {
     this.strip.addEventListener("keydown", event => {
-      if (!event.ctrlKey || !event.shiftKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) {
+      if (
+        !event.ctrlKey ||
+        !event.shiftKey ||
+        !["ArrowLeft", "ArrowRight"].includes(event.key)
+      ) {
         return;
       }
       const tab = event.target.closest?.(".mm-tab[data-page]");
@@ -292,7 +302,10 @@ export class MaterialMailTabsController {
     this.popoverClose?.addEventListener("click", () => this.closePopover(true));
     this.searchInput.addEventListener("input", () => {
       if (this.searchState.mode === "regex") {
-        this.searchState = { ...this.searchState, pattern: this.searchInput.value };
+        this.searchState = {
+          ...this.searchState,
+          pattern: this.searchInput.value,
+        };
       } else {
         this.searchState = {
           mode: "plain",
@@ -304,26 +317,31 @@ export class MaterialMailTabsController {
       this.renderResults();
     });
     this.searchResults.addEventListener("keydown", event => {
-      if (![
-        "ArrowDown",
-        "ArrowUp",
-        "Home",
-        "End",
-      ].includes(event.key)) {
+      if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
         return;
       }
-      const options = [...this.searchResults.querySelectorAll(".mm-tab-result-main")];
+      const options = [
+        ...this.searchResults.querySelectorAll(".mm-tab-result-main"),
+      ];
       if (!options.length) {
         return;
       }
       event.preventDefault();
-      const current = options.indexOf(event.target.closest?.(".mm-tab-result-main"));
-      const next = event.key === "Home"
-        ? 0
-        : event.key === "End"
-          ? options.length - 1
-          : (Math.max(0, current) + (event.key === "ArrowDown" ? 1 : -1) + options.length) %
-            options.length;
+      const current = options.indexOf(
+        event.target.closest?.(".mm-tab-result-main")
+      );
+      let next;
+      if (event.key === "Home") {
+        next = 0;
+      } else if (event.key === "End") {
+        next = options.length - 1;
+      } else {
+        next =
+          (Math.max(0, current) +
+            (event.key === "ArrowDown" ? 1 : -1) +
+            options.length) %
+          options.length;
+      }
       options[next].focus();
     });
   }
@@ -339,13 +357,19 @@ export class MaterialMailTabsController {
       if (action === "pin") {
         this.commit(toggleTabPinned(this.state, id), { focusId: id });
       } else if (action === "move-left") {
-        this.commit(moveTab(this.state, id, this.visualDirection("ArrowLeft")), {
-          focusId: id,
-        });
+        this.commit(
+          moveTab(this.state, id, this.visualDirection("ArrowLeft")),
+          {
+            focusId: id,
+          }
+        );
       } else if (action === "move-right") {
-        this.commit(moveTab(this.state, id, this.visualDirection("ArrowRight")), {
-          focusId: id,
-        });
+        this.commit(
+          moveTab(this.state, id, this.visualDirection("ArrowRight")),
+          {
+            focusId: id,
+          }
+        );
       } else if (action === "appearance") {
         const rect = this.contextTab.getBoundingClientRect();
         this.emitAppearance(this.contextTab, rect.left, rect.bottom + 8);
@@ -356,18 +380,28 @@ export class MaterialMailTabsController {
       if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
         return;
       }
-      const items = [...this.contextMenu.querySelectorAll('[role="menuitem"]:not(:disabled)')];
+      const items = [
+        ...this.contextMenu.querySelectorAll(
+          '[role="menuitem"]:not(:disabled)'
+        ),
+      ];
       if (!items.length) {
         return;
       }
       event.preventDefault();
       const current = items.indexOf(document.activeElement);
-      const next = event.key === "Home"
-        ? 0
-        : event.key === "End"
-          ? items.length - 1
-          : (Math.max(0, current) + (event.key === "ArrowDown" ? 1 : -1) + items.length) %
-            items.length;
+      let next;
+      if (event.key === "Home") {
+        next = 0;
+      } else if (event.key === "End") {
+        next = items.length - 1;
+      } else {
+        next =
+          (Math.max(0, current) +
+            (event.key === "ArrowDown" ? 1 : -1) +
+            items.length) %
+          items.length;
+      }
       items[next].focus();
     });
   }
@@ -381,9 +415,10 @@ export class MaterialMailTabsController {
         pattern: text(supplied.pattern).slice(0, MAX_SEARCH_LENGTH),
         flags: text(supplied.flags),
       };
-      const value = this.searchState.mode === "regex"
-        ? this.searchState.pattern
-        : this.searchState.query;
+      const value =
+        this.searchState.mode === "regex"
+          ? this.searchState.pattern
+          : this.searchState.query;
       if (this.searchInput.value !== value) {
         this.searchInput.value = value;
       }
@@ -442,15 +477,20 @@ export class MaterialMailTabsController {
     event.preventDefault();
     event.stopPropagation();
     const current = Math.max(0, order.indexOf(tab.dataset.page));
-    const next = event.key === "Home"
-      ? 0
-      : event.key === "End"
-        ? order.length - 1
-        : (current + this.visualDirection(event.key) + order.length) % order.length;
+    let next;
+    if (event.key === "Home") {
+      next = 0;
+    } else if (event.key === "End") {
+      next = order.length - 1;
+    } else {
+      next =
+        (current + this.visualDirection(event.key) + order.length) %
+        order.length;
+    }
     this.select(order[next], { focus: true });
   }
 
-  select(id, { focus = false, persist = true } = {}) {
+  select(id, { focus: shouldFocus = false, persist = true } = {}) {
     if (!this.tabById.has(id)) {
       return;
     }
@@ -462,7 +502,7 @@ export class MaterialMailTabsController {
     this.applyTabSelection();
     this.scheduleMeasure();
     this.renderResults();
-    if (focus) {
+    if (shouldFocus) {
       nextFrame(() => this.tabById.get(id)?.focus());
     }
   }
@@ -531,7 +571,8 @@ export class MaterialMailTabsController {
     }
 
     const availableWidth =
-      this.regularContainer.clientWidth || this.regularContainer.getBoundingClientRect().width;
+      this.regularContainer.clientWidth ||
+      this.regularContainer.getBoundingClientRect().width;
     const widths = Object.fromEntries(
       regularTabs.map(tab => [
         tab.dataset.page,
@@ -541,7 +582,8 @@ export class MaterialMailTabsController {
     const styles = getComputedStyle(this.regularContainer);
     const gap = Number.parseFloat(styles.columnGap || styles.gap) || 0;
     this.visibility = selectVisibleTabs(this.state, {
-      availableWidth: availableWidth > 0 ? availableWidth : Number.POSITIVE_INFINITY,
+      availableWidth:
+        availableWidth > 0 ? availableWidth : Number.POSITIVE_INFINITY,
       widths,
       gap,
     });
@@ -561,9 +603,10 @@ export class MaterialMailTabsController {
     const source = `${record.label} ${record.id} ${record.pinned ? "pinned" : ""} ${
       record.hidden ? "hidden overflow" : "visible"
     }`;
-    const query = this.searchState.mode === "regex"
-      ? this.searchState.pattern
-      : this.searchState.query;
+    const query =
+      this.searchState.mode === "regex"
+        ? this.searchState.pattern
+        : this.searchState.query;
     if (!query) {
       return true;
     }
@@ -582,9 +625,11 @@ export class MaterialMailTabsController {
       return;
     }
     this.refreshTabRecords();
-    const records = describeTabs(this.state, this.tabRecords, this.visibility).filter(record =>
-      this.tabMatches(record)
-    );
+    const records = describeTabs(
+      this.state,
+      this.tabRecords,
+      this.visibility
+    ).filter(record => this.tabMatches(record));
     this.searchResults.replaceChildren();
 
     for (const record of records) {
@@ -636,13 +681,18 @@ export class MaterialMailTabsController {
       const pin = document.createElement("button");
       pin.type = "button";
       pin.textContent = record.pinned ? "Unpin tab" : "Pin tab";
-      setL10n(pin, record.pinned ? "material-mail-tab-unpin" : "material-mail-tab-pin");
+      setL10n(
+        pin,
+        record.pinned ? "material-mail-tab-unpin" : "material-mail-tab-pin"
+      );
       pin.addEventListener("click", event => {
         event.stopPropagation();
         this.commit(toggleTabPinned(this.state, record.id));
         nextFrame(() =>
           this.searchResults
-            .querySelector(`.mm-tab-result[data-page="${CSS.escape(record.id)}"] .mm-tab-result-actions button`)
+            .querySelector(
+              `.mm-tab-result[data-page="${CSS.escape(record.id)}"] .mm-tab-result-actions button`
+            )
             ?.focus()
         );
       });
@@ -653,7 +703,9 @@ export class MaterialMailTabsController {
 
     const fallback = `${records.length} tabs`;
     this.searchCount.textContent = fallback;
-    setL10n(this.searchCount, "material-mail-tab-results", { count: records.length });
+    setL10n(this.searchCount, "material-mail-tab-results", {
+      count: records.length,
+    });
   }
 
   openPopover() {
@@ -690,7 +742,10 @@ export class MaterialMailTabsController {
     const inlineEnd = rtl ? rect.left : window.innerWidth - rect.right;
     const below = window.innerHeight - rect.bottom;
     const above = rect.top;
-    this.popover.style.setProperty("--mm-tab-popover-inline-end", `${Math.max(8, inlineEnd)}px`);
+    this.popover.style.setProperty(
+      "--mm-tab-popover-inline-end",
+      `${Math.max(8, inlineEnd)}px`
+    );
     if (below < 320 && above > below) {
       this.popover.dataset.placement = "above";
       this.popover.style.setProperty(
@@ -699,7 +754,10 @@ export class MaterialMailTabsController {
       );
     } else {
       delete this.popover.dataset.placement;
-      this.popover.style.setProperty("--mm-tab-popover-y", `${rect.bottom + 8}px`);
+      this.popover.style.setProperty(
+        "--mm-tab-popover-y",
+        `${rect.bottom + 8}px`
+      );
     }
   }
 
@@ -712,11 +770,16 @@ export class MaterialMailTabsController {
       "--mm-tab-context-x",
       `${Math.max(8, rtl ? window.innerWidth - x : x)}px`
     );
-    this.contextMenu.style.setProperty("--mm-tab-context-y", `${Math.max(8, y)}px`);
+    this.contextMenu.style.setProperty(
+      "--mm-tab-context-y",
+      `${Math.max(8, y)}px`
+    );
     this.updateContextMenu();
     this.contextMenu.hidden = false;
     nextFrame(() =>
-      this.contextMenu.querySelector('[role="menuitem"]:not(:disabled)')?.focus()
+      this.contextMenu
+        .querySelector('[role="menuitem"]:not(:disabled)')
+        ?.focus()
     );
   }
 
@@ -755,7 +818,8 @@ export class MaterialMailTabsController {
       "aria-disabled",
       String(leftIndex < 0 || leftIndex >= peers.length)
     );
-    this.contextMoveRight.disabled = rightIndex < 0 || rightIndex >= peers.length;
+    this.contextMoveRight.disabled =
+      rightIndex < 0 || rightIndex >= peers.length;
     this.contextMoveRight.setAttribute(
       "aria-disabled",
       String(rightIndex < 0 || rightIndex >= peers.length)
@@ -801,7 +865,9 @@ export function initMaterialMailTabs(root = document) {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => initMaterialMailTabs(), { once: true });
+  document.addEventListener("DOMContentLoaded", () => initMaterialMailTabs(), {
+    once: true,
+  });
 } else {
   initMaterialMailTabs();
 }

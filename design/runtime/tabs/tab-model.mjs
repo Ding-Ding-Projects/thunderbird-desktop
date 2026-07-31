@@ -51,13 +51,18 @@ export function normalizeTabState(raw, tabs, options = {}) {
   const order = [...ordered, ...ids.filter(id => !orderedSet.has(id))];
 
   const requestedDefault = options.defaultActive;
-  const defaultActive = known.has(requestedDefault) ? requestedDefault : ids[0] ?? null;
+  const defaultActive = known.has(requestedDefault)
+    ? requestedDefault
+    : (ids[0] ?? null);
   const active = known.has(persisted.active) ? persisted.active : defaultActive;
 
-  const hasPersistedPinned = Object.prototype.hasOwnProperty.call(persisted, "pinned");
+  const hasPersistedPinned = Object.prototype.hasOwnProperty.call(
+    persisted,
+    "pinned"
+  );
   const pinnedSource = hasPersistedPinned
     ? persisted.pinned
-    : options.defaultPinned ?? [];
+    : (options.defaultPinned ?? []);
   const requestedPinned = new Set(uniqueKnown(pinnedSource, known));
   const pinned = order.filter(id => requestedPinned.has(id));
 
@@ -86,7 +91,12 @@ export function activateTab(state, id) {
   if (!state.order.includes(id) || state.active === id) {
     return { ...state, order: [...state.order], pinned: [...state.pinned] };
   }
-  return { ...state, active: id, order: [...state.order], pinned: [...state.pinned] };
+  return {
+    ...state,
+    active: id,
+    order: [...state.order],
+    pinned: [...state.pinned],
+  };
 }
 
 export function setTabPinned(state, id, pinned = true) {
@@ -115,7 +125,9 @@ function reorderPeers(state, id, mutate) {
     return { ...state, order: [...state.order], pinned: [...state.pinned] };
   }
   const pinned = isTabPinned(state, id);
-  const peers = state.order.filter(tabId => isTabPinned(state, tabId) === pinned);
+  const peers = state.order.filter(
+    tabId => isTabPinned(state, tabId) === pinned
+  );
   const nextPeers = mutate([...peers]);
   if (!nextPeers || nextPeers.length !== peers.length) {
     return { ...state, order: [...state.order], pinned: [...state.pinned] };
@@ -219,7 +231,10 @@ export function selectVisibleTabs(
   }
 
   let activePromoted = false;
-  if (regular.includes(state.active) && !visibleRegular.includes(state.active)) {
+  if (
+    regular.includes(state.active) &&
+    !visibleRegular.includes(state.active)
+  ) {
     activePromoted = true;
     if (visibleRegular.length) {
       visibleRegular[visibleRegular.length - 1] = state.active;

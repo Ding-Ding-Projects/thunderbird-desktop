@@ -26,13 +26,18 @@ pipeline and preserve the same review behavior.
 
 Notification copy is bundled fixture text. No account, message, credential,
 network, or analytics data is read. Search evaluation stays local and bounded.
+Rendered copy uses literal DOM text, while persisted kinds are restricted to the
+`success`, `warning`, and `info` class allowlist; unknown values fall back to
+`info` instead of becoming class-name markup.
 
 ## Accessibility and verification
 
 The list and count use live regions, each dismiss action is a keyboard-operable
 button, the filter has a visible label, and the search field has an adjacent
-builder. The hosted browser test still needs to prove the new built artifact;
-static and module checks are not visual sign-off.
+builder. The browser contract dismisses and persists a real row and verifies a
+markup-like persisted notification stays literal. The hosted browser test still
+needs to prove the new built artifact; static and module checks are not visual
+sign-off.
 
 ## Related articles
 

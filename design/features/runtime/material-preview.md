@@ -36,7 +36,10 @@ is local-only and does not fetch fonts, images, analytics, or network content.
 
 Preferences stay in the Thunderbird profile. The page uses a restrictive chrome
 CSP and local packaged assets only. Sample mail names and copy are fixture data;
-no account, message, credential, or network data is read.
+no account, message, credential, or network data is read. Persisted and filtered
+row content is created with DOM APIs and assigned through `textContent`; the
+packaged data surfaces contain no `innerHTML` assignment, and the verifier fails
+if HTML-string rendering returns.
 
 ## Accessibility and verification
 
@@ -50,6 +53,8 @@ node --check mail\base\content\materialMail.js
 ```
 
 A real packaged capture is still required for final visual sign-off.
+The browser contract also loads persisted markup-like history/notification
+values and proves they stay literal text rather than becoming elements.
 
 ## Related articles
 

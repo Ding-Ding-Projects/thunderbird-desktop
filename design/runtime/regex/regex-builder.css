@@ -43,7 +43,9 @@
   box-shadow: 0 8px 12px 6px rgb(0 0 0 / 15%);
 }
 
-.regex-builder-panel[hidden] { display: none; }
+.regex-builder-panel[hidden] {
+  display: none;
+}
 
 .regex-builder-header,
 .regex-builder-actions,
@@ -55,13 +57,30 @@
   gap: 8px;
 }
 
-.regex-builder-header { justify-content: space-between; margin-block-end: 4px; }
-.regex-builder-title { font-size: 18px; font-weight: 650; }
-.regex-builder-zh { color: var(--rb-on-surface-variant); font-size: .9em; }
+.regex-builder-header {
+  justify-content: space-between;
+  margin-block-end: 4px;
+}
+.regex-builder-title {
+  font-size: 18px;
+  font-weight: 650;
+}
+.regex-builder-zh {
+  color: var(--rb-on-surface-variant);
+  font-size: 0.9em;
+}
 .regex-builder-scope,
-.regex-builder-note { color: var(--rb-on-surface-variant); font-size: 12px; line-height: 1.45; }
-.regex-builder-note { margin-block: 14px 0; }
-.regex-builder-modes { margin-block: 14px; }
+.regex-builder-note {
+  color: var(--rb-on-surface-variant);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.regex-builder-note {
+  margin-block: 14px 0;
+}
+.regex-builder-modes {
+  margin-block: 14px;
+}
 
 .regex-builder-mode,
 .regex-builder-action,
@@ -80,7 +99,9 @@
 
 .regex-builder-mode,
 .regex-builder-action,
-.regex-builder-apply { padding-inline: 14px; }
+.regex-builder-apply {
+  padding-inline: 14px;
+}
 .regex-builder-mode.is-selected,
 .regex-builder-flag[aria-pressed="true"] {
   border-color: var(--rb-primary);
@@ -95,17 +116,46 @@
   font-size: 22px;
 }
 
-.regex-builder-close::before { content: "×"; }
-.regex-builder-close .regex-builder-zh { display: none; }
-.regex-builder-apply { margin-inline-start: auto; border: 0; background: var(--rb-primary); color: var(--rb-on-primary); }
-.regex-builder-section-title { flex: 0 0 100%; font-size: 13px; font-weight: 650; }
+.regex-builder-close::before {
+  content: "×";
+}
+.regex-builder-close .regex-builder-zh {
+  display: none;
+}
+.regex-builder-apply {
+  margin-inline-start: auto;
+  border: 0;
+  background: var(--rb-primary);
+  color: var(--rb-on-primary);
+}
+.regex-builder-section-title {
+  flex: 0 0 100%;
+  font-size: 13px;
+  font-weight: 650;
+}
 .regex-builder-flags,
-.regex-builder-guided { flex-wrap: wrap; margin-block: 14px; }
+.regex-builder-guided {
+  flex-wrap: wrap;
+  margin-block: 14px;
+}
 .regex-builder-flags > .regex-builder-section-title,
-.regex-builder-guided > .regex-builder-section-title { flex-basis: 100%; }
-.regex-builder-flag { min-inline-size: 36px; padding-inline: 8px; font-family: ui-monospace, monospace; }
-.regex-builder-token { min-block-size: 32px; padding-inline: 10px; border-radius: 16px; font-size: 12px; }
-.regex-builder-token .regex-builder-zh { display: none; }
+.regex-builder-guided > .regex-builder-section-title {
+  flex-basis: 100%;
+}
+.regex-builder-flag {
+  min-inline-size: 36px;
+  padding-inline: 8px;
+  font-family: ui-monospace, monospace;
+}
+.regex-builder-token {
+  min-block-size: 32px;
+  padding-inline: 10px;
+  border-radius: 16px;
+  font-size: 12px;
+}
+.regex-builder-token .regex-builder-zh {
+  display: none;
+}
 
 .regex-builder-field-label {
   display: grid;
@@ -125,7 +175,10 @@
   border-radius: 12px;
   background: var(--rb-surface);
   color: var(--rb-on-surface);
-  font: 14px/1.45 ui-monospace, "Cascadia Code", monospace;
+  font:
+    14px/1.45 ui-monospace,
+    "Cascadia Code",
+    monospace;
 }
 
 .regex-builder-panel button:focus-visible,
@@ -134,9 +187,33 @@
   outline-offset: 2px;
 }
 
-.regex-builder-validation { margin-block: 12px; font-size: 13px; line-height: 1.45; }
-.regex-builder-validation.is-valid { color: var(--rb-on-surface-variant); }
-.regex-builder-validation.is-invalid { color: var(--rb-error); }
-.regex-builder-panel h3 { margin-block: 14px 6px; font-size: 14px; }
-.regex-builder-match-list { max-block-size: 180px; margin: 0; overflow: auto; padding-inline-start: 24px; font: 12px/1.5 ui-monospace, monospace; }
-.regex-builder-match-list small { display: block; color: var(--rb-on-surface-variant); white-space: pre-wrap; overflow-wrap: anywhere; }
+.regex-builder-validation {
+  margin-block: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.regex-builder-validation.is-valid {
+  color: var(--rb-on-surface-variant);
+}
+.regex-builder-validation.is-invalid {
+  color: var(--rb-error);
+}
+.regex-builder-panel h3 {
+  margin-block: 14px 6px;
+  font-size: 14px;
+}
+.regex-builder-match-list {
+  max-block-size: 180px;
+  margin: 0;
+  overflow: auto;
+  padding-inline-start: 24px;
+  font:
+    12px/1.5 ui-monospace,
+    monospace;
+}
+.regex-builder-match-list small {
+  display: block;
+  color: var(--rb-on-surface-variant);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

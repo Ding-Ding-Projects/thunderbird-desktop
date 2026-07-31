@@ -27,7 +27,7 @@ Integration target: **`main`**. Scope: **Windows only**.
 ## Current state, in brief
 
 - **`design/` is the authoritative source, not a generated approximation.** The current
-  tree contains **162 files / 1,953,961 bytes**. Its primary snapshot,
+  tree contains **162 files / 1,966,328 bytes**. Its primary snapshot,
   `Material Mail.dc.html`, is **140,780 bytes** with SHA-256
   `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
   There is no project design ZIP because the complete tracked folder is kept directly in
@@ -67,6 +67,17 @@ Integration target: **`main`**. Scope: **Windows only**.
   those controls static, uses the supported helper, and moves all privileged
   preview persistence to Thunderbird profile preferences. A new exact-source run
   is required; the failed run is not recycled as proof of the repair.
+- **The latest exact-source gates are also red and diagnostic.** Source
+  `e7a65d87622dbe85563fabde4b156b384b22de46` removed the Services crash, then
+  release run [30670125511](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670125511)
+  stopped on 74 CSS and 169 JavaScript lint errors before Windows packaging.
+  Browser run [30670142906](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670142906)
+  completed without a crash at **252 passed / 17 failed / 16 TODO** and exposed
+  unsafe HTML-string history rendering plus an unsupported assertion method.
+  This containing correction uses safe DOM construction, literal text, a
+  whitelisted notification class, a true `.mjs` regex launcher, and supported
+  assertions. The exact local lint inventory is green; hosted proof remains
+  pending and is not inferred from local results.
 - **Broad browser verification is still mixed.** Run
   [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
   failed legacy suites while the authored Material/static groups passed. It is not

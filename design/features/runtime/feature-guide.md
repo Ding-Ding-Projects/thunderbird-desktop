@@ -39,7 +39,8 @@ alter Thunderbird's upstream 3-pane behavior.
 
 The guide reads only bundled static data and does not fetch documents, fonts,
 analytics, account data, or network content. Search and regex evaluation stay
-local and bounded.
+local and bounded. Article headings, paths, summaries, and details are created as
+DOM nodes with literal text; no article payload is parsed as HTML.
 
 ## Accessibility and verification
 
@@ -55,7 +56,8 @@ python design/verify-material-preview.py
 node --check mail/base/content/materialMail.js
 ```
 
-The browser contract asserts all 14 guide entries and a local `tabs` search;
-focused static checks should additionally confirm the 14 article payload paths,
-the anchored details IDs, Escape handling, and unchanged `searchState.tools`.
-Built-artifact screenshot coverage remains pending for the current source wave.
+The browser contract asserts all 14 guide entries, a local `tabs` search, the
+mounted Tools regex module, opening a guide result, and all five article sections.
+Focused static checks additionally confirm the 14 article payload paths, anchored
+details IDs, Escape handling, and unchanged `searchState.tools`. Built-artifact
+screenshot coverage remains pending for the current source wave.

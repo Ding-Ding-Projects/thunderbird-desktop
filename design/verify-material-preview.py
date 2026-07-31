@@ -13,7 +13,7 @@ TAB_MODEL = ROOT / "design/runtime/tabs/tab-model.mjs"
 COLOR_SCRIPT = ROOT / "mail/base/content/materialMailColor.mjs"
 COLOR_TRANSLATOR = ROOT / "design/runtime/color/color-translator.mjs"
 LAUNCHER = ROOT / "mail/base/content/materialMailLauncher.js"
-REGEX_LAUNCHER = ROOT / "mail/base/content/materialMailRegex.js"
+REGEX_LAUNCHER = ROOT / "mail/base/content/materialMailRegex.mjs"
 STYLE = ROOT / "mail/themes/shared/mail/material-mail.css"
 DIMSUM = ROOT / "mail/themes/shared/mail/material-dimsum-har-gow.png"
 FTL = ROOT / "mail/locales/en-US/messenger/materialMail.ftl"
@@ -48,6 +48,7 @@ page = PAGE.read_text(encoding="utf-8")
 script = SCRIPT.read_text(encoding="utf-8")
 tabs_script = TABS_SCRIPT.read_text(encoding="utf-8")
 tab_model = TAB_MODEL.read_text(encoding="utf-8")
+color_script = COLOR_SCRIPT.read_text(encoding="utf-8")
 style = STYLE.read_text(encoding="utf-8")
 ftl = FTL.read_text(encoding="utf-8")
 jar = JAR.read_text(encoding="utf-8")
@@ -150,7 +151,7 @@ for source_name, source in (
             f"{source_name} imports an unpackaged Services resource instead of using "
             "Thunderbird's privileged Services global"
         )
-for required in ("CHANGELOG", "FEATURE_GUIDE", "FEATURE_ARTICLES", "renderChangelog", "renderHistory", "renderNotifications", "renderGuide", "openGuideDetails", "closeGuideDetails", "bindGuideDetails", "guideDetailsAnchor", "data-guide-article", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis", "ensureSettingsCustomization", "ensureToolsGuide", "ACCENTS", "FUNNY_EN", "FUNNY_ZH", "function tone", "mm-funny-preview", "mm-tools-search", "mm-font-scale"):
+for required in ("CHANGELOG", "FEATURE_GUIDE", "FEATURE_ARTICLES", "renderChangelog", "renderHistory", "renderNotifications", "renderGuide", "openGuideDetails", "closeGuideDetails", "bindGuideDetails", "guideDetailsAnchor", "guideArticle", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis", "ensureSettingsCustomization", "ensureToolsGuide", "ACCENTS", "FUNNY_EN", "FUNNY_ZH", "function tone", "mm-funny-preview", "mm-tools-search", "mm-font-scale"):
     if required not in script:
         fail(f"runtime feature implementation is incomplete: {required}")
 for required in (
@@ -182,8 +183,8 @@ for required in (
         fail(f"pure tab model is incomplete: {required}")
 if "ArrowLeft" not in tabs_script or "ArrowRight" not in tabs_script:
     fail("keyboard tab movement is missing")
-if 'id="mm-tab-search-results" role="list"' not in page or re.search(
-    r'id="mm-tab-search-results"[^>]+role="listbox"', page
+if not re.search(r'id="mm-tab-search-results"[^>]*role="list"', page) or re.search(
+    r'id="mm-tab-search-results"[^>]*role="listbox"', page
 ):
     fail("all-tabs results must use a composite-action-safe list pattern")
 if "prefers-reduced-motion" not in style:
@@ -209,11 +210,21 @@ for required in (
 ):
     if required not in ftl_ids:
         fail(f"dynamic tab localization id missing from en-US FTL: {required}")
-if "materialMail.xhtml" not in jar or "materialMail.js" not in jar or "materialMailTabs.mjs" not in jar or "materialTabModel.mjs" not in jar or "materialMailColor.mjs" not in jar or "materialColorTranslator.mjs" not in jar or "materialMailRegex.js" not in jar or "materialRegexBuilder.mjs" not in jar or "material-mail.css" not in skin_jar or "material-mail-regex.css" not in skin_jar or "material-dimsum-har-gow.png" not in skin_jar:
+if "materialMail.xhtml" not in jar or "materialMail.js" not in jar or "materialMailTabs.mjs" not in jar or "materialTabModel.mjs" not in jar or "materialMailColor.mjs" not in jar or "materialColorTranslator.mjs" not in jar or "materialMailRegex.mjs" not in jar or "materialRegexBuilder.mjs" not in jar or "material-mail.css" not in skin_jar or "material-mail-regex.css" not in skin_jar or "material-dimsum-har-gow.png" not in skin_jar:
     fail("jar packaging entries are incomplete")
+if not re.search(
+    r'<script\s+type="module"\s+src="chrome://messenger/content/materialMailRegex\.mjs"\s*>\s*</script>',
+    page,
+):
+    fail("regex launcher is not loaded from its packaged module URL")
 if "mm-tab-search" not in REGEX_LAUNCHER.read_text(encoding="utf-8"):
     fail("all-tabs search is not wired to its independent regex builder")
-if "import { hslToRgb, translateColor }" not in COLOR_SCRIPT.read_text(encoding="utf-8") or "mm-color-picker" not in page or "mm-appearance-search" not in page:
+if ".innerHTML" in script or ".innerHTML" in color_script:
+    fail("packaged Material data surfaces must use DOM construction, not HTML-string rendering")
+if any(
+    required not in color_script
+    for required in ("hslToRgb", "translateColor", "materialColorTranslator.mjs")
+) or "mm-color-picker" not in page or "mm-appearance-search" not in page:
     fail("continuous colour picker surface is incomplete")
 guide_articles = re.findall(r'^  "([^"]+)": \{', script, re.MULTILINE)
 if len(guide_articles) < 14:
