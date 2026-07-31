@@ -8,43 +8,34 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Current integration status — 2026-07-31.** `main` is pushed to `origin`; it pulled
-> `origin` first, is level with `upstream/main` at
-> `58 ahead / 0 behind`, and records Gecko gitlink
-> `fdd583cd5a10d051053acda8b760c3bd5d800034`. The task-owned worktree and
+> `origin` first, and the final upstream check is `61 ahead / 0 behind`. The Gecko
+> gitlink is `fdd583cd5a10d051053acda8b760c3bd5d800034`. The task-owned worktree and
 > branches were removed after ancestry proof. Current HEAD is
-> `3e6de1ef118c578fc4ed5e841019b50acaf9c775`, carrying the verified
-> Gecko-pin repair and its handoff documentation after the upstream Rust
-> synchronization; the Material source footprint is unchanged.
-> Installer run [30619490478](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30619490478)
-> exposed that the old `079065d33b0b` pin was stale against those manifests and
-> failed at `vendored-rust-check`; no release is claimed for `e7af05a2cd5`.
-> Release `tb-155.0a1-b48-har-gow` remains the verified artifact for its prior
-> source commit `8da5d7931c6`; the current repaired tree is verified by
-> [30620560414](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30620560414)
-> and release `tb-155.0a1-b51-cheung-fun`.
+> `067445d0f697ff83add1e1864b0a762f2401d2ee`, carrying the verified Gecko-pin repair,
+> design alignment gate, and current handoff documentation; the Material source
+> footprint is unchanged by the final documentation tip.
+> Lint [30621742858](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742858)
+> and installer [30621742853](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742853)
+> are verified green. Release
+> [`tb-155.0a1-b52-dan-tat`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b52-dan-tat)
+> is non-draft/non-prerelease, contains a real Windows installer, and its extracted
+> seven Material sheets match source byte-for-byte.
 >
-> Windows run [30538853820](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30538853820)
-> built the application and passed setup/build, static packaged CSS, chrome, and
-> the authored M3 suite, but failed the 3-pane, widgets, and folder suites. The
-> no-M3 experiment [30499955896](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30499955896)
-> also failed. Lint run [30605874495](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874495)
-> is verified green. Installer run [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503)
-> failed at `vendored-rust-check` because the old `ca6e9493686` Gecko pin was out
-> of sync with comm's Rust manifests; no release was published from that run. The
-> corrective run [30606626311](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30606626311)
-> is verified green and published non-draft release
-> [`tb-155.0a1-b41-ham-sui-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b41-ham-sui-gok)
-> with the Windows installer attached.
-> Full browser dispatch [30608322422](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30608322422)
-> on `ce9b30d1aa6` then rebuilt and exercised the merged tree: static, chrome, and
-> authored M3 groups passed; 3-pane ended with `92` unexpected results and a
-> truncated `17 resolved / 14 finished` gate, widgets ended with `2` unexpected
-> results from `browser_paneSplitter.js`, and folder ended with `12`. The same
-> failure families were present in the older run, so the handoff records them as
-> runtime/infrastructure gaps rather than silently blaming the design CSS.
+> Historical runtime and infrastructure evidence remains in the detailed sections
+> below. The current exact-SHA browser result is the completed dispatch recorded
+> here; earlier b41/b48/b51 releases and failed Gecko-pin runs are provenance, not
+> current release claims.
+> Browser dispatch [30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
+> completed against this exact HEAD. Setup/build, static packaged CSS, chrome,
+> and the authored M3 group passed (`98 passed / 0 failed / 13 TODO`); its gates
+> recorded 3-pane `resolved=17 / ended=14 / unexpected=92`, widgets
+> `resolved=9 / ended=6 / unexpected=2`, and folder
+> `resolved=23 / ended=23 / unexpected=12`. Artifact `8790660197` contains the
+> raw logs and runtime screenshots. These remain runtime/infrastructure gaps, not
+> evidence that the M3 CSS caused them; the no-M3 experiment also failed.
 
 > [!NOTE]
-> **Current-SHA browser checkpoint — 2026-07-31.** Dispatch
+> **Prior current-source browser checkpoint — 2026-07-31.** Dispatch
 > [30617422725](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30617422725)
 > built and launched the application from `143a01dc6c1`. The harness self-test,
 > static packaged-CSS group, chrome group, and project-authored M3 group passed;
@@ -54,11 +45,8 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > and folder failed with **12**. The artifact records the same stored-pane-width,
 > folder-tree/mode, pane-splitter, and folder-header failure families already
 > seen in earlier runs. This is current runtime evidence, not a green parity
-> sign-off. Installer run
-> [30612253410](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30612253410)
-> is the current verified release for this tree. The older installer run
-> [30612253410](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30612253410)
-> remains active but is not required for the current release proof.
+> sign-off. The current release proof is b52 above, and the browser result is
+> recorded in the current integration block with artifact `8790660197`.
 
 ---
 

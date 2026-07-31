@@ -543,16 +543,18 @@ artifact first.
 
 ### Release policy: every successful push ships a real release
 
-`gh release list --repo Ding-Ding-Projects/thunderbird-desktop` — **7 releases**, one per
-successful installer run, `b18` through `b24`. Runs 1-17 failed or were cancelled (1, 2 and 4
-cancelled) while the nine blockers below were being fixed; 18-24 are all green.
+`gh release list --repo Ding-Ding-Projects/thunderbird-desktop` currently reports **28
+non-draft releases**. The latest verified installer release is b52; earlier failed or
+cancelled runs remain historical and do not receive recycled tags.
 
 Latest observed:
 
 ```
-🍖 Pai Gwat · 豉汁排骨 — Thunderbird 155.0a1 (build 24)   tb-155.0a1-b24-pai-gwat   Latest
+🥧 Dan Tat · 蛋撻 — Thunderbird 155.0a1 (build 52)   tb-155.0a1-b52-dan-tat   Latest
   asset: thunderbird-155.0a1.en-US.win64.installer.exe
-  size:  85,211,580 bytes (81.3 MB)   published 2026-07-29T17:05:42Z
+  size:  85,298,371 bytes   published 2026-07-31T10:11:02Z
+  source: 067445d0f697ff83add1e1864b0a762f2401d2ee
+  run:    30621742853
   isDraft: false   isPrerelease: false
 ```
 
@@ -561,11 +563,9 @@ The policy, all of it enforced in the "Publish release" step:
 - `gh release create … --latest`, with **no `--draft` and no `--prerelease`**. Every push
   ships a real, immediately visible release.
 - The built installer is attached as the release asset.
-- Tag is `tb-<version>-b<run_number>-<dish>`, e.g. `tb-155.0a1-b24-pai-gwat`. `run_number` is
+- Tag is `tb-<version>-b<run_number>-<dish>`, e.g. `tb-155.0a1-b52-dan-tat`. `run_number` is
   monotonic, so tags never collide or recycle.
-- The code name is a dim sum dish, chosen deterministically as `$dimsum[run_number % 16]`
-  from a 16-entry table. (Check: 18 % 16 = 2 → `char-siu-bao`; 24 % 16 = 8 → `pai-gwat`. Both
-  match the published tags.)
+- The code name is a dim sum dish, chosen deterministically from the workflow's catalog.
 - Release notes carry a `> [!WARNING]` making clear this is **not** an official Mozilla
   Thunderbird build.
 - Token order is `secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN`.

@@ -11,8 +11,9 @@ three are the evidence.
 ## The one-sentence version
 
 **This is a CSS-layer restyle of upstream Thunderbird's existing 3-pane, not a
-rewrite of it. Windows CI has now built the artifact and run the browser suites;
-the application gate is still red.**
+rewrite of it. Windows CI has built and shipped the current artifact; the latest
+browser dispatch passed the Material-specific groups but the compatibility gate
+remains red.**
 
 Everything below follows from those two facts. The first is why the parity
 contract can be at 33/38 without a line of behaviour code being written. The
@@ -65,14 +66,22 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   installer attached, tagged monotonically off `run_number` and code-named from a
   16-dish dim sum rotation.
 - Every release states that it is an unofficial fork build.
-- The previous successful run was on `fd3ce8c8f83`: [30501542153](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542153).
-- The post-integration run on `6a507323779` failed at `vendored-rust-check`: [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503).
+- The current verified push is `067445d0f697ff83add1e1864b0a762f2401d2ee`:
+  lint [30621742858](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742858)
+  and installer [30621742853](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742853)
+  both passed.
+- It published non-draft release
+  [`tb-155.0a1-b52-dan-tat`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b52-dan-tat)
+  with a real Windows installer. The downloaded b52 package matches all seven
+  Material sheets byte-for-byte.
+- Earlier post-integration runs failed at `vendored-rust-check`: [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503)
+  and [30619490478](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30619490478).
   Its log identified comm/Gecko Rust-manifest skew before compilation; the gitlink
   had since advanced from `ca6e9493686` to `079065d33b0b`, but the later upstream
   Rust synchronization exposed that pin as stale too. Run
   [30619490478](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30619490478)
   failed against `e7af05a2cd5` at the same gate; no release was published by that
-  failed run. The current repair advances the gitlink to
+  failed run. The earlier b51 repair advanced the gitlink to
   `fdd583cd5a10d051053acda8b760c3bd5d800034`, which removes the 26 stale Rust
   manifest lines between the old and current Gecko checkouts. The repair is
   verified by installer run [30620560414](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30620560414)
@@ -95,7 +104,7 @@ matches zero files, and it carries a self-test that lints a deliberately broken
 file and fails the job if stylelint reports it clean. The self-test passed, while
 the real CSS lint failed on the pre-Gecko-bump main run because the six M3 sheets
 were reported as needing Prettier formatting: [30501542141](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542141).
-The current post-integration lint is verified green: [30605874495](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874495).
+The current post-integration lint is verified green: [30621742858](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742858).
 
 The lint workflow also runs `design/verify-material-alignment.py`. That gate
 checks the design palette, all three density modes, the four local-first font
@@ -141,10 +150,18 @@ and zero unexpected results. The 3-pane gate recorded **92 unexpected** with
 `17 resolved / 14 finished`, widgets recorded **2 unexpected**, and folder
 recorded **12 unexpected**. The uploaded raw logs show the same stored-pane-width,
 folder-tree/mode, pane-splitter, and folder-header families, so the current SHA
-confirms the runtime gap without attributing it to the M3 CSS. Release
-`tb-155.0a1-b47-no-mai-chi` is verified for this tree; the older installer run
-[30612253410](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30612253410)
-remains active but is not required for current release proof.
+confirms the runtime gap without attributing it to the M3 CSS. The current release
+proof is b52 above. Browser dispatch
+[30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
+against exact SHA `067445d0f69` completed with static, chrome, and authored M3
+groups passing (`98 passed / 0 failed / 13 TODO`). Its independent gates recorded
+3-pane `resolved=17 / ended=14 / unexpected=92`, widgets
+`resolved=9 / ended=6 / unexpected=2`, and folder
+`resolved=23 / ended=23 / unexpected=12`; artifact `8790660197` contains the
+raw logs and runtime screenshots. The 3-pane truncation and pane-splitter
+failures remain runtime/harness evidence, while the M3 accessibility failures
+remain explicitly attributed to upstream `aria-hidden="hidden"` markup that this
+skin branch is not authorized to rewrite.
 
 ---
 

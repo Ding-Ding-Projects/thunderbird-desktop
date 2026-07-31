@@ -34,10 +34,17 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **The parity contract is at 33 / 38**, with five boxes deliberately open.
   A tick certifies that the named upstream behaviour still *functions* against named
   selectors and specificity. It is **not** a visual sign-off.
-- **CI is mixed:** lint is green on `5ac44d5b58f`, and the installer is green on
-  `30606626311`, which published a non-draft Windows installer release. The latest
-  browser run still failed the 3-pane/widgets/folder suites while the static, chrome,
-  and project-authored M3 suites passed.
+- **CI is mixed:** lint run
+  [30621742858](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742858)
+  and Windows installer run
+  [30621742853](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742853)
+  are green for `067445d0f69`. They published the non-draft release
+  [`tb-155.0a1-b52-dan-tat`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b52-dan-tat),
+  whose downloaded package matches all seven Material sheets byte-for-byte. The
+  current browser dispatch [30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
+  completed with static, chrome, and authored M3 groups passing. The 3-pane,
+  widgets, and folder gates remain red at 92, 2, and 12 unexpected results;
+  artifact `8790660197` contains the raw logs and genuine runtime screenshots.
 - **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, manual
   visual sign-off is absent, and the markup rewrite itself has not started. See
   `ROADMAP.md` §"What is explicitly NOT done".

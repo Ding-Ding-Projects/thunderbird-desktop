@@ -1303,3 +1303,33 @@ A rewrite is not "done" until every box above is ticked. Minimum gates:
 - `./mach lint` clean on all touched files
 - `./mach test mail/base/test/browser/browser_*3pane*` and the folder-tree / thread-tree suites pass
 - Manual pass over each of the three layouts in both light and dark themes
+
+## 2026-07-31 final handoff refresh
+
+The historical audit entries above remain provenance; this block is the current
+external-state checkpoint for the pushed tree:
+
+- `main` is `067445d0f697ff83add1e1864b0a762f2401d2ee`, with Gecko gitlink
+  `fdd583cd5a10d051053acda8b760c3bd5d800034` and final upstream drift
+  `61 ahead / 0 behind`.
+- The source alignment verifier passes for all seven Material sheets, 71 design
+  palette colours, three density modes, four font families, both load orders,
+  packaging, balanced CSS, and theme-safety invariants.
+- Lint [30621742858](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742858)
+  and Windows build/package/release [30621742853](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742853)
+  are verified green. Release
+  [`tb-155.0a1-b52-dan-tat`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b52-dan-tat)
+  is non-draft/non-prerelease and its downloaded installer contains all seven
+  source-matching Material sheets byte-for-byte.
+- Browser dispatch [30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
+  completed against this exact tip. Static, chrome, and authored M3 groups passed
+  (`98 passed / 0 failed / 13 TODO`), while 3-pane recorded
+  `resolved=17 / ended=14 / unexpected=92`, widgets recorded
+  `resolved=9 / ended=6 / unexpected=2`, and folder recorded
+  `resolved=23 / ended=23 / unexpected=12`. Artifact `8790660197` contains raw
+  logs and runtime screenshots. The application gate remains red; the eight
+  unchecked F6 gates and the runtime failure families remain open.
+
+No parity box is promoted by the release proof alone. The manual visual,
+keyboard/screen-reader, density/theme matrix, and any markup or behavior-layer
+changes still require their own evidence or an explicit product decision.
