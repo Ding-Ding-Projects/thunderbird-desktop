@@ -77,12 +77,16 @@ for required in (
     "mm-color-space",
     "mm-color-space-entry",
     "mm-color-representations",
+    "mm-feature-details",
+    "mm-feature-details-title",
+    "mm-feature-details-close",
+    "mm-feature-details-body",
 ):
     if f'id="{required}"' not in page:
         fail(f"missing runtime feature control {required}")
 if "localStorage" not in script or "mail.material.preview.settings" not in script:
     fail("preferences are not persisted locally")
-for required in ("CHANGELOG", "FEATURE_GUIDE", "renderChangelog", "renderHistory", "renderNotifications", "renderGuide", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis", "ensureSettingsCustomization", "ensureToolsGuide", "ACCENTS", "FUNNY_EN", "FUNNY_ZH", "function tone", "mm-funny-preview", "mm-tools-search", "mm-font-scale"):
+for required in ("CHANGELOG", "FEATURE_GUIDE", "FEATURE_ARTICLES", "renderChangelog", "renderHistory", "renderNotifications", "renderGuide", "openGuideDetails", "closeGuideDetails", "bindGuideDetails", "guideDetailsAnchor", "data-guide-article", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis", "ensureSettingsCustomization", "ensureToolsGuide", "ACCENTS", "FUNNY_EN", "FUNNY_ZH", "function tone", "mm-funny-preview", "mm-tools-search", "mm-font-scale"):
     if required not in script:
         fail(f"runtime feature implementation is incomplete: {required}")
 if "ArrowLeft" not in script or "ArrowRight" not in script:
@@ -101,5 +105,11 @@ if "materialMail.xhtml" not in jar or "materialMail.js" not in jar or "materialM
     fail("jar packaging entries are incomplete")
 if "import { hslToRgb, translateColor }" not in COLOR_SCRIPT.read_text(encoding="utf-8") or "mm-color-picker" not in page or "mm-appearance-search" not in page:
     fail("continuous colour picker surface is incomplete")
+guide_articles = re.findall(r'^  "([^"]+)": \{', script, re.MULTILINE)
+if len(guide_articles) < 14:
+    fail(f"feature guide article payloads are incomplete: {len(guide_articles)}")
+for required in ("behavior", "configuration", "failure", "security", "verification"):
+    if script.count(f"{required}:") < 14:
+        fail(f"feature guide article section is incomplete: {required}")
 
-print(f"Material preview OK: {len(tab_ids)} tabs, {len(panel_ids)} panels, {len(page_ids)} localized ids, local persistence, keyboard navigation, reduced motion, and packaging.")
+print(f"Material preview OK: {len(tab_ids)} tabs, {len(panel_ids)} panels, {len(page_ids)} localized ids, 14 local article payloads, local persistence, keyboard navigation, reduced motion, and packaging.")
