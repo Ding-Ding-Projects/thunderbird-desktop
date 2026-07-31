@@ -3,9 +3,11 @@
 ## Behavior
 
 `design/runtime/i18n/model.mjs` provides English, playful Hong Kong Cantonese,
-and bilingual modes plus independent English and Cantonese levels 1–5. Tone
-changes voice only; facts, affected targets, choices, and error meaning remain
-unchanged. The preview exposes the same controls in Settings and discloses that
+and bilingual modes plus independent English and Cantonese levels 1–5. The
+packaged preview persists the same controls and applies fact-preserving tone
+variants to Settings feedback, changelog entries/exports, history rows/exports,
+notifications, and empty states. Tone changes voice only; facts, affected
+targets, choices, and error meaning remain unchanged. Settings discloses that
 all messages, including warnings and errors, can be styled.
 
 ## Configuration and failure modes
@@ -13,7 +15,8 @@ all messages, including warnings and errors, can be styled.
 Preferences are validated field-by-field and persisted through an injected local
 storage adapter. Malformed or unavailable storage falls back to safe defaults.
 Unknown modes or levels are normalized rather than allowed to erase a valid
-preference. The model is DOM-free so it can be tested before UI integration.
+preference. The model is DOM-free, while the packaged adapter is covered by the
+Material preview verifier and browser contract.
 
 ## Security and accessibility
 

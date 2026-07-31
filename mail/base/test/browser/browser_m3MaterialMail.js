@@ -85,6 +85,20 @@ add_task(async function testMaterialMailPreviewSurface() {
     "relaxed",
     "density changes apply immediately"
   );
+  const language = page.getElementById("mm-language");
+  language.value = "both";
+  language.dispatchEvent(new page.defaultView.Event("change", { bubbles: true }));
+  const funnyPreview = page.getElementById("mm-funny-preview");
+  const neutralPreview = funnyPreview.textContent;
+  const funnyEnglish = page.getElementById("mm-funny-en");
+  funnyEnglish.value = "5";
+  funnyEnglish.dispatchEvent(new page.defaultView.Event("input", { bubbles: true }));
+  Assert.notEqual(funnyPreview.textContent, neutralPreview, "English funny level changes rendered copy");
+  const englishFunnyPreview = funnyPreview.textContent;
+  const funnyCantonese = page.getElementById("mm-funny-zh");
+  funnyCantonese.value = "5";
+  funnyCantonese.dispatchEvent(new page.defaultView.Event("input", { bubbles: true }));
+  Assert.notEqual(funnyPreview.textContent, englishFunnyPreview, "Cantonese funny level changes rendered copy");
 
   page.getElementById("mm-tab-changelog").click();
   Assert.ok(

@@ -6,6 +6,8 @@ const HISTORY_KEY = "mail.material.preview.history";
 const NOTIFICATION_KEY = "mail.material.preview.notifications";
 const DEFAULTS = Object.freeze({ theme: "light", density: "comfortable", language: "en", funnyEn: 2, funnyZh: 3, narrator: false, narratorLanguage: "en", dimsum: true, accent: "purple", fontFamily: "Segoe UI", fontScale: 100, fontWeight: 400, hasLaunched: false });
 const ACCENTS = Object.freeze({ purple: ["#6750a4", "#eaddff", "#21005d"], blue: ["#415f91", "#d6e3ff", "#001b3e"], green: ["#386a20", "#b7e1a1", "#0b2003"], orange: ["#8b5000", "#ffddb4", "#2c1600"] });
+const FUNNY_EN = Object.freeze(["", " Nice and tidy.", " The preference gremlin can take a tea break.", " The tiny settings drawer is doing a victory lap.", " The bits lined up like dim sum in a steamer."]);
+const FUNNY_ZH = Object.freeze(["", " 整整齊齊。", " 個設定小精靈可以飲啖茶喇。", " 啲掣終於排隊，唔使再爭位。", " 成班設定好似點心咁乖乖入籠喇。"]);
 const CHANGELOG = Object.freeze([
   { version: "155.0a1", date: "2026-07-31", tag: "Added", title: ["Evidence-first Material workspace", "以證據先行嘅 Material 工作區"], items: [["Packaged Material Mail preview with six browser-style pages.", "打包 Material Mail 預覽，提供六個瀏覽器式頁面。"], ["Persisted language, tone, appearance, narrator, and dim-sum controls.", "保存語言、語氣、外觀、旁白同點心控制。"]] },
   { version: "155.0a1", date: "2026-07-29", tag: "Verified", title: ["M3 evidence capture", "M3 證據擷取"], items: [["Recorded genuine hosted and headless captures with explicit boundaries.", "記錄真實 hosted 同 headless 擷取，清楚寫明驗證邊界。"]] },
@@ -40,6 +42,12 @@ function ensureSettingsCustomization() {
   card.dataset.settingsSurface = "accent seed font family scale weight";
   card.innerHTML = `<h3 data-l10n-id="material-mail-appearance-customization">Live typography and seed</h3><label><span data-l10n-id="material-mail-accent">Accent seed</span><select id="mm-accent"><option value="purple" data-l10n-id="material-mail-accent-purple">Purple</option><option value="blue" data-l10n-id="material-mail-accent-blue">Blue</option><option value="green" data-l10n-id="material-mail-accent-green">Green</option><option value="orange" data-l10n-id="material-mail-accent-orange">Orange</option></select></label><label><span data-l10n-id="material-mail-font-family">Interface font</span><select id="mm-font-family"><option value="Segoe UI">Segoe UI</option><option value="Cascadia Code">Cascadia Code</option><option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option></select></label><label><span data-l10n-id="material-mail-font-scale">Font scale</span><input id="mm-font-scale" type="range" min="90" max="125" value="100" /><output id="mm-font-scale-value">100%</output></label><label><span data-l10n-id="material-mail-font-weight">Font weight</span><input id="mm-font-weight" type="range" min="400" max="700" step="100" value="400" /><output id="mm-font-weight-value">400</output></label>`;
   host.append(card);
+  const funnyPreview = document.createElement("p");
+  funnyPreview.id = "mm-funny-preview";
+  funnyPreview.className = "mm-supporting";
+  funnyPreview.setAttribute("aria-live", "polite");
+  funnyPreview.textContent = "Settings saved.";
+  card.append(funnyPreview);
   document.l10n?.translateFragment?.(card);
 }
 const searchState = Object.create(null);
@@ -51,6 +59,15 @@ function pick(pair) {
   if (settings.language === "zh") return pair[1];
   if (settings.language === "both") return `${pair[0]} · ${pair[1]}`;
   return pair[0];
+}
+function tone(pair) {
+  const enLevel = Math.max(1, Math.min(5, Number(settings.funnyEn) || 1));
+  const zhLevel = Math.max(1, Math.min(5, Number(settings.funnyZh) || 1));
+  const english = `${pair[0]}${FUNNY_EN[enLevel - 1]}`;
+  const cantonese = `${pair[1]}${FUNNY_ZH[zhLevel - 1]}`;
+  if (settings.language === "zh") return cantonese;
+  if (settings.language === "both") return `${english} · ${cantonese}`;
+  return english;
 }
 function drainNarrator() {
   if (narratorBusy || !narratorQueue.length || !settings.narrator || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
@@ -128,6 +145,8 @@ function applySettings() {
   document.getElementById("mm-font-scale-value").textContent = `${settings.fontScale || 100}%`;
   document.getElementById("mm-font-weight").value = settings.fontWeight || 400;
   document.getElementById("mm-font-weight-value").textContent = settings.fontWeight || 400;
+  const funnyPreview = document.getElementById("mm-funny-preview");
+  if (funnyPreview) funnyPreview.textContent = tone(["Settings saved.", "設定已儲存。"]);
   document.querySelectorAll(".mm-secondary").forEach(node => (node.hidden = settings.language === "en"));
   filterSettings();
   renderChangelog();
@@ -195,10 +214,10 @@ function renderChangelog() {
   const list = document.getElementById("mm-changelog-list");
   if (!list) return;
   const rows = changelogRows();
-  list.innerHTML = rows.length ? rows.map(entry => `<article class="mm-card mm-entry"><header class="mm-entry-header"><div><div class="mm-entry-meta">${escapeHtml(entry.version)} · ${escapeHtml(entry.date)}</div><h3>${escapeHtml(pick(entry.title))}</h3></div><span class="mm-filter-chip">${escapeHtml(entry.tag)}</span></header><ul>${entry.items.map(item => `<li>${escapeHtml(pick(item))}</li>`).join("")}</ul></article>`).join("") : `<div class="mm-card mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">⌕</span><h3>${escapeHtml(pick(["No matching releases", "搵唔到相符版本"]))}</h3><p>${escapeHtml(pick(["Adjust the date range or search text.", "調整日期範圍或者搜尋文字。"]))}</p></div>`;
+  list.innerHTML = rows.length ? rows.map(entry => `<article class="mm-card mm-entry"><header class="mm-entry-header"><div><div class="mm-entry-meta">${escapeHtml(entry.version)} · ${escapeHtml(entry.date)}</div><h3>${escapeHtml(tone(entry.title))}</h3></div><span class="mm-filter-chip">${escapeHtml(entry.tag)}</span></header><ul>${entry.items.map(item => `<li>${escapeHtml(tone(item))}</li>`).join("")}</ul></article>`).join("") : `<div class="mm-card mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">⌕</span><h3>${escapeHtml(tone(["No matching releases", "搵唔到相符版本"]))}</h3><p>${escapeHtml(tone(["Adjust the date range or search text.", "調整日期範圍或者搜尋文字。"]))}</p></div>`;
   document.getElementById("mm-changelog-count").value = `${rows.length} release${rows.length === 1 ? "" : "s"} · ${rows.length} 個版本`;
 }
-function changelogText(rows = changelogRows()) { return rows.map(entry => [`v${entry.version} · ${entry.date}`, pick(entry.title), ...entry.items.map(pick)].join("\n")).join("\n\n"); }
+function changelogText(rows = changelogRows()) { return rows.map(entry => [`v${entry.version} · ${entry.date}`, tone(entry.title), ...entry.items.map(tone)].join("\n")).join("\n\n"); }
 function historyRows() {
   const from = document.getElementById("mm-history-from").value;
   const to = document.getElementById("mm-history-to").value;
@@ -211,7 +230,7 @@ function renderNotifications() {
   const list = document.getElementById("mm-notification-list");
   if (!list) return;
   const rows = notificationRows();
-  list.innerHTML = rows.length ? rows.map(row => `<article class="mm-card mm-notification mm-notification-${escapeHtml(row.kind)}${row.dismissed ? " is-dismissed" : ""}"><span class="mm-notification-icon" aria-hidden="true">${row.kind === "success" ? "✓" : row.kind === "warning" ? "!" : "i"}</span><div><h3>${escapeHtml(pick(row.title))}</h3><p>${escapeHtml(pick(row.detail))}</p>${row.dismissed ? `<small class="mm-notification-state">${escapeHtml(pick(["Dismissed; retained in notification history.", "已收起；仍保留喺通知歷史。 "]))}</small>` : ""}</div>${row.dismissed ? "" : `<button class="mm-icon-button" type="button" data-notification-dismiss="${escapeHtml(row.id)}" data-l10n-id="material-mail-dismiss">×</button>`}</article>`).join("") : `<div class="mm-card mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">i</span><h3>${escapeHtml(pick(["No matching notifications", "搵唔到相符通知"]))}</h3><p>${escapeHtml(pick(["Dismissed messages remain reviewable under Dismissed.", "收起咗嘅訊息仍然可以喺「已收起」度睇返。 "]))}</p></div>`;
+  list.innerHTML = rows.length ? rows.map(row => `<article class="mm-card mm-notification mm-notification-${escapeHtml(row.kind)}${row.dismissed ? " is-dismissed" : ""}"><span class="mm-notification-icon" aria-hidden="true">${row.kind === "success" ? "✓" : row.kind === "warning" ? "!" : "i"}</span><div><h3>${escapeHtml(tone(row.title))}</h3><p>${escapeHtml(tone(row.detail))}</p>${row.dismissed ? `<small class="mm-notification-state">${escapeHtml(tone(["Dismissed; retained in notification history.", "已收起；仍保留喺通知歷史。 "]))}</small>` : ""}</div>${row.dismissed ? "" : `<button class="mm-icon-button" type="button" data-notification-dismiss="${escapeHtml(row.id)}" data-l10n-id="material-mail-dismiss">×</button>`}</article>`).join("") : `<div class="mm-card mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">i</span><h3>${escapeHtml(tone(["No matching notifications", "搵唔到相符通知"]))}</h3><p>${escapeHtml(tone(["Dismissed messages remain reviewable under Dismissed.", "收起咗嘅訊息仍然可以喺「已收起」度睇返。 "]))}</p></div>`;
   document.getElementById("mm-notification-count").value = `${rows.length} notification${rows.length === 1 ? "" : "s"} · ${rows.length} 個通知`;
   list.querySelectorAll("[data-notification-dismiss]").forEach(button => button.addEventListener("click", () => { const row = notificationRecords.find(item => item.id === button.dataset.notificationDismiss); if (!row) return; row.dismissed = true; row.unread = false; saveNotifications(); renderNotifications(); showToast("Notification dismissed and retained · 通知已收起但保留"); }));
 }
@@ -227,7 +246,7 @@ function renderHistory() {
   const list = document.getElementById("mm-history-list");
   if (!list) return;
   const rows = historyRows();
-  list.innerHTML = rows.length ? rows.map(row => `<article class="mm-card mm-entry mm-history-row"><div class="mm-history-icon" aria-hidden="true">↺</div><div><div class="mm-entry-meta">${escapeHtml(row.date)} · ${escapeHtml(row.action)}</div><h3>${escapeHtml(pick(row.title))}</h3><p>${escapeHtml(pick(row.detail))}</p></div><button class="mm-text-button" type="button" data-history-restore="${escapeHtml(row.id)}" data-l10n-id="material-mail-restore">Restore</button></article>`).join("") : `<div class="mm-card mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">◷</span><h3>${escapeHtml(pick(["No matching revisions", "搵唔到相符版本"]))}</h3><p>${escapeHtml(pick(["The active filters returned no history records.", "目前篩選冇搵到歷史記錄。 "]))}</p></div>`;
+  list.innerHTML = rows.length ? rows.map(row => `<article class="mm-card mm-entry mm-history-row"><div class="mm-history-icon" aria-hidden="true">↺</div><div><div class="mm-entry-meta">${escapeHtml(row.date)} · ${escapeHtml(row.action)}</div><h3>${escapeHtml(tone(row.title))}</h3><p>${escapeHtml(tone(row.detail))}</p></div><button class="mm-text-button" type="button" data-history-restore="${escapeHtml(row.id)}" data-l10n-id="material-mail-restore">Restore</button></article>`).join("") : `<div class="mm-card mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">◷</span><h3>${escapeHtml(tone(["No matching revisions", "搵唔到相符版本"]))}</h3><p>${escapeHtml(tone(["The active filters returned no history records.", "目前篩選冇搵到歷史記錄。 "]))}</p></div>`;
   document.getElementById("mm-history-count").value = `${rows.length} revision${rows.length === 1 ? "" : "s"} · ${rows.length} 個版本`;
   list.querySelectorAll("[data-history-restore]").forEach(button => button.addEventListener("click", () => { recordRevision("restored", ["Restored a preview revision", "還原預覽版本"], ["The restore was recorded as a new append-only revision.", "還原已記錄成新嘅只加不改版本。"]); showToast("Revision restored and recorded · 版本已還原並記錄"); }));
 }
@@ -239,7 +258,7 @@ function bindDataSurfaces() {
   document.getElementById("mm-changelog-preset").addEventListener("change", event => { const latest = CHANGELOG[0].date; const now = new Date(); const today = now.toISOString().slice(0, 10); const month = `${today.slice(0, 7)}-01`; const from = document.getElementById("mm-changelog-from"); const to = document.getElementById("mm-changelog-to"); if (event.target.value === "all") { from.value = ""; to.value = ""; } else if (event.target.value === "latest") { from.value = latest; to.value = latest; } else { from.value = month; to.value = today; } renderChangelog(); });
   document.getElementById("mm-changelog-copy").addEventListener("click", () => copyText(changelogText(), "Changelog copied · 更新記錄已複製"));
   document.getElementById("mm-changelog-export").addEventListener("click", () => { downloadText("material-mail-changelog.md", `# Material Mail changelog\n\n${changelogText()}\n`, "text/markdown"); showToast("Changelog exported · 更新記錄已匯出"); });
-  document.getElementById("mm-history-export").addEventListener("click", () => { const content = historyRows().map(row => `${row.date} · ${row.action}\n${pick(row.title)}\n${pick(row.detail)}`).join("\n\n"); downloadText("material-mail-history.txt", `Material Mail local history\n\n${content}\n`); showToast("History exported · 歷史已匯出"); });
+  document.getElementById("mm-history-export").addEventListener("click", () => { const content = historyRows().map(row => `${row.date} · ${row.action}\n${tone(row.title)}\n${tone(row.detail)}`).join("\n\n"); downloadText("material-mail-history.txt", `Material Mail local history\n\n${content}\n`); showToast("History exported · 歷史已匯出"); });
   document.getElementById("mm-notifications-filter").addEventListener("change", event => { notificationFilter = event.target.value; renderNotifications(); });
   renderHistoryActions();
 }

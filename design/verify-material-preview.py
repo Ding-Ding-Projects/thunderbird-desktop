@@ -82,7 +82,7 @@ for required in (
         fail(f"missing runtime feature control {required}")
 if "localStorage" not in script or "mail.material.preview.settings" not in script:
     fail("preferences are not persisted locally")
-for required in ("CHANGELOG", "renderChangelog", "renderHistory", "renderNotifications", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis", "ensureSettingsCustomization", "ACCENTS", "mm-font-scale"):
+for required in ("CHANGELOG", "renderChangelog", "renderHistory", "renderNotifications", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis", "ensureSettingsCustomization", "ACCENTS", "FUNNY_EN", "FUNNY_ZH", "function tone", "mm-funny-preview", "mm-font-scale"):
     if required not in script:
         fail(f"runtime feature implementation is incomplete: {required}")
 if "ArrowLeft" not in script or "ArrowRight" not in script:

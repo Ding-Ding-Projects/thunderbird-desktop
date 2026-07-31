@@ -1,8 +1,9 @@
 # Language and funny-level runtime model
 
-This small, DOM-free module is the future-preview adapter’s source of truth for
-language and tone preferences. It is not wired into the design preview or
-Thunderbird mail files yet.
+This small, DOM-free module is the source of truth for language and tone
+preferences. The packaged Material preview also wires independent levels into
+fact-preserving Settings, changelog, history, notification, and empty-state
+copy; this module remains the validation/reference layer.
 
 ## Contract
 
