@@ -727,6 +727,17 @@ definition site.
 
 ## 7. Quick verification commands
 
+The design-to-shipped source gate is runnable from the repository root:
+
+```powershell
+python design/verify-material-alignment.py
+```
+
+It checks the design palette, density projections, local-first font stacks,
+stylesheet load order, packaging entries, balanced CSS, and theme-safety
+invariants. A pass is static evidence only; it does not replace browser,
+keyboard, or NVDA/Narrator evidence.
+
 Read-only. Safe to run at any time.
 
     # The safety argument. Must show an upstream "Bug …" commit, not one of ours.

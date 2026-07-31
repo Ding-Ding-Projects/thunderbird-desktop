@@ -166,6 +166,10 @@ jobs:
           cache: npm
           cache-dependency-path: gecko/package-lock.json
 
+      - name: Verify design-to-shipped Material alignment
+        working-directory: ${{ github.workspace }}/gecko/comm
+        run: python design/verify-material-alignment.py
+
       - name: Resolve the files to lint
         working-directory: ${{ env.GECKO_DIR }}
         run: |

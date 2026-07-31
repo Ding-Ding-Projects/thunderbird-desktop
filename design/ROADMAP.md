@@ -74,7 +74,7 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   It published non-draft release [`tb-155.0a1-b41-ham-sui-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b41-ham-sui-gok)
   with `thunderbird-155.0a1.en-US.win64.installer.exe` attached.
 
-### 4. Lint wiring is live; the latest main run is red
+### 4. Lint wiring is live and verified
 
 `.github/workflows/lint-m3.yml` runs `./mach commlint -l stylelint` over
 `m3-*.css` + `material-tokens.css` and `-l eslint` over `about3Pane.xhtml`.
@@ -87,6 +87,12 @@ file and fails the job if stylelint reports it clean. The self-test passed, whil
 the real CSS lint failed on the pre-Gecko-bump main run because the six M3 sheets
 were reported as needing Prettier formatting: [30501542141](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542141).
 The current post-integration lint is verified green: [30605874495](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874495).
+
+The lint workflow also runs `design/verify-material-alignment.py`. That gate
+checks the design palette, all three density modes, the four local-first font
+stacks, both document load orders, the seven packaging entries, balanced CSS,
+and the lightweight-theme boundary. It is a source-drift gate, not browser
+rendering evidence; the runtime and F6 gaps below remain open.
 
 ### 5. The behaviour layer is provably untouched
 

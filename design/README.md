@@ -47,11 +47,14 @@ Integration target: **`main`**. Scope: **Windows only**.
 The design folder is the source of truth for Material values. The shipped CSS is
 checked against `app-data.js` and the `Material Mail.dc.html` snapshot, with any
 Thunderbird-specific translation recorded instead of silently drifting:
+`verify-material-alignment.py` runs in the Material lint workflow and fails when
+palette values, density projections, font families, stylesheet load order,
+packaging entries, or theme-safety invariants drift from that source.
 
 | Design source | Shipped implementation | Current result |
 |---|---|---|
 | `SEEDS` and `NEUTRALS` in `app-data.js` | `material-tokens.css` palette and neutral tokens | Exact light/dark purple, blue, green, orange, and neutral values are present. |
-| `DENSITY` in `app-data.js` | `--m3-row-padding`, `--m3-row-padding-inline`, `--m3-gap`, `--m3-control-height`, and `--m3-avatar-size` | Compact, comfortable, and relaxed values match the design; the thread row also consumes a logical inline inset for RTL correctness. |
+| `DENSITY` in `app-data.js` | `--m3-row-padding`, `--m3-row-padding-inline`, `--m3-gap`, `--m3-control-size`, and `--m3-avatar-size` | Compact, comfortable, and relaxed values match the design; the thread row also consumes a logical inline inset for RTL correctness. |
 | M3 shape, type scale, elevation, and motion in the snapshot | Token definitions plus the six section sheets | Applied where the existing XUL/XHTML DOM exposes the required component; unsupported design-only markup remains tracked below. |
 | Design typography (`Roboto`, `Roboto Flex`, `Noto Sans HK`) | Local-first/system fallback stacks in `material-tokens.css` | Intentional translation: Thunderbird cannot fetch Google Fonts at startup, so the design names are retained while local or platform CJK-safe faces are used. |
 
