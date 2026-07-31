@@ -13,6 +13,8 @@ key and the editor returns focus to the target when closed.
 Overrides are stored under `mail.material.preview.appearance`. Native color
 inputs are paired with bounded hex entry; the current foundation deliberately
 does not claim the full Word-depth typography or multi-space color translator.
+Settings also exposes live accent seed, interface font, font scale, and font
+weight controls using the design folder's local palette/font choices.
 
 ## Failure modes
 

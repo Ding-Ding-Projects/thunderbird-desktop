@@ -56,6 +56,10 @@ add_task(async function testMaterialMailPreviewSurface() {
     "mm-appearance-font-size",
     "mm-appearance-weight",
     "mm-narrator-language",
+    "mm-accent",
+    "mm-font-family",
+    "mm-font-scale",
+    "mm-font-weight",
   ]) {
     Assert.ok(page.getElementById(id), `${id} is present in the runtime feature surface`);
   }

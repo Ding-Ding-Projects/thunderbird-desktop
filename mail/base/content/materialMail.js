@@ -4,7 +4,8 @@
 const STORAGE_KEY = "mail.material.preview.settings";
 const HISTORY_KEY = "mail.material.preview.history";
 const NOTIFICATION_KEY = "mail.material.preview.notifications";
-const DEFAULTS = Object.freeze({ theme: "light", density: "comfortable", language: "en", funnyEn: 2, funnyZh: 3, narrator: false, narratorLanguage: "en", dimsum: true, hasLaunched: false });
+const DEFAULTS = Object.freeze({ theme: "light", density: "comfortable", language: "en", funnyEn: 2, funnyZh: 3, narrator: false, narratorLanguage: "en", dimsum: true, accent: "purple", fontFamily: "Segoe UI", fontScale: 100, fontWeight: 400, hasLaunched: false });
+const ACCENTS = Object.freeze({ purple: ["#6750a4", "#eaddff", "#21005d"], blue: ["#415f91", "#d6e3ff", "#001b3e"], green: ["#386a20", "#b7e1a1", "#0b2003"], orange: ["#8b5000", "#ffddb4", "#2c1600"] });
 const CHANGELOG = Object.freeze([
   { version: "155.0a1", date: "2026-07-31", tag: "Added", title: ["Evidence-first Material workspace", "以證據先行嘅 Material 工作區"], items: [["Packaged Material Mail preview with six browser-style pages.", "打包 Material Mail 預覽，提供六個瀏覽器式頁面。"], ["Persisted language, tone, appearance, narrator, and dim-sum controls.", "保存語言、語氣、外觀、旁白同點心控制。"]] },
   { version: "155.0a1", date: "2026-07-29", tag: "Verified", title: ["M3 evidence capture", "M3 證據擷取"], items: [["Recorded genuine hosted and headless captures with explicit boundaries.", "記錄真實 hosted 同 headless 擷取，清楚寫明驗證邊界。"]] },
@@ -31,6 +32,16 @@ let appearanceTarget = null;
 let narratorQueue = [];
 let narratorBusy = false;
 let narratorLastAt = 0;
+function ensureSettingsCustomization() {
+  if (document.getElementById("mm-accent")) return;
+  const host = document.querySelector(".mm-settings-grid");
+  const card = document.createElement("section");
+  card.className = "mm-card mm-settings-card mm-appearance-controls";
+  card.dataset.settingsSurface = "accent seed font family scale weight";
+  card.innerHTML = `<h3 data-l10n-id="material-mail-appearance-customization">Live typography and seed</h3><label><span data-l10n-id="material-mail-accent">Accent seed</span><select id="mm-accent"><option value="purple" data-l10n-id="material-mail-accent-purple">Purple</option><option value="blue" data-l10n-id="material-mail-accent-blue">Blue</option><option value="green" data-l10n-id="material-mail-accent-green">Green</option><option value="orange" data-l10n-id="material-mail-accent-orange">Orange</option></select></label><label><span data-l10n-id="material-mail-font-family">Interface font</span><select id="mm-font-family"><option value="Segoe UI">Segoe UI</option><option value="Cascadia Code">Cascadia Code</option><option value="Arial">Arial</option><option value="Times New Roman">Times New Roman</option></select></label><label><span data-l10n-id="material-mail-font-scale">Font scale</span><input id="mm-font-scale" type="range" min="90" max="125" value="100" /><output id="mm-font-scale-value">100%</output></label><label><span data-l10n-id="material-mail-font-weight">Font weight</span><input id="mm-font-weight" type="range" min="400" max="700" step="100" value="400" /><output id="mm-font-weight-value">400</output></label>`;
+  host.append(card);
+  document.l10n?.translateFragment?.(card);
+}
 const searchState = Object.create(null);
 const historyActionSelection = new Set();
 
@@ -99,11 +110,24 @@ function applySettings() {
   document.documentElement.dataset.theme = settings.theme;
   document.documentElement.dataset.density = settings.density;
   document.documentElement.dataset.language = settings.language;
+  const accent = ACCENTS[settings.accent] || ACCENTS.purple;
+  document.documentElement.style.setProperty("--mm-primary", accent[0]);
+  document.documentElement.style.setProperty("--mm-primary-container", accent[1]);
+  document.documentElement.style.setProperty("--mm-on-primary-container", accent[2]);
+  document.documentElement.style.setProperty("--m3-font-family", settings.fontFamily || "Segoe UI");
+  document.documentElement.style.fontSize = `${settings.fontScale || 100}%`;
+  document.documentElement.style.setProperty("--mm-font-weight", settings.fontWeight || 400);
   for (const [id, value] of [["mm-theme", settings.theme], ["mm-density", settings.density], ["mm-language", settings.language], ["mm-funny-en", settings.funnyEn], ["mm-funny-zh", settings.funnyZh]]) document.getElementById(id).value = value;
   for (const [id, value] of [["mm-funny-en-value", settings.funnyEn], ["mm-funny-zh-value", settings.funnyZh]]) { document.getElementById(id).value = value; document.getElementById(id).textContent = value; }
   document.getElementById("mm-narrator").checked = settings.narrator;
   document.getElementById("mm-dimsum").checked = settings.dimsum;
   document.getElementById("mm-narrator-language").value = settings.narratorLanguage;
+  document.getElementById("mm-accent").value = settings.accent || "purple";
+  document.getElementById("mm-font-family").value = settings.fontFamily || "Segoe UI";
+  document.getElementById("mm-font-scale").value = settings.fontScale || 100;
+  document.getElementById("mm-font-scale-value").textContent = `${settings.fontScale || 100}%`;
+  document.getElementById("mm-font-weight").value = settings.fontWeight || 400;
+  document.getElementById("mm-font-weight-value").textContent = settings.fontWeight || 400;
   document.querySelectorAll(".mm-secondary").forEach(node => (node.hidden = settings.language === "en"));
   filterSettings();
   renderChangelog();
@@ -119,6 +143,10 @@ function bindSettings() {
   bind("mm-funny-en", "funnyEn", Number, ["Changed English funny level", "改變英文幽默等級"]);
   bind("mm-funny-zh", "funnyZh", Number, ["Changed Cantonese funny level", "改變廣東話幽默等級"]);
   bind("mm-narrator-language", "narratorLanguage", value => value, ["Changed narrator language", "改變旁白語言"]);
+  bind("mm-accent", "accent", value => value, ["Changed accent seed", "改變強調色種子"]);
+  bind("mm-font-family", "fontFamily", value => value, ["Changed interface font", "改變介面字體"]);
+  bind("mm-font-scale", "fontScale", Number, ["Changed font scale", "改變字體比例"]);
+  bind("mm-font-weight", "fontWeight", Number, ["Changed font weight", "改變字重"]);
   for (const [id, key, reason] of [["mm-narrator", "narrator", ["Changed narrator preference", "改變旁白偏好"]], ["mm-dimsum", "dimsum", ["Changed dim-sum preference", "改變點心偏好"]]]) document.getElementById(id).addEventListener("change", event => { settings[key] = event.target.checked; saveSettings(reason); applySettings(); if (key === "narrator" && settings.narrator) speakPair(["Narrator enabled", "旁白已啟用"]); });
   document.getElementById("mm-reset").addEventListener("click", () => { settings = { ...DEFAULTS }; saveSettings(["Reset preview preferences", "重設預覽偏好"]); applySettings(); showToast("Preview preferences reset · 預覽偏好已重設"); });
   document.getElementById("mm-theme-toggle").addEventListener("click", () => { settings.theme = settings.theme === "light" ? "dark" : "light"; saveSettings(["Toggled preview theme", "切換預覽主題"]); applySettings(); });
@@ -263,4 +291,4 @@ function bindAppearance() {
 window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); if (key === "notifications") renderNotifications(); };
 window.mmSearchState = searchState;
 
-document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); bindTabs(); bindSettings(); bindDataSurfaces(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });
+document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); ensureSettingsCustomization(); bindTabs(); bindSettings(); bindDataSurfaces(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });
