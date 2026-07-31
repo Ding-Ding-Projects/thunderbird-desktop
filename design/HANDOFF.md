@@ -11,36 +11,30 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `chrome://messenger/content/materialMail.xhtml` content tab opened from Help →
 > Open Material Mail preview. It provides the design-folder Mail/Settings/
 > Changelog/History/Notifications/Tools pages, local preview preferences, and an
-> anchored regex builder. The page is explicitly labelled a preview: it does not
-> replace upstream mail behavior, and it is not visual sign-off until a real
-> packaged capture is made. Verify the slice with `python design\verify-material-preview.py`
-> plus the i18n/regex Node suites.
+> anchored regex builder. Genuine b66 headless captures for every page and the
+> regex builder are committed under `design/screenshots/runtime/`. The page is
+> explicitly labelled a preview: it does not replace upstream mail behavior and
+> does not close the full global-memory contract. Verify it with
+> `python design\verify-material-preview.py` plus the i18n/regex Node suites.
 
 > [!IMPORTANT]
-> **Current integration status — 2026-07-31.** The source/runtime baseline for this
-> handoff update is `e4867411c3aa81de4527d843913b966d0ef89c1c` on `main`, pushed
-> to `origin`; the upstream check is **63 ahead / 0 behind**. The Gecko gitlink is
-> `fdd583cd5a10d051053acda8b760c3bd5d800034`. The documentation commit that records
-> this baseline follows it, so `e486741…` is the exact source SHA under discussion.
-> Lint [30625833503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833503)
-> and installer [30625833498](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833498)
-> are verified green. Release
-> [`tb-155.0a1-b54-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok)
-> is non-draft/non-prerelease, contains the real Windows installer
-> `thunderbird-155.0a1.en-US.win64.installer.exe`, and was built from that exact SHA.
+> **Current integration status — 2026-07-31.** The current pushed source is
+> `dfcb6a4b548484b29b0ccce16f96c598c99d17c3` on `main`; upstream check is
+> **89 ahead / 0 behind** and the Gecko gitlink remains
+> `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b66 release
+> [`tb-155.0a1-b66-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao)
+> contains the real Windows installer from exact source `84d3f6d2364`.
+> Lint [30634396287](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634396287)
+> is green; installer [30634396297](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634396297)
+> is still running for the latest evidence push.
 >
-> The current b54 runtime observation is bounded: the onboarding/start page remains
-> upstream Thunderbird UI, while the same b54 package contains the seven Material
-> 3-pane stylesheet/token files. This is a packaging/surface-boundary finding, not
-> evidence that the start page is supposed to be Material, and not evidence that any
-> other non-3-pane surface is covered. The current exact-SHA browser dispatch
-> [30625878368](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368)
-> completed **failed** after setup/build. Its packaged-CSS static suite passed `1/1`
-> with zero unexpected results and chrome passed with zero unexpected results; the
-> 3-pane, widgets, folder, and authored M3 gates remained open with respectively
-> `92`, `2`, `12`, and `5` unexpected results. The authored M3 suite recorded
-> `119 passed / 4 failed / 13 TODO`; artifact `8791840623` contains the raw logs.
-> These results do not promote a parity, accessibility, layout, or visual sign-off.
+> Browser run [30632185941](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941)
+> completed failed: the authored Material test reached the packaged page but attempted
+> direct `localStorage` access from privileged `chrome://` content, producing
+> `NS_ERROR_NOT_AVAILABLE`; the surrounding legacy suites also remain red. The corrected
+> authored test is running in [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
+> for the exact latest source. These results do not promote parity, accessibility, layout,
+> or visual sign-off.
 
 > [!NOTE]
 > **Prior current-source browser checkpoint — 2026-07-31.** Dispatch
