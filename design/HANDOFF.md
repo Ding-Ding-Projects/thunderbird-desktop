@@ -19,8 +19,8 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Current integration status — 2026-07-31.** The runtime/evidence source tip is
-> `c618a3643d02a7499fa949f2a6ab52e80a094800` on `main`; upstream check is
-> **110 ahead / 0 behind at that tip** and the Gecko gitlink remains
+> `464c7d24836af2856bebecc7bdbc5746019af444` on `main`; upstream check is
+> **113 ahead / 0 behind at that tip** and the Gecko gitlink remains
 > `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b70 release
 > [`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok)
 > contains the real 85,328,686-byte Windows installer from exact source `5a4f35f3ba36`.
@@ -37,8 +37,8 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > The public latest release is [`tb-155.0a1-b75-lin-yung-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b75-lin-yung-bao),
 > a real 85,319,245-byte installer. Inspection of its embedded `omni.ja` found no
 > `materialMailColor.mjs`, so it is not current-source proof; the newer runtime waves through
-> `c618a3643d02` are waiting on
-> installer run [30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
+> `464c7d24836a` are waiting on
+> installer run [30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
 > before built-artifact captures can be taken. The queued state is not a CI success claim.
 
 > [!NOTE]

@@ -7,7 +7,7 @@ snapshot or CSS token is not counted as a shipped interaction.
 ## Baseline
 
 - Current public artifact: `tb-155.0a1-b75-lin-yung-bao` (real installer; its embedded preview is older than the current c618 source wave).
-- Current main source: `c618a3643d02a7499fa949f2a6ab52e80a094800`.
+- Current main source: `464c7d24836af2856bebecc7bdbc5746019af444`.
 - The seven Material sheets are packaged byte-for-byte in that artifact.
 - Current implementation boundary: CSS plus the packaged Material preview scripts;
   upstream behavior and the 3-pane markup are preserved.
@@ -18,7 +18,7 @@ snapshot or CSS token is not counted as a shipped interaction.
 
 | ID | Requirement | Evidence today | State |
 |---|---|---|---|
-| GM-01 | Local Material landing page enumerating every feature and hosting its docs | Packaged Material preview exists; full landing/docs surface remains separate | Partial / open |
+| GM-01 | Local Material landing page enumerating every feature and hosting its docs | Packaged Tools page now mounts a searchable 14-entry bilingual design-folder feature guide with per-entry status, summary, article path, and its own regex builder | Partial / open: full article hosting/link navigation and built-artifact capture remain open |
 | GM-02 | Persisted English, playful HK Cantonese, and bilingual modes | Preview controls plus `design/runtime/i18n/model.mjs` | Foundation shipped; app-wide wiring open |
 | GM-03 | Independent persisted funny sliders, levels 1–5, affecting all copy | Packaged runtime persists independent English/Cantonese levels, renders fact-preserving tone variants across Settings feedback, Changelog, History, Notifications, empty states, and exports, and browser assertions exercise both sliders | Partial / open: full Thunderbird app-wide event/error wiring and built-artifact capture remain open |
 | GM-04 | Non-blocking notifications plus history/centre | Packaged local notification centre with search, regex builder, all/unread/dismissed filters, and retained dismissal state; upstream event wiring remains open | Partial / open |

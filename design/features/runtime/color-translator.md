@@ -45,6 +45,6 @@ python design/verify-material-preview.py
 
 The source/browser contracts are covered; a built-artifact screenshot of this
 new picker remains `capture-pending` while Windows installer run
-[30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
+[30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
 is queued. Word-depth typography, eyedropper support, presets/import-export, and
 every-element appearance coverage remain open.

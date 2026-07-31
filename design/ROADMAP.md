@@ -81,10 +81,10 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   installer attached, tagged monotonically off `run_number` and code-named from a
   16-dish dim sum rotation.
 - Every release states that it is an unofficial fork build.
-- The current source/runtime baseline is `c618a3643d02a7499fa949f2a6ab52e80a094800`:
-  the upstream check is **110 ahead / 0 behind**. Lint
-  [30640642457](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642457)
-  is pending and installer [30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
+- The current source/runtime baseline is `464c7d24836af2856bebecc7bdbc5746019af444`:
+  the upstream check is **113 ahead / 0 behind**. Lint
+  [30641803695](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803695)
+  is queued and installer [30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
   is queued. b75 is the latest real public release, but its embedded preview was inspected
   and does not contain the current color/funny-level source wave; current-source capture waits
   for the queued installer to publish.

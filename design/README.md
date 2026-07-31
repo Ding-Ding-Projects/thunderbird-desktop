@@ -50,10 +50,11 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, full app-wide
   feature wiring and manual visual sign-off are absent, and the upstream 3-pane remains
   behavior-compatible rather than fully replaced. See `ROADMAP.md` §"What is explicitly NOT done".
-- **Current source push:** `c618a3643d02a7499fa949f2a6ab52e80a094800` wires both funny levels into
-  fact-preserving runtime copy. Windows installer run [30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
-  is queued and lint [30640642457](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642457)
-  is pending. b75 is the latest real public release, but its embedded preview was inspected
+- **Current source push:** `464c7d24836af2856bebecc7bdbc5746019af444` adds the searchable 14-entry
+  feature guide on top of the funny-level wiring.
+  Windows installer run [30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
+  is queued and lint [30641803695](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803695)
+  is queued. b75 is the latest real public release, but its embedded preview was inspected
   and does not contain the current color/funny-level source wave; new captures remain pending
   against the current-source artifact.
 
@@ -71,7 +72,7 @@ does not yet replace Thunderbird's existing 3-pane behavior.
 | Changelog | Same page | Local release entries, search, anchored regex builder, date filters, copy, and Markdown export; release-data wiring remains open |
 | History | Same page | Local append-only preview revisions, derived action filters, date/search filters, restore-as-new-revision, and export; production Git-backed record history remains open |
 | Notifications | Same page | Non-blocking reviewable stack with search, anchored regex builder, all/unread/dismissed filters, and retained local dismissal state; app-wide event wiring remains open |
-| Tools | Same page | Command/regex/editor entry points are represented; command palette and integrations remain open |
+| Tools | Same page | Searchable 14-entry design-folder feature guide with its own regex builder plus command/regex/editor entry points; integrations remain open |
 | Search | Anchored `RegexBuilder` from `design/runtime/regex/` | Independent builders are packaged for Mail, Settings, Changelog, History, Notifications, and the appearance editor; upstream mail-content search wiring remains open |
 | Appearance color | `materialMailColor.mjs` plus `design/runtime/color/color-translator.mjs` | Continuous local HSL controls, direct multi-space entry, translated copy rows, gamut/clipping status, and contrast readout; full Word-depth coverage remains open |
 
@@ -91,7 +92,7 @@ Feature articles are indexed in [`features/runtime/README.md`](features/runtime/
 
 The complete surface inventory is machine-readable in
 [`evidence/manifest.json`](evidence/manifest.json). It is anchored to the current
-main evidence source commit `c618a3643d02a7499fa949f2a6ab52e80a094800` and covers
+main evidence source commit `464c7d24836af2856bebecc7bdbc5746019af444` and covers
 both classes of surface from the audit:
 
 - **Runtime-reachable:** the 3-pane shell and layouts; folder pane and its context
@@ -143,7 +144,7 @@ The current source wave adds Changelog/History filters and export, retained
 Notifications, catalog-backed dim-sum startup, an anchored appearance editor,
 a mounted continuous color translator, funny-level-driven copy, and a serialized narrator. Their evidence is explicitly `capture-pending` in
 [`design/evidence/manifest.json`](evidence/manifest.json) until installer run
-[30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
+[30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
 produces the real artifact. Source checks are not substituted for screenshots.
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
