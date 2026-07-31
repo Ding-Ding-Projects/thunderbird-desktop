@@ -49,6 +49,35 @@ Integration target: **`main`**. Scope: **Windows only**.
   visual sign-off is absent, and the markup rewrite itself has not started. See
   `ROADMAP.md` §"What is explicitly NOT done".
 
+## Runtime Material vertical slice
+
+The first packaged runtime slice is now present behind **Help → Open Material Mail
+preview**. It is a real `contentTab` surface, not a screenshot or design-only
+HTML file, and it is deliberately labelled **Design-backed preview** because it
+does not yet replace Thunderbird's existing 3-pane behavior.
+
+| Surface | Implementation | Current boundary |
+|---|---|---|
+| Mail | `mail/base/content/materialMail.xhtml` | Design-aligned three-column sample workspace; sample data only |
+| Settings | Same page plus `materialMail.js` | Theme, density, language mode, independent funny levels, narrator/dim-sum toggles, local persistence |
+| Changelog | Same page | Two factual entries; full release viewer remains open |
+| History | Same page | Honest empty state; Git-backed record history remains open |
+| Notifications | Same page | Non-blocking reviewable sample stack; app-wide notification history remains open |
+| Tools | Same page | Command/regex/editor entry points are represented; command palette and integrations remain open |
+| Search | Anchored `RegexBuilder` from `design/runtime/regex/` | JavaScript RegExp builder is packaged into the preview; mail-content search wiring remains open |
+
+The surface follows the design folder's M3 tokens, density arms, rounded-card
+anatomy, browser-style tabs, bilingual labels, keyboard tab movement, visible
+focus, narrow layouts, and reduced-motion fallback. `design/verify-material-preview.py`
+checks the page/panel inventory, localization IDs, packaging, persistence,
+keyboard paths, local-only assets, and the regex-builder entry point.
+
+This slice is intentionally an implementation step toward the full rewrite, not
+a claim that every global-memory feature is complete. Capture it from the real
+packaged application before promoting any state to visual sign-off.
+
+Feature articles are indexed in [`features/runtime/README.md`](features/runtime/README.md).
+
 ## Evidence coverage
 
 The complete surface inventory is machine-readable in

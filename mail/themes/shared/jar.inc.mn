@@ -118,6 +118,8 @@
   skin/classic/messenger/abContactsPanel.css                  (../shared/mail/abContactsPanel.css)
   skin/classic/messenger/abFormFields.css                     (../shared/mail/abFormFields.css)
   skin/classic/messenger/about3Pane.css                       (../shared/mail/about3Pane.css)
+  skin/classic/messenger/material-mail.css                    (../shared/mail/material-mail.css)
+  skin/classic/messenger/material-mail-regex.css               (../../../design/runtime/regex/regex-builder.css)
   skin/classic/messenger/material-tokens.css                  (../shared/mail/material-tokens.css)
   skin/classic/messenger/m3-chrome.css                        (../shared/mail/m3-chrome.css)
   skin/classic/messenger/m3-folder-pane.css                   (../shared/mail/m3-folder-pane.css)

@@ -10,14 +10,25 @@ three are the evidence.
 
 ## The one-sentence version
 
-**This is a CSS-layer restyle of upstream Thunderbird's existing 3-pane, not a
-rewrite of it. Windows CI has built and shipped the current artifact; the latest
-browser dispatch passed the Material-specific groups but the compatibility gate
-remains red.**
+**The shipped 3-pane remains a CSS-layer restyle of upstream Thunderbird, and the
+first packaged Material runtime vertical slice is now available from Help → Open
+Material Mail preview. Windows CI has shipped a real artifact; the full behavior
+rewrite and final browser proof remain open.**
 
 Everything below follows from those two facts. The first is why the parity
 contract can be at 33/38 without a line of behaviour code being written. The
 second is why a static contract is not a release gate.
+
+### Current runtime slice
+
+The new `materialMail.xhtml`/`materialMail.js` surface is a real content tab with
+Mail, Settings, Changelog, History, Notifications, and Tools pages. It uses the
+design token layer, persists preview appearance/language/funny-level controls,
+and packages the anchored regex builder. `verify-material-preview.py` and the
+module test suites pass. This is an implementation milestone, not completion:
+the existing upstream 3-pane still owns mail behavior, and every remaining gap
+in `GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md` stays open until wired to real data and
+captured from the built application.
 
 ---
 

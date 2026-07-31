@@ -18,12 +18,12 @@ snapshot or CSS token is not counted as a shipped interaction.
 
 | ID | Requirement | Evidence today | State |
 |---|---|---|---|
-| GM-01 | Local Material landing page enumerating every feature and hosting its docs | `Material Mail.dc.html` only | Open |
-| GM-02 | Persisted English, playful HK Cantonese, and bilingual modes | Upstream Fluent/locales | Open for new Material surfaces |
-| GM-03 | Independent persisted funny sliders, levels 1–5, affecting all copy | No controls or voice layer | Open |
+| GM-01 | Local Material landing page enumerating every feature and hosting its docs | Packaged Material preview exists; full landing/docs surface remains separate | Partial / open |
+| GM-02 | Persisted English, playful HK Cantonese, and bilingual modes | Preview controls plus `design/runtime/i18n/model.mjs` | Foundation shipped; app-wide wiring open |
+| GM-03 | Independent persisted funny sliders, levels 1–5, affecting all copy | Preview controls plus persisted tone model | Foundation shipped; app-wide copy wiring open |
 | GM-04 | Non-blocking notifications plus history/centre | Upstream notification primitives only | Open |
 | GM-05 | One-percent local dim-sum startup card and opt-out | `assets/dimsum/*.svg` glyphs only | Open |
-| GM-06 | Full anchored regex builder on every search bar | `SearchField.dc.html` and `RegexBuilder.dc.html` only | Open |
+| GM-06 | Full anchored regex builder on every search bar | `design/runtime/regex/` module and packaged preview entry point | Foundation shipped; every app search surface open |
 | GM-07 | Per-element appearance editor and Word-depth typography | M3 tokens and CSS only | Open |
 | GM-08 | Continuous color picker and bidirectional color-space translator | No runtime picker | Open |
 | GM-09 | Browser tabs with overflow, pinning, grouping, four searches, and bulk-close preview | Existing Thunderbird tab behavior; no target design feature set | Open |

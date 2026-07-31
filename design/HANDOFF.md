@@ -6,6 +6,16 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 (the 38-box parity ledger and its evidence), `INFRA.md` (runners and pipeline),
 `A11Y-L10N-AUDIT.md` (what must not break), `README.md` (the design snapshot).
 
+> [!NOTE]
+> **Runtime vertical slice — 2026-07-31.** `main` now contains a packaged
+> `chrome://messenger/content/materialMail.xhtml` content tab opened from Help →
+> Open Material Mail preview. It provides the design-folder Mail/Settings/
+> Changelog/History/Notifications/Tools pages, local preview preferences, and an
+> anchored regex builder. The page is explicitly labelled a preview: it does not
+> replace upstream mail behavior, and it is not visual sign-off until a real
+> packaged capture is made. Verify the slice with `python design\verify-material-preview.py`
+> plus the i18n/regex Node suites.
+
 > [!IMPORTANT]
 > **Current integration status — 2026-07-31.** The source/runtime baseline for this
 > handoff update is `e4867411c3aa81de4527d843913b966d0ef89c1c` on `main`, pushed
