@@ -18,9 +18,9 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `python design\verify-material-preview.py` plus the i18n/regex Node suites.
 
 > [!IMPORTANT]
-> **Current integration status — 2026-07-31.** The current pushed source is
+> **Current integration status — 2026-07-31.** The runtime/evidence source tip is
 > `b6865fc122bd0bf8f4c3992e5b5cce42f46c8ffb` on `main`; upstream check is
-> **102 ahead / 0 behind** and the Gecko gitlink remains
+> **102 ahead / 0 behind at that tip** and the Gecko gitlink remains
 > `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b70 release
 > [`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok)
 > contains the real 85,328,686-byte Windows installer from exact source `5a4f35f3ba36`.
