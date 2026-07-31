@@ -120,9 +120,11 @@ Feature articles are indexed in [`features/runtime/README.md`](features/runtime/
 ## Evidence coverage
 
 The complete surface inventory is machine-readable in
-[`evidence/manifest.json`](evidence/manifest.json). It is anchored to the current
-main evidence source commit `464c7d24836af2856bebecc7bdbc5746019af444` and covers
-both classes of surface from the audit:
+[`evidence/manifest.json`](evidence/manifest.json). Its `sourceCommit` is
+deliberately `null`: a tracked manifest cannot contain its own final commit ID
+without creating a self-reference. Resolve the commit that contains the manifest;
+the exact pushed SHA and immutable CI/release verdict are recorded in rolling
+Discussion #1. The manifest covers both classes of surface from the audit:
 
 - **Runtime-reachable:** the 3-pane shell and layouts; folder pane and its context
   menus; thread header/list and display, sort, and column menus; quick-filter bar
