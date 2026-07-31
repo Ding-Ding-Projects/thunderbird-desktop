@@ -105,10 +105,12 @@ not evidence for current runtime coverage.
 
 ### Current CI evidence
 
-Build 66 is the current non-draft release
-[`tb-155.0a1-b66-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao),
-published by the successful [Windows installer run 30632181488](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181488)
-with the installer from exact main SHA `84d3f6d2364`. Lint [30632181490](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181490)
+Build 69 is the current non-draft release
+[`tb-155.0a1-b69-lo-mai-gai`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b69-lo-mai-gai),
+published by installer run [30635065165](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635065165)
+from exact main SHA `c76317a6456`. The real asset is 85,331,080 bytes with SHA-256
+`e421a964874535f728c024333cf3c3a557301c7c79452b9f4588680d8e4e14a8`; the workflow is still
+finishing cleanup. Lint [30635065090](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635065090)
 is green. Browser run [30632185941](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941)
 completed red: the authored Material test hit the privileged-chrome localStorage boundary and
 the surrounding legacy suites also remain red. Its [uploaded log artifact](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941/artifacts/8794407747)

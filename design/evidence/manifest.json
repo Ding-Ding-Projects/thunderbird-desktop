@@ -23,22 +23,22 @@
   "verification": {
     "release": {
       "status": "verified",
-      "build": 66,
-      "tag": "tb-155.0a1-b66-char-siu-bao",
-      "name": "🍖 Char Siu Bao · 叉燒包 — Thunderbird 155.0a1 (build 66)",
-      "publishedAt": "2026-07-31T13:05:51Z",
-      "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
+      "build": 69,
+      "tag": "tb-155.0a1-b69-lo-mai-gai",
+      "name": "🍚 Lo Mai Gai · 糯米雞 — Thunderbird 155.0a1 (build 69)",
+      "publishedAt": "2026-07-31T13:41:53Z",
+      "sourceCommit": "c76317a64560cc7578cb2a7324ce51ad6b47c04a",
       "buildRun": {
-        "runId": 30632181488,
-        "status": "passed",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181488"
+        "runId": 30635065165,
+        "status": "published",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635065165"
       },
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b69-lo-mai-gai",
       "assets": [
         {
           "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-          "sizeBytes": 85315700,
-          "sha256": "f6feeac75bde8cbe76d5ca3f81f359ef09cd2858fb8104aa0f80ada03650ab17"
+          "sizeBytes": 85331080,
+          "sha256": "e421a964874535f728c024333cf3c3a557301c7c79452b9f4588680d8e4e14a8"
         }
       ]
     },
