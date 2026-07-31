@@ -74,7 +74,11 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   failed against `e7af05a2cd5` at the same gate; no release was published by that
   failed run. The current repair advances the gitlink to
   `fdd583cd5a10d051053acda8b760c3bd5d800034`, which removes the 26 stale Rust
-  manifest lines between the old and current Gecko checkouts.
+  manifest lines between the old and current Gecko checkouts. The repair is
+  verified by installer run [30620560414](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30620560414)
+  on `3e6de1ef118`; it passed build/package and published non-draft release
+  `tb-155.0a1-b51-cheung-fun` with a real installer. The downloaded b51 package
+  again matches all seven Material sheets byte-for-byte.
 - The corrective run on `5ac44d5b58f` is verified green: [30606626311](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30606626311).
   It published non-draft release [`tb-155.0a1-b41-ham-sui-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b41-ham-sui-gok)
   with `thunderbird-155.0a1.en-US.win64.installer.exe` attached.

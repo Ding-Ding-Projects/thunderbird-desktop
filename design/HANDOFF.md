@@ -12,13 +12,16 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `58 ahead / 0 behind`, and records Gecko gitlink
 > `fdd583cd5a10d051053acda8b760c3bd5d800034`. The task-owned worktree and
 > branches were removed after ancestry proof. Current HEAD is
-> `e7af05a2cd5b64cc15d43bfa955d580871bf6df4`, whose only merge payload is the
-> upstream Rust synchronization; the Material source footprint is unchanged.
+> `3e6de1ef118c578fc4ed5e841019b50acaf9c775`, carrying the verified
+> Gecko-pin repair and its handoff documentation after the upstream Rust
+> synchronization; the Material source footprint is unchanged.
 > Installer run [30619490478](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30619490478)
 > exposed that the old `079065d33b0b` pin was stale against those manifests and
 > failed at `vendored-rust-check`; no release is claimed for `e7af05a2cd5`.
 > Release `tb-155.0a1-b48-har-gow` remains the verified artifact for its prior
-> source commit `8da5d7931c6`.
+> source commit `8da5d7931c6`; the current repaired tree is verified by
+> [30620560414](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30620560414)
+> and release `tb-155.0a1-b51-cheung-fun`.
 >
 > Windows run [30538853820](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30538853820)
 > built the application and passed setup/build, static packaged CSS, chrome, and
