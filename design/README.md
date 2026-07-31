@@ -5,11 +5,12 @@ Thunderbird's 3-pane, and the project documents that govern the work.
 
 Integration target: **`main`**. Scope: **Windows only**.
 
-> **Current shipped scope is a CSS-layer restyle plus a packaged Material Mail runtime preview.**
+> **Current source scope is a CSS-layer restyle plus a packaged Material Mail runtime preview.**
 > The preview is the first rewrite vertical slice; it does not yet replace the upstream
-> 3-pane or close the full global-memory feature contract. Windows CI has published b86,
-> while the committed genuine headless captures below are from b66 and the broad
-> browser suites remain red. Read `ROADMAP.md` before treating any evidence as release sign-off.
+> 3-pane or close the full shared feature contract. This wave ports the design-defined
+> tab core, while grouping, the remaining tab searches, bulk-close, app-wide ownership,
+> and new built-artifact captures remain open. Read `ROADMAP.md` before treating any
+> source or test evidence as release sign-off.
 
 ---
 
@@ -25,39 +26,47 @@ Integration target: **`main`**. Scope: **Windows only**.
 
 ## Current state, in brief
 
+- **`design/` is the authoritative source, not a generated approximation.** The current
+  tree contains **162 files / 1,950,357 bytes**. Its primary snapshot,
+  `Material Mail.dc.html`, is **140,780 bytes** with SHA-256
+  `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
+  There is no project design ZIP because the complete tracked folder is kept directly in
+  the repository; unrelated third-party fixture archives are not design evidence.
 - **Seven stylesheets** implement the skin: `material-tokens.css` plus six section
   sheets, all in `mail/themes/shared/mail/`, packaged at `jar.inc.mn:121-127`, linked
   from `about3Pane.xhtml` (six) and `messenger.xhtml` (`m3-chrome.css` plus a second
   copy of the tokens, because custom properties do not cross the `<browser>` boundary).
-- **The behaviour layer is untouched.** `about3Pane.js` and `widgets/*.mjs` have never
-  been modified. The markup delta is `about3Pane.xhtml` +23/-0 and `messenger.xhtml`
-  +9/-0 — link elements and XML comments only, zero deletions, zero `style=`.
+- **Upstream mail behavior remains untouched.** `about3Pane.js` and `widgets/*.mjs`
+  have never been modified. The separate project-owned preview now has its own local
+  behavior modules for settings/data surfaces, regex, color translation, and the tab
+  core; none of them replaces upstream account, folder, thread, or message behavior.
 - **The parity contract is at 33 / 38**, with five boxes deliberately open.
   A tick certifies that the named upstream behaviour still *functions* against named
   selectors and specificity. It is **not** a visual sign-off.
-- **CI is mixed:** lint run
-  [30632181490](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181490)
-  is green, and installer run
-  [30632181488](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181488)
-  published the non-draft release
-  [`tb-155.0a1-b66-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao)
-  from `84d3f6d2364`. It carries a real 85,315,700-byte installer. Browser run
-  [30632185941](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941)
-  completed red: the authored Material test hit the privileged-chrome localStorage boundary,
-  and the surrounding legacy suites also remain red. The corrected test is queued in
-  [30634140002](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634140002)
-  for `c8631c2b27f`.
+- **The verified pre-wave GitHub baseline is exact-source, but not release-contract
+  complete.** `77fe409183e580db6dd59ef2e65d093864a4f241` has green lint
+  [30644045867](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045867)
+  and installer
+  [30644045825](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045825).
+  Release [`tb-155.0a1-b98-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b98-char-siu-bao)
+  points exactly to that source and carries an 87,755,233-byte installer with SHA-256
+  `e57e8abce22183fb4a345398be52e20ae95835a3fee63c4bee98c4b6232d7a81`, but it has no
+  catalog photo and repeats an earlier code name. This source wave hardens the release
+  gate to select an unused verified catalog record and attach its exact PNG; the immutable
+  post-push verdict belongs in rolling Discussion #1 rather than being predicted here.
+- **Local authored verification for this wave is green:** preview/alignment verifiers,
+  `12 / 12` preview smoke checks, `9 / 9` regex tests, `5 / 5` color tests,
+  `6 / 6` language-model tests, and `4 / 4` tab-model tests. The packaged browser test
+  now exercises pin persistence, keyboard reorder, plain/regex all-tabs search, focus
+  return, and appearance hand-off; this comm-only checkout cannot execute that browser
+  test without the CI Gecko build.
+- **Broad browser verification is still mixed.** Run
+  [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
+  failed legacy suites while the authored Material/static groups passed. It is not
+  evidence for this new tab source; a new exact-source run and genuine captures are required.
 - **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, full app-wide
   feature wiring and manual visual sign-off are absent, and the upstream 3-pane remains
   behavior-compatible rather than fully replaced. See `ROADMAP.md` §"What is explicitly NOT done".
-- **Current source push:** `9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74` adds the 14-article
-  payload contract to the searchable guide verifier on top of the anchored article details.
-  Installer run [30643776590](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776590)
-  and lint [30643776682](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776682)
-  are queued. b86 is the latest public release, but its build notes identify source
-  `417a7c73e7e7116b3e87201194001274a535381e` while its tag points at `9c3fdc…`; it is
-  not current-source proof. The release workflow now binds tags to the build SHA and verifies
-  that binding; new captures remain pending against a correctly bound artifact.
 
 ## Runtime Material vertical slice
 
@@ -74,7 +83,8 @@ does not yet replace Thunderbird's existing 3-pane behavior.
 | History | Same page | Local append-only preview revisions, derived action filters, date/search filters, restore-as-new-revision, and export; production Git-backed record history remains open |
 | Notifications | Same page | Non-blocking reviewable stack with search, anchored regex builder, all/unread/dismissed filters, and retained local dismissal state; app-wide event wiring remains open |
 | Tools | Same page | Searchable 14-entry design-folder feature guide with its own regex builder plus command/regex/editor entry points; integrations remain open |
-| Search | Anchored `RegexBuilder` from `design/runtime/regex/` | Independent builders are packaged for Mail, Settings, Changelog, History, Notifications, and the appearance editor; upstream mail-content search wiring remains open |
+| Search | Anchored `RegexBuilder` from `design/runtime/regex/` | Eight independent builders are packaged for Mail, Settings, Changelog, History, Notifications, Tools, the appearance editor, and all-tabs discovery; upstream mail-content and application-wide search wiring remain open |
+| Tabs | `materialMailTabs.mjs` plus `design/runtime/tabs/` | Persisted active/order/pins, stable pinned region, measured overflow, searchable all-tabs popover with an independent regex builder, drag/keyboard/context movement, and tab appearance hand-off; grouping, three additional search scopes, bulk-close, and built-artifact captures remain open |
 | Appearance color | `materialMailColor.mjs` plus `design/runtime/color/color-translator.mjs` | Continuous local HSL controls, direct multi-space entry, translated copy rows, gamut/clipping status, and contrast readout; full Word-depth coverage remains open |
 
 The surface follows the design folder's M3 tokens, density arms, rounded-card
@@ -103,8 +113,10 @@ both classes of surface from the audit:
   existing upstream dialogs/windows reached from the 3-pane.
 - **Packaged preview:** the Material Mail mail, settings, changelog, history, and
   notification pages; command/regex/editor entry points; and the anchored search/regex builder.
-- **Still design-only or open:** the full landing/documentation site, searchable tab overlay,
-  tab context menu, compose dialog, toast/dim-sum runtime behavior, and app-wide feature wiring.
+- **Still design-only or open:** the full landing/documentation site, tab grouping and the
+  remaining search/bulk-close scopes, compose dialog, toast/dim-sum app-wide behavior, and
+  full application feature wiring. The design-defined tab-search and context-menu core is now
+  packaged source with capture pending rather than design-only markup.
 
 Every manifest entry records its source path, selector or component anchor,
 command family, major states, and screenshot status. `screenshot: "missing"`
@@ -114,14 +126,17 @@ not evidence for current runtime coverage.
 
 ### Current CI evidence
 
-Build 70 remains the latest release with a fully recorded installer digest from an exact
-source match in this manifest
-[`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok),
-published by installer run [30635599917](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599917)
-from exact main SHA `5a4f35f3ba36`. The real asset is 85,328,686 bytes with SHA-256
-`f3e53043023f31eefe3b8854bf24cdef37dda2b7c240c6f14e7be550365d5876`. Lint
-[30635599949](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599949)
-is green. Browser run [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
+The verified pre-wave exact-source release is
+[`tb-155.0a1-b98-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b98-char-siu-bao),
+published by installer run [30644045825](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045825)
+from `77fe409183e580db6dd59ef2e65d093864a4f241`. Its real installer is
+87,755,233 bytes with SHA-256
+`e57e8abce22183fb4a345398be52e20ae95835a3fee63c4bee98c4b6232d7a81`; the tag
+resolves exactly to that source. Lint
+[30644045867](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045867)
+is green. The release has no catalog PNG and repeats an earlier code name, so it
+does not satisfy the repaired release contract. Browser run
+[30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
 completed red because the broad legacy suites remain red, but the corrected authored Material
 suite passed **186 / 0 failed / 13 TODO** with zero unexpected results. Its [uploaded log artifact](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220/artifacts/8795330528)
 contains the exact suite evidence. Five diagnostic captures plus seven genuine b66 headless captures are mapped
@@ -142,24 +157,22 @@ in the manifest and committed below; none is a full visual sign-off.
 | [`b66-material-tools.png`](screenshots/runtime/b66-material-tools.png) | Real b66 Tools tab with command palette, regex, and external-editor entry points. | Headless runtime capture |
 | [`b66-material-regex-builder.png`](screenshots/runtime/b66-material-regex-builder.png) | Real b66 anchored bilingual regex builder beside the Mail search field. | Headless runtime capture |
 
-The current source wave adds Changelog/History filters and export, retained
-Notifications, catalog-backed dim-sum startup, an anchored appearance editor,
-a mounted continuous color translator, funny-level-driven copy, and a serialized narrator. Their evidence is explicitly `capture-pending` in
-[`design/evidence/manifest.json`](evidence/manifest.json) until installer run
-[30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
-produces the real artifact. Source checks are not substituted for screenshots.
-
-The later public b86 release is recorded as a source/package mismatch: its release body
-names build source `417a7c73e7e7116b3e87201194001274a535381e`, its tag currently resolves
-to `9c3fdc…`, and it is not used as current-source evidence.
+Source after b66 adds Changelog/History filters and export, retained Notifications,
+catalog-backed dim-sum startup, an anchored appearance editor, a mounted continuous
+color translator, funny-level-driven copy, serialized narration, and now the
+design-defined tab core. Every newer surface remains explicitly `capture-pending`
+in [`design/evidence/manifest.json`](evidence/manifest.json) until an exact-source
+installer is launched and captured. Source checks are not substituted for screenshots;
+the next run and release verdict is recorded in rolling Discussion #1 after it exists.
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
 matching `design/app-data.js`. The corrected authored suite result is **186 passed / 0 failed /
 13 TODO** with zero unexpected results. The broad legacy suite failures remain an explicit runtime boundary.
 
-This evidence update changes documentation only. It does not touch upstream
-behavior or markup, and it is not a visual sign-off or a claim that the design-only
-surfaces exist in the desktop runtime.
+This source wave changes only project-owned preview behavior, tests, styles, docs,
+and the release gate; it does not touch upstream mail behavior or markup. It is not
+a visual sign-off or a claim that the remaining design-only surfaces exist in the
+desktop runtime.
 
 ## Global-memory feature gap audit
 
@@ -169,17 +182,17 @@ the following design-folder surfaces or their required behavior:
 
 | Requirement family | Current state | Implementation needed |
 |---|---|---|
-| Material landing page and in-app documentation | Design-only snapshot | Add a real local landing/documentation surface that enumerates every feature and links to detailed articles. |
-| English / playful HK Cantonese / bilingual modes | Existing Thunderbird localization only | Add persisted mode selection and compact bilingual rendering for the new Material surfaces. |
+| Material landing page and in-app documentation | GitHub Pages exists and the packaged Tools page exposes a searchable 14-article guide; the full site/app customization contract remains open | Bring both surfaces to the complete per-feature, tab, search, appearance, and built-artifact evidence contract. |
+| English / playful HK Cantonese / bilingual modes | Packaged preview persists all three modes and renders bilingual factual feature data; application-wide ownership remains open | Extend compact bilingual rendering and tested fallback behavior to every Thunderbird-owned Material surface. |
 | Independent funny-level sliders | Packaged runtime persists both levels and applies fact-preserving variants to preview messages, entries, notifications, empty states, and exports | Wire the same tone policy into all Thunderbird app-wide events/errors and obtain built-artifact captures. |
-| Notifications and notification history | Upstream notifications only | Add non-blocking toast stack plus a reviewable centre/history. |
+| Notifications and notification history | Packaged preview provides a retained searchable/filterable review centre and non-blocking toast foundation | Wire all application event categories into the stack and capture the built artifact. |
 | Dim-sum startup delight | Packaged Classic har gow local image, first-run suppression, opt-out, and 1% non-blocking draw | Add the full catalog rotation, release-code-name display, and deterministic built-artifact capture. |
-| Anchored regex builder | Design component only | Implement the full local builder and bind an independent instance to every search field. |
+| Anchored regex builder | Tested local builder is packaged independently beside eight preview search fields, including all-tabs discovery | Bind the same full builder to every remaining application, settings, tab-group, and bulk-action search field. |
 | Appearance editor and infinite color translator | Packaged anchored editor plus persisted typography foundation and mounted local multi-space translator with clipping/contrast readout | Add every-element coverage, Word-depth typography, eyedropper, presets, import/export, and reset depth. |
-| Browser-style tabs | Existing Thunderbird tabs, no design parity | Add overflow, reorder, pinning, grouping, four tab searches, and safe bulk-close actions. |
+| Browser-style tabs | Packaged preview now wires the design-defined persisted order/pin core, measured overflow, all-tabs search/regex, drag/keyboard/context movement, and appearance hand-off | Add grouping, the remaining three discovery-search scopes, safe bulk-close actions, app-wide ownership, and built-artifact captures. |
 | External editor integration | Not present in the Material layer | Add editor discovery, selection, persistence, and graceful failure. |
-| Local Git-backed history | Not present in the Material layer | Snapshot every user-managed record and setting, with diff, restore-as-new-revision, retention, and export. |
-| In-app changelog viewer | Design-only page | Add all-release entries, date/calendar filtering, regex search, copy, and export. |
+| Local Git-backed history | Packaged preview has append-only local revision records with text/action/date filtering and restore-as-new-event behavior | Add the isolated Git-backed store for every user-managed record and setting, with diff, retention, pruning, and export. |
+| In-app changelog viewer | Packaged preview has factual entries, typed date filters, independent regex search, copy, and Markdown export | Wire every real release and the advanced calendar picker, then capture the built artifact. |
 | TTS narrator | Packaged off-by-default English/Cantonese/Both selector and serialized platform speech queue foundation | Add natural HK voice selection, screen-reader ducking, quiet-hours, and full event-category wiring. |
 
 This matrix is an implementation ledger, not a completion claim. The CSS-only

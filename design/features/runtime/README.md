@@ -15,6 +15,7 @@ counted as a completed replacement for Thunderbird behavior.
 | Notification centre | [notification-centre.md](notification-centre.md) | `browser_m3MaterialMail.js`, packaged browser run |
 | Dim-sum surprise | [dim-sum-surprise.md](dim-sum-surprise.md) | static packaging verifier, built-artifact probabilistic capture pending |
 | Appearance editor foundation | [appearance-editor.md](appearance-editor.md) | static verifier and packaged browser entry-path test |
+| Browser-style tab core | [tab-management.md](tab-management.md) and [`design/runtime/tabs/README.md`](../../runtime/tabs/README.md) | `node --test design/runtime/tabs/tab-model.test.mjs`, packaged browser contract |
 | Optional narrator foundation | [narrator.md](narrator.md) | static verifier and packaged browser configuration test |
 | Continuous color picker and translator | [color-translator.md](color-translator.md) and [`design/runtime/color/README.md`](../../runtime/color/README.md) | `node --test design/runtime/color/color-translator.test.mjs`, `python design/verify-material-preview.py` |
 

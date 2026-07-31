@@ -20,14 +20,57 @@
     <div class="mm-appbar-actions"><span class="mm-status" role="status" data-l10n-id="material-mail-preview-status">Design-backed preview</span><button class="mm-icon-button" id="mm-theme-toggle" type="button" data-l10n-id="material-mail-toggle-theme" aria-label="Toggle theme">◐</button></div>
   </header>
 
-  <nav class="mm-tabs" aria-label="Material Mail pages" role="tablist">
-    <button class="mm-tab is-selected" id="mm-tab-mail" type="button" role="tab" aria-selected="true" aria-controls="mm-page-mail" tabindex="0" data-page="mail" data-l10n-id="material-mail-page-mail">Mail</button>
-    <button class="mm-tab" id="mm-tab-settings" type="button" role="tab" aria-selected="false" aria-controls="mm-page-settings" tabindex="-1" data-page="settings" data-l10n-id="material-mail-page-settings">Settings</button>
-    <button class="mm-tab" id="mm-tab-changelog" type="button" role="tab" aria-selected="false" aria-controls="mm-page-changelog" tabindex="-1" data-page="changelog" data-l10n-id="material-mail-page-changelog">Changelog</button>
-    <button class="mm-tab" id="mm-tab-history" type="button" role="tab" aria-selected="false" aria-controls="mm-page-history" tabindex="-1" data-page="history" data-l10n-id="material-mail-page-history">History</button>
-    <button class="mm-tab" id="mm-tab-notifications" type="button" role="tab" aria-selected="false" aria-controls="mm-page-notifications" tabindex="-1" data-page="notifications" data-l10n-id="material-mail-page-notifications">Notifications</button>
-    <button class="mm-tab" id="mm-tab-tools" type="button" role="tab" aria-selected="false" aria-controls="mm-page-tools" tabindex="-1" data-page="tools" data-l10n-id="material-mail-page-tools">Tools</button>
-  </nav>
+  <div class="mm-tabbar">
+    <nav class="mm-tabs" id="mm-tab-strip" aria-label="Material Mail pages" role="tablist">
+      <div class="mm-pinned-tabs" id="mm-pinned-tabs" role="presentation"></div>
+      <div class="mm-regular-tabs" id="mm-regular-tabs" role="presentation">
+        <button class="mm-tab is-selected" id="mm-tab-mail" type="button" role="tab" aria-selected="true" aria-controls="mm-page-mail" tabindex="0" data-page="mail" data-tab-icon="✉" data-l10n-id="material-mail-page-mail">Mail</button>
+        <button class="mm-tab" id="mm-tab-settings" type="button" role="tab" aria-selected="false" aria-controls="mm-page-settings" tabindex="-1" data-page="settings" data-tab-icon="⚙" data-l10n-id="material-mail-page-settings">Settings</button>
+        <button class="mm-tab" id="mm-tab-changelog" type="button" role="tab" aria-selected="false" aria-controls="mm-page-changelog" tabindex="-1" data-page="changelog" data-tab-icon="◆" data-l10n-id="material-mail-page-changelog">Changelog</button>
+        <button class="mm-tab" id="mm-tab-history" type="button" role="tab" aria-selected="false" aria-controls="mm-page-history" tabindex="-1" data-page="history" data-tab-icon="◷" data-l10n-id="material-mail-page-history">History</button>
+        <button class="mm-tab" id="mm-tab-notifications" type="button" role="tab" aria-selected="false" aria-controls="mm-page-notifications" tabindex="-1" data-page="notifications" data-tab-icon="●" data-l10n-id="material-mail-page-notifications">Notifications</button>
+        <button class="mm-tab" id="mm-tab-tools" type="button" role="tab" aria-selected="false" aria-controls="mm-page-tools" tabindex="-1" data-page="tools" data-tab-icon="⌘" data-l10n-id="material-mail-page-tools">Tools</button>
+      </div>
+    </nav>
+    <button class="mm-icon-button mm-tab-overflow" id="mm-tab-overflow" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="mm-tab-popover" aria-label="Search all tabs" title="Search all tabs" data-l10n-id="material-mail-tabs-overflow">
+      <span aria-hidden="true">⌄</span>
+      <span class="mm-tab-overflow-count" id="mm-tab-overflow-count" aria-hidden="true"></span>
+    </button>
+  </div>
+
+  <aside class="mm-tab-popover" id="mm-tab-popover" role="dialog" aria-modal="false" aria-labelledby="mm-tab-popover-title" tabindex="-1" hidden="hidden">
+    <header class="mm-tab-popover-header">
+      <div>
+        <p class="mm-eyebrow" data-l10n-id="material-mail-tabs-eyebrow">Tab discovery</p>
+        <h2 id="mm-tab-popover-title" data-l10n-id="material-mail-tabs-heading">All Material Mail tabs</h2>
+        <p class="mm-secondary" data-l10n-id="material-mail-tabs-heading-zh" lang="zh-HK">全部 Material Mail 分頁</p>
+      </div>
+      <button class="mm-icon-button" id="mm-tab-popover-close" type="button" aria-label="Dismiss" data-l10n-id="material-mail-dismiss">×</button>
+    </header>
+    <div class="mm-search-row mm-tab-search-row">
+      <label class="mm-search-field" for="mm-tab-search">
+        <span aria-hidden="true">⌕</span>
+        <input id="mm-tab-search" type="search" placeholder="Search every tab" data-l10n-id="material-mail-search-tabs-placeholder" />
+        <button class="mm-tonal-button mm-regex-button" id="mm-tab-search-regex-open" type="button" data-l10n-id="material-mail-regex-builder">Regex builder</button>
+      </label>
+      <div id="mm-tab-search-regex-panel" hidden="hidden"></div>
+    </div>
+    <div class="mm-tab-popover-summary">
+      <div>
+        <p class="mm-supporting" data-l10n-id="material-mail-tabs-search-scope">Searches visible, hidden, and pinned tabs in this window.</p>
+        <p class="mm-supporting mm-secondary" data-l10n-id="material-mail-tabs-search-scope-zh" lang="zh-HK">搜尋呢個視窗入面可見、收起同釘選嘅分頁。</p>
+      </div>
+      <output id="mm-tab-search-count" class="mm-filter-count" aria-live="polite"></output>
+    </div>
+    <div class="mm-tab-results" id="mm-tab-search-results" role="list" aria-label="Material Mail tab results"></div>
+  </aside>
+
+  <div class="mm-tab-context-menu" id="mm-tab-context-menu" role="menu" aria-label="Tab actions" tabindex="-1" hidden="hidden">
+    <button type="button" role="menuitem" id="mm-tab-menu-pin" data-tab-action="pin"><span aria-hidden="true">⌖</span><span id="mm-tab-menu-pin-label" data-l10n-id="material-mail-tab-pin">Pin tab</span></button>
+    <button type="button" role="menuitem" id="mm-tab-menu-move-left" data-tab-action="move-left"><span aria-hidden="true">←</span><span data-l10n-id="material-mail-tab-move-left">Move left</span></button>
+    <button type="button" role="menuitem" id="mm-tab-menu-move-right" data-tab-action="move-right"><span aria-hidden="true">→</span><span data-l10n-id="material-mail-tab-move-right">Move right</span></button>
+    <button type="button" role="menuitem" id="mm-tab-menu-appearance" data-tab-action="appearance"><span aria-hidden="true">◐</span><span data-l10n-id="material-mail-tab-edit-appearance">Edit tab appearance…</span></button>
+  </div>
 
   <main class="mm-main">
     <section class="mm-page is-visible" id="mm-page-mail" role="tabpanel" aria-labelledby="mm-tab-mail">
@@ -52,6 +95,7 @@
   <aside id="mm-appearance-editor" class="mm-appearance-editor" role="dialog" aria-labelledby="mm-appearance-title" hidden="hidden"><header class="mm-appearance-header"><h2 id="mm-appearance-title" data-l10n-id="material-mail-appearance-editor">Edit appearance</h2><button class="mm-icon-button" id="mm-appearance-close" type="button" data-l10n-id="material-mail-dismiss" aria-label="Dismiss">×</button></header><p id="mm-appearance-target" class="mm-supporting"></p><div class="mm-search-row mm-appearance-search"><label class="mm-search-field" for="mm-appearance-search"><span aria-hidden="true">⌕</span><input id="mm-appearance-search" type="search" data-l10n-id="material-mail-search-appearance-placeholder" placeholder="Search appearance controls" /><button class="mm-tonal-button mm-regex-button" id="mm-appearance-regex-open" type="button" data-l10n-id="material-mail-regex-builder">Regex builder</button></label><div id="mm-appearance-regex-panel" hidden="hidden"></div></div><p id="mm-color-role" class="mm-supporting">Editing surface colour · 編輯表面顏色</p><label><span data-l10n-id="material-mail-surface-color">Surface color</span><input id="mm-appearance-surface" type="color" value="#f3edf7" /><input id="mm-appearance-surface-text" type="text" inputmode="text" value="#f3edf7" maxlength="9" /></label><label><span data-l10n-id="material-mail-text-color">Text color</span><input id="mm-appearance-text" type="color" value="#1d1b20" /><input id="mm-appearance-text-text" type="text" inputmode="text" value="#1d1b20" maxlength="9" /></label><section id="mm-color-picker" class="mm-color-picker" data-settings-surface="colour color hex rgb rgba hsl hsla hsv hwb lab lch oklab oklch cmyk gamut contrast"><h3 data-l10n-id="material-mail-color-picker-heading">Continuous colour picker</h3><div id="mm-color-preview" class="mm-color-preview" aria-hidden="true"></div><label><span data-l10n-id="material-mail-color-hue">Hue</span><input id="mm-color-hue" type="range" min="0" max="360" step="1" value="0" /><output id="mm-color-hue-value">0°</output></label><label><span data-l10n-id="material-mail-color-saturation">Saturation</span><input id="mm-color-saturation" type="range" min="0" max="100" step="1" value="0" /><output id="mm-color-saturation-value">0%</output></label><label><span data-l10n-id="material-mail-color-lightness">Lightness</span><input id="mm-color-lightness" type="range" min="0" max="100" step="1" value="0" /><output id="mm-color-lightness-value">0%</output></label><label><span data-l10n-id="material-mail-color-space">Color space</span><select id="mm-color-space"></select></label><label><span data-l10n-id="material-mail-color-entry">Direct value</span><input id="mm-color-space-entry" type="text" inputmode="text" value="#f3edf7" /><output id="mm-color-entry-status" aria-live="polite"></output></label><p id="mm-color-gamut" class="mm-color-status"></p><p id="mm-color-contrast" class="mm-color-status"></p><div id="mm-color-representations" class="mm-color-representations"></div></section><label><span data-l10n-id="material-mail-corner-radius">Corner radius</span><input id="mm-appearance-radius" type="range" min="0" max="40" value="16" /><output id="mm-appearance-radius-value">16px</output></label><label><span data-l10n-id="material-mail-font-size">Font size</span><input id="mm-appearance-font-size" type="range" min="11" max="24" value="14" /><output id="mm-appearance-font-size-value">14px</output></label><label><span data-l10n-id="material-mail-font-weight">Font weight</span><select id="mm-appearance-weight"><option value="400">400</option><option value="500">500</option><option value="600">600</option><option value="700">700</option></select></label><div class="mm-inline-actions"><button class="mm-text-button" id="mm-appearance-reset" type="button" data-l10n-id="material-mail-reset-element">Reset element</button><button class="mm-tonal-button" id="mm-appearance-reset-all" type="button" data-l10n-id="material-mail-reset-all-appearance">Reset all appearance</button></div></aside>
   <div id="mm-toast" class="mm-toast" role="status" aria-live="polite" hidden="hidden"></div>
   <script src="chrome://messenger/content/materialMail.js"></script>
+  <script type="module" src="chrome://messenger/content/materialMailTabs.mjs"></script>
   <script type="module" src="chrome://messenger/content/materialMailRegex.js"></script>
   <script type="module" src="chrome://messenger/content/materialMailColor.mjs"></script>
 </body>

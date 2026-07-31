@@ -28,4 +28,5 @@ document.addEventListener("DOMContentLoaded", () => {
   mountRegex({ inputId: "mm-notifications-search", anchorId: "mm-notifications-regex-open", panelId: "mm-notifications-regex-panel", key: "notifications", scope: "Applies to this notifications search field · 套用到此通知搜尋欄" });
   mountRegex({ inputId: "mm-appearance-search", anchorId: "mm-appearance-regex-open", panelId: "mm-appearance-regex-panel", key: "appearance", scope: "Applies to this appearance editor · 套用到此外觀編輯器" });
   mountRegex({ inputId: "mm-tools-search", anchorId: "mm-tools-regex-open", panelId: "mm-tools-regex-panel", key: "tools", scope: "Applies to this feature guide · 套用到此功能指南" });
+  mountRegex({ inputId: "mm-tab-search", anchorId: "mm-tab-search-regex-open", panelId: "mm-tab-search-regex-panel", key: "tabs", scope: "Searches every Material Mail tab in this window · 搜尋呢個視窗入面全部 Material Mail 分頁" });
 });

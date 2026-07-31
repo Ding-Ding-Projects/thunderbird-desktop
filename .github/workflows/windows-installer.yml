@@ -197,8 +197,9 @@ jobs:
           # actually built, and matches NUM_REVISIONS_TO_QUERY exactly so nothing
           # is fetched that would not be looked at.
           fetch-depth: 500
-          # Submodules are fetched selectively below: vendor/gecko is multi-GB and
-          # vendor/agent-global-memory is irrelevant to building.
+          # Submodules are fetched selectively below. vendor/gecko is multi-GB;
+          # vendor/agent-global-memory is consulted by exact gitlink only when the
+          # release step resolves its verified catalog record and photo.
           submodules: false
 
       - name: Obtain gecko
@@ -285,6 +286,9 @@ jobs:
           if (-not (Test-Path "$env:GECKO_DIR\mach")) {
             throw "gecko/ missing mach - checkout did not populate"
           }
+          if (-not (Test-Path "$env:GECKO_DIR\package-lock.json")) {
+            throw "gecko/package-lock.json is missing - setup-node cannot use the declared npm cache input"
+          }
           # The comm checkout must keep its own .git: it is what `mach artifact
           # install` walks to find a comm-central revision with a published
           # win64-opt build. actions/checkout gives us a real .git directory
@@ -324,6 +328,13 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: D:\gecko\package-lock.json
+
       - name: Install Rust toolchain
         shell: pwsh
         run: |
@@ -355,6 +366,99 @@ jobs:
           "MOZILLABUILD=C:\mozilla-build" >> $env:GITHUB_ENV
           Write-Host "MozillaBuild installed:"
           Get-ChildItem "C:\mozilla-build" | Select-Object -First 8 Name | Format-Table -AutoSize
+
+      - name: Validate release source
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}\comm
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+
+          python design/verify-material-preview.py
+          if ($LASTEXITCODE -ne 0) { throw "Material preview verification failed ($LASTEXITCODE)" }
+
+          python design/verify-material-alignment.py
+          if ($LASTEXITCODE -ne 0) { throw "design-to-shipped alignment failed ($LASTEXITCODE)" }
+
+          node design/runtime/color/color-translator.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "color-translator tests failed ($LASTEXITCODE)" }
+
+          node design/runtime/i18n/tests/model.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "i18n tests failed ($LASTEXITCODE)" }
+
+          node design/runtime/regex/regex-builder.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "regex-builder tests failed ($LASTEXITCODE)" }
+
+          node design/runtime/preview/smoke-test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "Material preview smoke tests failed ($LASTEXITCODE)" }
+
+          node --test design/runtime/tabs/tab-model.test.mjs
+          if ($LASTEXITCODE -ne 0) { throw "tab-model tests failed ($LASTEXITCODE)" }
+
+          $javascript = @(
+            Get-ChildItem -LiteralPath 'mail/base/content' -File |
+              Where-Object { $_.Name -match '^material(?:Mail|Color).*\.(?:js|mjs)$' }
+          )
+          if ($javascript.Count -eq 0) {
+            throw 'No packaged Material JavaScript modules were found for syntax validation.'
+          }
+          foreach ($file in $javascript) {
+            node --check $file.FullName
+            if ($LASTEXITCODE -ne 0) { throw "JavaScript syntax check failed for $($file.Name)" }
+          }
+
+          Get-Content -LiteralPath 'design/evidence/manifest.json' -Raw |
+            ConvertFrom-Json -Depth 100 | Out-Null
+          git diff --check "${{ github.sha }}^" "${{ github.sha }}"
+          if ($LASTEXITCODE -ne 0) { throw "git diff --check failed ($LASTEXITCODE)" }
+
+      - name: Prove and run release linters
+        shell: pwsh
+        working-directory: ${{ env.GECKO_DIR }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+
+          # First prove that the lint route can report a real error. A linter that
+          # silently checks zero files is just a very expensive green sticker.
+          $selfTestDir = Join-Path $env:GECKO_DIR 'comm\mail\themes\shared\mail\release-lint-selftest'
+          $selfTestFile = Join-Path $selfTestDir 'broken.css'
+          New-Item -ItemType Directory -Force -Path $selfTestDir | Out-Null
+          Set-Content -LiteralPath $selfTestFile -Encoding utf8 -Value @(
+            '/* CI self-test, removed immediately. */',
+            '.m3-release-lint-selftest {',
+            '  colour: red;',
+            '}'
+          )
+          $selfTestRc = 0
+          try {
+            python mach commlint -l stylelint $selfTestFile
+            $selfTestRc = $LASTEXITCODE
+          } finally {
+            Remove-Item -LiteralPath $selfTestDir -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          if ($selfTestRc -eq 0) {
+            throw 'stylelint accepted a known-invalid property; release validation is not trustworthy.'
+          }
+          Write-Host "Lint self-test correctly failed with exit code $selfTestRc."
+
+          $css = @(
+            Get-ChildItem -LiteralPath 'comm\mail\themes\shared\mail' -Filter 'm3-*.css' -File
+          )
+          $css += Get-Item -LiteralPath 'comm\mail\themes\shared\mail\material-tokens.css'
+          $css += Get-Item -LiteralPath 'comm\mail\themes\shared\mail\material-mail.css'
+          if ($css.Count -lt 3) { throw 'The Material CSS lint surface is unexpectedly empty.' }
+          python mach commlint -l stylelint @($css.FullName)
+          if ($LASTEXITCODE -ne 0) { throw "Material stylelint failed ($LASTEXITCODE)" }
+
+          $eslint = @(
+            Get-Item -LiteralPath 'comm\mail\base\content\about3Pane.xhtml',
+              'comm\mail\base\content\materialMail.xhtml'
+            Get-ChildItem -LiteralPath 'comm\mail\base\content' -File |
+              Where-Object { $_.Name -match '^material(?:Mail|Color).*\.(?:js|mjs)$' }
+          )
+          python mach commlint -l eslint @($eslint.FullName)
+          if ($LASTEXITCODE -ne 0) { throw "Material eslint failed ($LASTEXITCODE)" }
 
       - name: Write mozconfig
         shell: pwsh
@@ -585,46 +689,343 @@ jobs:
           "installer=$($exe.FullName)" >> $env:GITHUB_OUTPUT
           "version=$(Get-Content "$env:GECKO_DIR\comm\mail\config\version_display.txt")" >> $env:GITHUB_OUTPUT
 
-      - name: Publish release
+      - name: Publish verified release
         shell: pwsh
         env:
-          # Per shared instructions: optional repo PAT, then org token, then the
-          # ephemeral workflow token as last fallback.
+          # Optional repo PAT, then org token, then the ephemeral workflow token.
           GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
-          # Dim sum code names, cycled by run_number so every build gets one and
-          # the sequence is deterministic rather than random.
-          $dimsum = @(
-            @{ slug='har-gow';       en='Har Gow';       zh='蝦餃';   emoji='🥟' },
-            @{ slug='siu-mai';       en='Siu Mai';       zh='燒賣';   emoji='🥟' },
-            @{ slug='char-siu-bao';  en='Char Siu Bao';  zh='叉燒包'; emoji='🍞' },
-            @{ slug='cheung-fun';    en='Cheung Fun';    zh='腸粉';   emoji='🍥' },
-            @{ slug='dan-tat';       en='Dan Tat';       zh='蛋撻';   emoji='🥧' },
-            @{ slug='lo-mai-gai';    en='Lo Mai Gai';    zh='糯米雞'; emoji='🍚' },
-            @{ slug='wu-gok';        en='Wu Gok';        zh='芋角';   emoji='🥔' },
-            @{ slug='fung-zaau';     en='Fung Zaau';     zh='鳳爪';   emoji='🍗' },
-            @{ slug='pai-gwat';      en='Pai Gwat';      zh='豉汁排骨'; emoji='🍖' },
-            @{ slug='ham-sui-gok';   en='Ham Sui Gok';   zh='鹹水角'; emoji='🥟' },
-            @{ slug='ma-lai-go';     en='Ma Lai Go';     zh='馬拉糕'; emoji='🍰' },
-            @{ slug='lin-yung-bao';  en='Lin Yung Bao';  zh='蓮蓉包'; emoji='🥮' },
-            @{ slug='pei-daan-sou';  en='Pei Daan Sou';  zh='皮蛋酥'; emoji='🥠' },
-            @{ slug='zaa-leung';     en='Zaa Leung';     zh='炸兩';   emoji='🌯' },
-            @{ slug='dau-fu-fa';     en='Dau Fu Fa';     zh='豆腐花'; emoji='🍮' },
-            @{ slug='no-mai-chi';    en='No Mai Chi';    zh='糯米糍'; emoji='🍡' }
-          )
-          $dish = $dimsum[[int]"${{ github.run_number }}" % $dimsum.Count]
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $false
+          Set-StrictMode -Version Latest
 
-          $sha = "${{ github.sha }}".Substring(0,7)
-          $ver = "${{ steps.find.outputs.version }}"
+          $repository = "${{ github.repository }}"
+          $sourceSha = "${{ github.sha }}"
+          $commRoot = Join-Path $env:GECKO_DIR 'comm'
+          $canonicalCatalogRepository = 'Ding-Ding-Projects/agent-global-memory'
+          $canonicalCatalogUrl = 'https://github.com/Ding-Ding-Projects/agent-global-memory.git'
+
+          # Resolve the catalog from this exact source tree's gitlink. Never read
+          # a moving branch and never accept a lookalike catalog repository.
+          $configuredCatalogUrl = (
+            git -C $commRoot config -f .gitmodules --get submodule.vendor/agent-global-memory.url
+          ).Trim()
+          if ($LASTEXITCODE -ne 0 -or $configuredCatalogUrl -ne $canonicalCatalogUrl) {
+            throw "vendor/agent-global-memory must use canonical origin $canonicalCatalogUrl; found '$configuredCatalogUrl'."
+          }
+          $catalogEntry = (git -C $commRoot ls-tree $sourceSha -- vendor/agent-global-memory).Trim()
+          if ($LASTEXITCODE -ne 0 -or $catalogEntry -notmatch '^160000 commit ([0-9a-f]{40})\s+vendor/agent-global-memory$') {
+            throw 'The source commit has no valid vendor/agent-global-memory gitlink.'
+          }
+          $catalogSha = $Matches[1]
+
+          $catalogRoot = Join-Path $env:RUNNER_TEMP 'release-dim-sum-catalog'
+          if (Test-Path -LiteralPath $catalogRoot) {
+            Remove-Item -LiteralPath $catalogRoot -Recurse -Force
+          }
+          # The catalog repository is private. gh carries GH_TOKEN into this
+          # clone without placing a credential in the URL, command line, or log.
+          # Keep gh as Git's credential helper too: the partial clone lazily
+          # fetches the selected PNG after the initial clone process exits.
+          gh auth setup-git --hostname github.com --force
+          if ($LASTEXITCODE -ne 0) { throw "Could not configure the non-leaking gh credential helper ($LASTEXITCODE)." }
+          gh repo clone $canonicalCatalogRepository $catalogRoot -- --quiet --filter=blob:none --no-checkout --depth 1
+          if ($LASTEXITCODE -ne 0) { throw "Could not clone canonical private catalog ($LASTEXITCODE)." }
+          $clonedOrigin = (git -C $catalogRoot remote get-url origin).Trim()
+          if ($clonedOrigin -ne $canonicalCatalogUrl) {
+            throw "Catalog clone origin changed unexpectedly to '$clonedOrigin'."
+          }
+
+          git -C $catalogRoot cat-file -e "$catalogSha^{commit}" 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            git -C $catalogRoot fetch --quiet --depth 1 origin $catalogSha
+            if ($LASTEXITCODE -ne 0) { throw "Pinned catalog commit $catalogSha is unavailable from canonical origin." }
+          }
+          $resolvedCatalogSha = (git -C $catalogRoot rev-parse "$catalogSha^{commit}").Trim()
+          if ($resolvedCatalogSha -ne $catalogSha) {
+            throw "Catalog pin resolved to $resolvedCatalogSha instead of $catalogSha."
+          }
+
+          git -C $catalogRoot sparse-checkout init --no-cone
+          if ($LASTEXITCODE -ne 0) { throw 'Could not initialize sparse catalog checkout.' }
+          git -C $catalogRoot sparse-checkout set --no-cone -- /dim-sum/index.json /dim-sum/image-manifest.json
+          if ($LASTEXITCODE -ne 0) { throw 'Could not select catalog metadata.' }
+          git -C $catalogRoot checkout --quiet --detach $catalogSha
+          if ($LASTEXITCODE -ne 0) { throw "Could not check out pinned catalog $catalogSha." }
+          if ((git -C $catalogRoot rev-parse HEAD).Trim() -ne $catalogSha) {
+            throw 'Catalog checkout did not remain on the pinned gitlink commit.'
+          }
+
+          $indexPath = Join-Path $catalogRoot 'dim-sum\index.json'
+          $manifestPath = Join-Path $catalogRoot 'dim-sum\image-manifest.json'
+          $index = Get-Content -LiteralPath $indexPath -Raw | ConvertFrom-Json -Depth 100
+          $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json -Depth 100
+          if ($index.schemaVersion -ne '1.0.0' -or $manifest.schemaVersion -ne '1.0.0') {
+            throw 'Unsupported catalog or image-manifest schema.'
+          }
+          if ($index.catalogStatus -notin @('in-progress', 'complete')) {
+            throw "Catalog status '$($index.catalogStatus)' is not releasable."
+          }
+          if (
+            [int]$index.total -ne @($index.dishes).Count -or
+            [int]$manifest.total -ne [int]$index.total -or
+            @($manifest.images).Count -ne [int]$index.total
+          ) {
+            throw 'Catalog index, dish list, and image manifest totals disagree.'
+          }
+          if (
+            $index.imageSpecification.format -ne 'png' -or
+            $index.imageSpecification.mediaType -ne 'image/png' -or
+            [int]$index.imageSpecification.minimumWidth -lt 1024 -or
+            [int]$index.imageSpecification.minimumHeight -lt 1024
+          ) {
+            throw 'Catalog image specification no longer satisfies the release-photo contract.'
+          }
+
+          function Get-RepositoryReleases {
+            $releaseJson = gh api --paginate --slurp "repos/$repository/releases?per_page=100"
+            if ($LASTEXITCODE -ne 0) { throw "Could not enumerate existing releases ($LASTEXITCODE)." }
+            $pages = $releaseJson | ConvertFrom-Json -Depth 100
+            $result = [System.Collections.Generic.List[object]]::new()
+            foreach ($page in @($pages)) {
+              foreach ($release in @($page)) {
+                $result.Add($release)
+              }
+            }
+            return $result.ToArray()
+          }
+
+          function Test-CodeNameUsed {
+            param(
+              [Parameter(Mandatory)] [object] $Dish,
+              [Parameter(Mandatory)] [object[]] $Releases
+            )
+            $english = [string]$Dish.name.en
+            $traditionalChinese = [string]$Dish.name.zhHant
+            $slugSuffix = "-$([string]$Dish.slug)"
+            foreach ($release in $Releases) {
+              $title = [string]$release.name
+              $body = [string]$release.body
+              $tagName = [string]$release.tag_name
+              if (
+                $title.IndexOf($english, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
+                $title.Contains($traditionalChinese) -or
+                $body.IndexOf($english, [StringComparison]::OrdinalIgnoreCase) -ge 0 -or
+                $body.Contains($traditionalChinese) -or
+                $tagName.EndsWith($slugSuffix, [StringComparison]::OrdinalIgnoreCase)
+              ) {
+                return $true
+              }
+            }
+            return $false
+          }
+
+          function Test-WorkflowRunPublished {
+            param(
+              [Parameter(Mandatory)] [string] $RunUrl,
+              [Parameter(Mandatory)] [string] $RunNumber,
+              [Parameter(Mandatory)] [object[]] $Releases
+            )
+            $legacyTagMarker = "-b$RunNumber-"
+            $currentTagSuffix = "-b$RunNumber"
+            foreach ($release in $Releases) {
+              if (
+                ([string]$release.body).Contains($RunUrl) -or
+                ([string]$release.tag_name).Contains($legacyTagMarker) -or
+                ([string]$release.tag_name).EndsWith($currentTagSuffix, [StringComparison]::OrdinalIgnoreCase)
+              ) {
+                return $true
+              }
+            }
+            return $false
+          }
+
+          function Assert-CatalogDishIdentity {
+            param([Parameter(Mandatory)] [object] $Dish)
+            $expectedImagePath = "images/$($Dish.id)-$($Dish.slug).png"
+            if (
+              [string]$Dish.id -notmatch '^hk-dish-[0-9]{4}$' -or
+              [string]$Dish.slug -notmatch '^[a-z0-9]+(?:-[a-z0-9]+)*$' -or
+              [string]::IsNullOrWhiteSpace([string]$Dish.name.en) -or
+              [string]::IsNullOrWhiteSpace([string]$Dish.name.zhHant) -or
+              [string]$Dish.name.zhHant -notmatch '[\u3400-\u9fff]' -or
+              [string]$Dish.image.path -ne $expectedImagePath
+            ) {
+              throw "Catalog record $($Dish.id) has an invalid identity, bilingual name, slug, or image path."
+            }
+          }
+
+          function Get-GhHttpStatusCode {
+            param([Parameter(Mandatory)] [object[]] $ResponseLines)
+            $codes = @(
+              foreach ($line in $ResponseLines) {
+                if ([string]$line -match '^HTTP/\S+\s+([0-9]{3})\b') {
+                  [int]$Matches[1]
+                }
+              }
+            )
+            if ($codes.Count -eq 0) { throw 'GitHub API response had no HTTP status line.' }
+            return $codes[-1]
+          }
+
+          $existingReleases = @(Get-RepositoryReleases)
           $run = "${{ github.run_number }}"
-          # run_number is monotonic, so tags never collide or recycle.
-          $tag   = "tb-$ver-b$run-$($dish.slug)"
-          $title = "$($dish.emoji) $($dish.en) · $($dish.zh) — Thunderbird $ver (build $run)"
+          $workflowRunUrl = "${{ github.server_url }}/$repository/actions/runs/${{ github.run_id }}"
+          if (Test-WorkflowRunPublished -RunUrl $workflowRunUrl -RunNumber $run -Releases $existingReleases) {
+            throw "Actions run $workflowRunUrl already has a release; a rerun will not publish a second one."
+          }
+          $runNumber = [int64]::Parse(
+            $run,
+            [Globalization.CultureInfo]::InvariantCulture
+          )
+          $startIndex = [int](($runNumber - 1) % [int64]$index.total)
+          $dish = $null
+          $reservationTag = $null
+          $reservationRef = $null
+          for ($offset = 0; $offset -lt [int]$index.total; $offset++) {
+            $candidate = $index.dishes[($startIndex + $offset) % [int]$index.total]
+            Assert-CatalogDishIdentity -Dish $candidate
+            if (Test-CodeNameUsed -Dish $candidate -Releases $existingReleases) {
+              continue
+            }
+
+            # A releases snapshot cannot close the check/create race. Reserve
+            # this slug with one atomic Git ref creation. A concurrent run that
+            # reaches the same candidate receives HTTP 422 and advances to the
+            # next eligible dish. These tag pushes do not loop this workflow:
+            # its push trigger has a branches filter and therefore ignores tags.
+            # Reservations are intentionally durable even if later publication
+            # fails: an ambiguous/partial attempt must never free a code name for
+            # reuse, and the ref remains an auditable source-SHA ledger entry.
+            $candidateReservationTag = "dim-sum-code-names/$($candidate.slug)"
+            $candidateReservationRef = "refs/tags/$candidateReservationTag"
+            $reservationResponse = @(
+              gh api --include --silent --method POST "repos/$repository/git/refs" `
+                -f ref=$candidateReservationRef -f sha=$sourceSha 2>$null
+            )
+            $reservationExitCode = $LASTEXITCODE
+            $reservationStatus = Get-GhHttpStatusCode -ResponseLines $reservationResponse
+            if ($reservationExitCode -eq 0 -and $reservationStatus -eq 201) {
+              $dish = $candidate
+              $reservationTag = $candidateReservationTag
+              $reservationRef = $candidateReservationRef
+              break
+            }
+            if ($reservationStatus -eq 422) {
+              $occupiedSha = [string](
+                gh api "repos/$repository/git/ref/tags/$candidateReservationTag" --jq '.object.sha' 2>$null
+              )
+              $occupiedSha = $occupiedSha.Trim()
+              if ($LASTEXITCODE -eq 0 -and $occupiedSha -match '^[0-9a-f]{40}$') {
+                Write-Host "Code-name reservation $candidateReservationTag already exists; trying the next catalog record."
+                continue
+              }
+              throw "Reservation returned HTTP 422 but $candidateReservationTag does not resolve to an existing ref."
+            }
+            throw "Could not reserve code name $($candidate.slug): HTTP $reservationStatus (exit $reservationExitCode)."
+          }
+          if ($null -eq $dish) {
+            throw 'Every verified catalog code name is already released or atomically reserved by this project.'
+          }
+
+          $reservedSha = [string](
+            gh api "repos/$repository/git/ref/tags/$reservationTag" --jq '.object.sha'
+          )
+          $reservedSha = $reservedSha.Trim()
+          if ($LASTEXITCODE -ne 0 -or $reservedSha -ne $sourceSha) {
+            throw "Code-name reservation $reservationRef points at '$reservedSha', expected $sourceSha."
+          }
+          $photoRecords = @($manifest.images | Where-Object { $_.id -eq $dish.id })
+          if ($photoRecords.Count -ne 1) {
+            throw "Catalog record $($dish.id) must have exactly one image-manifest entry."
+          }
+          $photo = $photoRecords[0]
+          if (
+            [string]$photo.path -ne [string]$dish.image.path -or
+            [string]$photo.mediaType -ne 'image/png' -or
+            [string]$photo.sha256 -notmatch '^[0-9a-f]{64}$'
+          ) {
+            throw "Catalog record $($dish.id) disagrees with its image manifest."
+          }
+
+          $catalogPhotoPath = "dim-sum/$($dish.image.path)"
+          $catalogPhotoPattern = "/$catalogPhotoPath"
+          git -C $catalogRoot sparse-checkout set --no-cone -- /dim-sum/index.json /dim-sum/image-manifest.json $catalogPhotoPattern
+          if ($LASTEXITCODE -ne 0) { throw "Could not materialize pinned photo $catalogPhotoPath." }
+          $photoPath = Join-Path $catalogRoot ($catalogPhotoPath -replace '/', '\')
+          if (-not (Test-Path -LiteralPath $photoPath -PathType Leaf)) {
+            throw "Pinned catalog photo does not exist: $catalogPhotoPath"
+          }
+
+          $treeEntry = (git -C $catalogRoot ls-tree $catalogSha -- $catalogPhotoPath).Trim()
+          if ($LASTEXITCODE -ne 0 -or $treeEntry -notmatch '^100644 blob ([0-9a-f]{40})\s+') {
+            throw "Pinned catalog path is not a tracked regular blob: $catalogPhotoPath"
+          }
+          $expectedBlob = $Matches[1]
+          $actualBlob = (git -C $catalogRoot hash-object -- $photoPath).Trim()
+          if ($actualBlob -ne $expectedBlob) {
+            throw "Materialized photo bytes differ from catalog blob $expectedBlob."
+          }
+
+          $photoInfo = Get-Item -LiteralPath $photoPath
+          $photoHash = (Get-FileHash -LiteralPath $photoPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($photoHash -ne [string]$photo.sha256 -or $photoInfo.Length -ne [int64]$photo.bytes) {
+            throw "Photo hash or byte length differs from the verified manifest for $($dish.id)."
+          }
+          Add-Type -AssemblyName System.Drawing.Common
+          $decodedPhoto = [System.Drawing.Bitmap]::new($photoPath)
+          try {
+            $null = $decodedPhoto.GetPixel(0, 0)
+            if (
+              $decodedPhoto.Width -ne [int]$photo.width -or
+              $decodedPhoto.Height -ne [int]$photo.height -or
+              $decodedPhoto.Width -ne $decodedPhoto.Height -or
+              $decodedPhoto.Width -lt [int]$index.imageSpecification.minimumWidth -or
+              $decodedPhoto.Height -lt [int]$index.imageSpecification.minimumHeight
+            ) {
+              throw "Decoded photo dimensions do not satisfy the verified catalog manifest."
+            }
+          } finally {
+            $decodedPhoto.Dispose()
+          }
+
+          $version = "${{ steps.find.outputs.version }}"
+          # Keep the release tag monotonic and keyed only by version/build. This
+          # makes release creation itself the atomic one-release-per-run guard;
+          # concurrent attempts cannot escape it by selecting different dishes.
+          $tag = "tb-$version-b$run"
+          $title = "$($dish.name.en) · $($dish.name.zhHant) — Thunderbird $version (build $run)"
+          $installerPath = "${{ steps.find.outputs.installer }}"
+          if (-not (Test-Path -LiteralPath $installerPath -PathType Leaf)) {
+            throw "The located installer disappeared before release creation: $installerPath"
+          }
+          $installerInfo = Get-Item -LiteralPath $installerPath
+          if ($installerInfo.Length -le 0) { throw 'The located installer is empty.' }
+          $installerHash = (Get-FileHash -LiteralPath $installerPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          $installerAsset = [IO.Path]::GetFileName($installerPath)
+          $photoAsset = [IO.Path]::GetFileName($photoPath)
+
+          # Recheck immediately before creation. Concurrent runs may have observed
+          # the same earlier release set; the reservation already prevents another
+          # compliant run from minting a twin, and this catches manual publication.
+          $latestReleases = @(Get-RepositoryReleases)
+          if (Test-WorkflowRunPublished -RunUrl $workflowRunUrl -RunNumber $run -Releases $latestReleases) {
+            throw "Actions run $workflowRunUrl published while this attempt was building; refusing a duplicate."
+          }
+          if (Test-CodeNameUsed -Dish $dish -Releases $latestReleases) {
+            throw "Code name '$($dish.name.en) · $($dish.name.zhHant)' was used while this run was building."
+          }
+          gh release view $tag --repo $repository *> $null
+          if ($LASTEXITCODE -eq 0) {
+            throw "Release tag $tag already exists; this run will not update or recycle it."
+          }
 
           $notes = @"
-          ## $($dish.emoji) ``$($dish.slug)`` · $($dish.en) · $($dish.zh)
+          ## $($dish.name.en) · $($dish.name.zhHant)
 
-          Unofficial Windows build from ``${{ github.ref_name }}`` @ ``${{ github.sha }}``.
+          ![$($dish.name.en) · $($dish.name.zhHant)](https://github.com/$repository/releases/download/$tag/$photoAsset)
+
+          Unofficial Windows build from ${{ github.ref_name }} at $sourceSha.
 
           > [!WARNING]
           > **Not an official Mozilla Thunderbird release.** Built from a fork for the
@@ -632,30 +1033,85 @@ jobs:
 
           | | |
           |---|---|
-          | Code name | $($dish.emoji) $($dish.en) · $($dish.zh) |
-          | Version | ``$ver`` |
-          | Build | ``$run`` |
-          | Commit | ``${{ github.sha }}`` |
-          | Build mode | ``${{ steps.mode.outputs.mode }}`` |
-          | Run | ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }} |
+          | Code name | $($dish.name.en) · $($dish.name.zhHant) |
+          | Code-name reservation | $reservationRef → $sourceSha |
+          | Catalog record | $($dish.id) |
+          | Catalog commit | $catalogSha |
+          | Installer asset | $installerAsset |
+          | Installer SHA-256 | $installerHash |
+          | Photo asset | $photoAsset |
+          | Photo SHA-256 | $photoHash |
+          | Version | $version |
+          | Build | $run |
+          | Commit | $sourceSha |
+          | Build mode | ${{ steps.mode.outputs.mode }} |
+          | Run | $workflowRunUrl |
 
-          **粵** — 呢個係 fork 嘅非官方 Windows build,唔係官方 Thunderbird,唔好搞錯。今次個代號叫「$($dish.zh)」。
+          **粵** — 呢個係 fork 嘅非官方 Windows build，唔係官方 Thunderbird。今次代號係「$($dish.name.en) · $($dish.name.zhHant)」，相片資產係 $photoAsset。
           "@
 
-          # Deliberately NOT --draft and NOT --prerelease: every push ships a real,
-          # immediately-visible release.
-          gh release create "$tag" "${{ steps.find.outputs.installer }}" `
-            --repo "${{ github.repository }}" `
-            --target "${{ github.sha }}" `
-            --title "$title" `
-            --notes "$notes" `
-            --latest
-          $tagSha = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
-          if ($tagSha -ne "${{ github.sha }}") {
-            throw "Release tag $tag points at $tagSha, expected build commit ${{ github.sha }}"
+          # One non-draft release, containing exactly the installer and the exact
+          # verified catalog PNG. Creating a release does not push a ref branch,
+          # so this cannot trigger the workflow again.
+          $releaseArguments = @(
+            'release', 'create', $tag, $installerPath, $photoPath,
+            '--repo', $repository,
+            '--target', $sourceSha,
+            '--title', $title,
+            '--notes', $notes,
+            '--latest'
+          )
+          gh @releaseArguments
+          if ($LASTEXITCODE -ne 0) { throw "Release creation failed ($LASTEXITCODE)." }
+
+          $tagSha = [string](gh api "repos/$repository/git/ref/tags/$tag" --jq '.object.sha')
+          $tagSha = $tagSha.Trim()
+          if ($LASTEXITCODE -ne 0 -or $tagSha -ne $sourceSha) {
+            throw "Release tag $tag points at $tagSha, expected build commit $sourceSha."
           }
-          Write-Host "Published $tag ($($dish.en) / $($dish.zh))"
-          "### $($dish.emoji) Released ``$tag`` — $($dish.en) · $($dish.zh)" >> $env:GITHUB_STEP_SUMMARY
+          $published = (
+            gh release view $tag --repo $repository --json tagName,targetCommitish,isDraft,isPrerelease,assets
+          ) | ConvertFrom-Json -Depth 20
+          if ($LASTEXITCODE -ne 0) { throw "Could not verify published release $tag." }
+          $publishedReservationSha = [string](
+            gh api "repos/$repository/git/ref/tags/$reservationTag" --jq '.object.sha'
+          )
+          $publishedReservationSha = $publishedReservationSha.Trim()
+          if ($LASTEXITCODE -ne 0 -or $publishedReservationSha -ne $sourceSha) {
+            throw "Published release lost its atomic code-name reservation $reservationRef."
+          }
+          $publishedAssets = @($published.assets)
+          if (
+            $published.isDraft -or
+            $published.isPrerelease -or
+            [string]$published.targetCommitish -ne $sourceSha -or
+            $publishedAssets.Count -ne 2
+          ) {
+            throw 'Published release metadata does not match the one-release/two-asset contract.'
+          }
+          $publishedInstaller = @($publishedAssets | Where-Object { $_.name -eq $installerAsset })
+          $publishedPhoto = @($publishedAssets | Where-Object { $_.name -eq $photoAsset })
+          if ($publishedInstaller.Count -ne 1 -or $publishedPhoto.Count -ne 1) {
+            throw 'Published release does not contain exactly one expected installer and one expected photo.'
+          }
+          if (
+            [int64]$publishedInstaller[0].size -ne $installerInfo.Length -or
+            [string]$publishedInstaller[0].digest -ne "sha256:$installerHash"
+          ) {
+            throw 'Published installer metadata does not match the locally hashed build artifact.'
+          }
+          if (
+            [int64]$publishedPhoto[0].size -ne $photoInfo.Length -or
+            [string]$publishedPhoto[0].digest -ne "sha256:$photoHash"
+          ) {
+            throw 'Published photo metadata does not match the verified catalog PNG.'
+          }
+
+          Write-Host "Published $tag with $installerAsset and $photoAsset."
+          "### Released $tag — $($dish.name.en) · $($dish.name.zhHant)" >> $env:GITHUB_STEP_SUMMARY
+          "Code-name reservation: ``$reservationRef`` → ``$sourceSha``" >> $env:GITHUB_STEP_SUMMARY
+          "Installer SHA-256: ``$installerHash``" >> $env:GITHUB_STEP_SUMMARY
+          "Photo SHA-256: ``$photoHash``" >> $env:GITHUB_STEP_SUMMARY
 
       - name: Upload build log on failure
         if: failure()

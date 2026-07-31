@@ -8,6 +8,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / "mail/base/content/materialMail.xhtml"
 SCRIPT = ROOT / "mail/base/content/materialMail.js"
+TABS_SCRIPT = ROOT / "mail/base/content/materialMailTabs.mjs"
+TAB_MODEL = ROOT / "design/runtime/tabs/tab-model.mjs"
 COLOR_SCRIPT = ROOT / "mail/base/content/materialMailColor.mjs"
 COLOR_TRANSLATOR = ROOT / "design/runtime/color/color-translator.mjs"
 LAUNCHER = ROOT / "mail/base/content/materialMailLauncher.js"
@@ -24,18 +26,38 @@ def fail(message):
     raise SystemExit(1)
 
 
-for path in (PAGE, SCRIPT, COLOR_SCRIPT, COLOR_TRANSLATOR, LAUNCHER, REGEX_LAUNCHER, STYLE, FTL, DIMSUM):
+for path in (
+    PAGE,
+    SCRIPT,
+    TABS_SCRIPT,
+    TAB_MODEL,
+    COLOR_SCRIPT,
+    COLOR_TRANSLATOR,
+    LAUNCHER,
+    REGEX_LAUNCHER,
+    STYLE,
+    FTL,
+    DIMSUM,
+    JAR,
+    SKIN_JAR,
+):
     if not path.is_file():
         fail(f"missing {path.relative_to(ROOT)}")
 
 page = PAGE.read_text(encoding="utf-8")
 script = SCRIPT.read_text(encoding="utf-8")
+tabs_script = TABS_SCRIPT.read_text(encoding="utf-8")
+tab_model = TAB_MODEL.read_text(encoding="utf-8")
 style = STYLE.read_text(encoding="utf-8")
 ftl = FTL.read_text(encoding="utf-8")
 jar = JAR.read_text(encoding="utf-8")
 skin_jar = SKIN_JAR.read_text(encoding="utf-8")
 
-if re.search(r"https?://(?!www\.w3\.org)|//cdn\.|fonts\.google", page + script + style + ftl, re.I):
+if re.search(
+    r"https?://(?!www\.w3\.org)|//cdn\.|fonts\.google",
+    page + script + tabs_script + tab_model + style + ftl,
+    re.I,
+):
     fail("remote asset or font URL found")
 
 tab_ids = re.findall(r'id="(mm-tab-[^"]+)"[^>]+role="tab"', page)
@@ -54,6 +76,23 @@ for required in ("compact", "comfortable", "relaxed"):
     if f'value="{required}"' not in page:
         fail(f"missing density arm {required}")
 for required in (
+    "mm-tab-strip",
+    "mm-pinned-tabs",
+    "mm-regular-tabs",
+    "mm-tab-overflow",
+    "mm-tab-overflow-count",
+    "mm-tab-popover",
+    "mm-tab-popover-close",
+    "mm-tab-search",
+    "mm-tab-search-regex-open",
+    "mm-tab-search-regex-panel",
+    "mm-tab-search-count",
+    "mm-tab-search-results",
+    "mm-tab-context-menu",
+    "mm-tab-menu-pin",
+    "mm-tab-menu-move-left",
+    "mm-tab-menu-move-right",
+    "mm-tab-menu-appearance",
     "mm-settings-search",
     "mm-changelog-search",
     "mm-history-search",
@@ -86,11 +125,44 @@ for required in (
         fail(f"missing runtime feature control {required}")
 if "localStorage" not in script or "mail.material.preview.settings" not in script:
     fail("preferences are not persisted locally")
+if "localStorage" not in tabs_script or "mail.material.preview.tabs" not in tabs_script:
+    fail("tab order, pinning, and active state are not persisted locally")
 for required in ("CHANGELOG", "FEATURE_GUIDE", "FEATURE_ARTICLES", "renderChangelog", "renderHistory", "renderNotifications", "renderGuide", "openGuideDetails", "closeGuideDetails", "bindGuideDetails", "guideDetailsAnchor", "data-guide-article", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis", "ensureSettingsCustomization", "ensureToolsGuide", "ACCENTS", "FUNNY_EN", "FUNNY_ZH", "function tone", "mm-funny-preview", "mm-tools-search", "mm-font-scale"):
     if required not in script:
         fail(f"runtime feature implementation is incomplete: {required}")
-if "ArrowLeft" not in script or "ArrowRight" not in script:
+for required in (
+    "normalizeTabState",
+    "selectVisibleTabs",
+    "ResizeObserver",
+    "dragstart",
+    "drop",
+    "contextmenu",
+    "mm-tab-search-state",
+    "mm-tab-edit-appearance",
+    "renderResults",
+    "positionPopover",
+    "MAX_SEARCH_LENGTH",
+):
+    if required not in tabs_script:
+        fail(f"tab runtime implementation is incomplete: {required}")
+if "materialRegexBuilder.mjs" not in tabs_script or "validatePattern" not in tabs_script:
+    fail("tab search bypasses the bounded regex preflight")
+for required in (
+    "normalizeTabState",
+    "renderedTabOrder",
+    "moveTab",
+    "moveTabBefore",
+    "selectVisibleTabs",
+    "describeTabs",
+):
+    if f"function {required}" not in tab_model:
+        fail(f"pure tab model is incomplete: {required}")
+if "ArrowLeft" not in tabs_script or "ArrowRight" not in tabs_script:
     fail("keyboard tab movement is missing")
+if 'id="mm-tab-search-results" role="list"' not in page or re.search(
+    r'id="mm-tab-search-results"[^>]+role="listbox"', page
+):
+    fail("all-tabs results must use a composite-action-safe list pattern")
 if "prefers-reduced-motion" not in style:
     fail("reduced-motion fallback is missing")
 if "mm-dimsum-surprise" not in page or "Math.random()" not in script or "hasLaunched" not in script:
@@ -101,8 +173,23 @@ page_ids = set(re.findall(r'data-l10n-id="([^"]+)"', page))
 missing = sorted(page_ids - ftl_ids)
 if missing:
     fail(f"page localization ids missing from en-US FTL: {missing}")
-if "materialMail.xhtml" not in jar or "materialMail.js" not in jar or "materialMailColor.mjs" not in jar or "materialColorTranslator.mjs" not in jar or "materialMailRegex.js" not in jar or "materialRegexBuilder.mjs" not in jar or "material-mail.css" not in skin_jar or "material-mail-regex.css" not in skin_jar or "material-dimsum-har-gow.png" not in skin_jar:
+for required in (
+    "material-mail-tab-pin",
+    "material-mail-tab-unpin",
+    "material-mail-tab-move-left",
+    "material-mail-tab-move-right",
+    "material-mail-tab-edit-appearance",
+    "material-mail-tab-pinned",
+    "material-mail-tab-visible",
+    "material-mail-tab-hidden",
+    "material-mail-tab-results",
+):
+    if required not in ftl_ids:
+        fail(f"dynamic tab localization id missing from en-US FTL: {required}")
+if "materialMail.xhtml" not in jar or "materialMail.js" not in jar or "materialMailTabs.mjs" not in jar or "materialTabModel.mjs" not in jar or "materialMailColor.mjs" not in jar or "materialColorTranslator.mjs" not in jar or "materialMailRegex.js" not in jar or "materialRegexBuilder.mjs" not in jar or "material-mail.css" not in skin_jar or "material-mail-regex.css" not in skin_jar or "material-dimsum-har-gow.png" not in skin_jar:
     fail("jar packaging entries are incomplete")
+if "mm-tab-search" not in REGEX_LAUNCHER.read_text(encoding="utf-8"):
+    fail("all-tabs search is not wired to its independent regex builder")
 if "import { hslToRgb, translateColor }" not in COLOR_SCRIPT.read_text(encoding="utf-8") or "mm-color-picker" not in page or "mm-appearance-search" not in page:
     fail("continuous colour picker surface is incomplete")
 guide_articles = re.findall(r'^  "([^"]+)": \{', script, re.MULTILINE)
@@ -112,4 +199,4 @@ for required in ("behavior", "configuration", "failure", "security", "verificati
     if script.count(f"{required}:") < 14:
         fail(f"feature guide article section is incomplete: {required}")
 
-print(f"Material preview OK: {len(tab_ids)} tabs, {len(panel_ids)} panels, {len(page_ids)} localized ids, 14 local article payloads, local persistence, keyboard navigation, reduced motion, and packaging.")
+print(f"Material preview OK: {len(tab_ids)} tabs, {len(panel_ids)} panels, {len(page_ids)} localized ids, {len(guide_articles)} local article payloads, persisted pin/order state, measured overflow, all-tabs search, keyboard navigation, reduced motion, and packaging.")

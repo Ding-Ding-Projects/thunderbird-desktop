@@ -27,7 +27,10 @@ design token layer, persists appearance/language/funny-level/narrator controls,
 provides searchable/date-filtered Changelog and History surfaces, retained
 Notifications, a catalog-backed dim-sum draw, anchored appearance editing with a
 mounted continuous color translator, fact-preserving funny-level copy wiring,
-and packages independent anchored regex builders. `verify-material-preview.py`
+packages independent anchored regex builders, and now carries the design-defined
+tab core: persisted active/order/pins, a stable pinned region, measured overflow,
+searchable all-tabs discovery, drag/keyboard/context movement, and appearance
+hand-off. `verify-material-preview.py`
 and the
 module test suites pass. This is an implementation milestone, not completion:
 the existing upstream 3-pane still owns mail behavior, and every remaining gap
@@ -71,29 +74,35 @@ and "Regressions found and fixed by this pass". The headline ones:
 
 ### 3. Windows installer CI builds and publishes releases
 
-`.github/workflows/windows-installer.yml`, 672 lines, roughly a third of them
-comments explaining why each line is the way it is. Nine separate blockers had to
-be cleared before the first green run — they are enumerated in `HANDOFF.md`.
+`.github/workflows/windows-installer.yml` is deliberately evidence-heavy, with
+comments explaining the non-obvious build and release boundaries. Nine separate
+blockers had to be cleared before the first green run — they are enumerated in
+`HANDOFF.md` — and the current wave adds source/lint gates plus catalog-asset proof.
 
 - Artifact build by default; `full` available via `workflow_dispatch`.
 - Builds on `D:` (~147 GB measured) rather than `C:` (~33 GB measured).
-- Every push publishes a real, non-draft, non-prerelease GitHub Release with the
-  installer attached, tagged monotonically off `run_number` and code-named from a
-  16-dish dim sum rotation.
+- Every successful validated push/dispatch run publishes one real, non-draft,
+  non-prerelease GitHub Release with exactly the built installer and one decoded,
+  hash-verified PNG from the source-pinned catalog. Failed validation publishes no
+  release.
+- Tags remain monotonic off `run_number`; the workflow now scans the project's
+  complete release history and chooses the next unused bilingual catalog code name
+  instead of cycling a fixed 16-name list.
 - Every release states that it is an unofficial fork build.
-- The current source/runtime baseline is `3a01b73ba61baba8c9f72301e9a1bee3c6227f84` (the
-  verifier tip is `9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74`):
-  the upstream check is **119 ahead / 0 behind**. Lint
-  [30643776682](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776682)
-  is queued and installer [30643776590](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776590)
-  is queued. b86 is the latest public release, but its build source is `417a7c73e7e7` while
-  its tag resolves to `9c3fdc…`; it is an older source boundary, not current-source proof.
-  Current-source capture therefore waits for a correctly bound installer; the workflow now
-  passes `--target ${{ github.sha }}` and verifies the tag after publishing.
-- It published non-draft release
-  [`tb-155.0a1-b54-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok)
-  with a real Windows installer built from the exact source SHA. The b54 package
-  contains all seven Material sheets byte-for-byte.
+- The verified pre-wave source/runtime baseline is
+  `77fe409183e580db6dd59ef2e65d093864a4f241`, **120 ahead / 0 behind** at task
+  start. Lint
+  [30644045867](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045867)
+  and installer
+  [30644045825](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045825)
+  are green. Release
+  [`tb-155.0a1-b98-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b98-char-siu-bao)
+  points exactly to that source and contains the real 87,755,233-byte installer,
+  but it lacks the required catalog PNG and repeats an earlier code name. It is the
+  input defect this wave repairs, not proof that the repaired release gate works.
+- The tab source and catalog-release gate must be proven by the next GitHub-hosted
+  run. Its immutable source/tag/assets verdict is recorded in rolling Discussion #1;
+  this roadmap does not predict it.
 - Earlier post-integration runs failed at `vendored-rust-check`: [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503)
   and [30619490478](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30619490478).
   Its log identified comm/Gecko Rust-manifest skew before compilation; the gitlink
@@ -202,6 +211,23 @@ present in the package even though that start-page surface is upstream. This doe
 establish that the start page should be restyled, that the 3-pane is fully covered, or
 that any parity, accessibility, localization, layout, or visual unknown is closed.
 
+### 7. The design-defined browser-tab core is packaged
+
+The Material preview no longer relies on six static horizontally scrolling
+buttons. `materialMailTabs.mjs` consumes the pure local model in
+`design/runtime/tabs/tab-model.mjs` and ports the interaction core already drawn
+in `Material Mail.dc.html`: versioned active/order/pin persistence, stale-id
+normalization, a stable compact pinned region, measurement-based overflow, a
+searchable all-tabs popover with its own anchored regex builder, drag and keyboard
+reorder, tab context actions, and an appearance-editor hand-off.
+
+This moves GM-09 from **open** to **partial / open**. It does not claim the wider
+shared tab contract: grouping, per-group search, group-name search, cross-window
+master search, containing/not-containing bulk-close previews, and app-wide tab
+ownership remain unimplemented. Source and model evidence are not built-artifact
+visual proof; pinned, overflow, search, regex, and context-menu captures remain
+pending.
+
 ---
 
 ## What is explicitly NOT done
@@ -268,8 +294,11 @@ What exists is seven stylesheets that restyle upstream's DOM. The consequences:
 - **Several design elements have no DOM to attach to** and were correctly not
   invented: the folder filter field, the folder-pane empty state, the thread card's
   avatar and body-preview line, the message-pane empty-state string (CSS generated
-  content cannot carry a `data-l10n-id`), the command palette, the toast stack, and
-  pinned tabs. Each needs markup *plus* Fluent ids before any CSS is worth writing.
+  content cannot carry a `data-l10n-id`), the command palette, the app-wide toast
+  stack, and the full tab grouping/search/bulk-close surfaces. Each needs markup
+  *plus* Fluent ids before any CSS is worth writing. The packaged preview's tab
+  core is a bounded implementation slice, not a replacement for Thunderbird's
+  application-wide tab behavior.
 - **`--m3-avatar-size` has no consumer anywhere** — a token waiting for markup.
 - The design's own conflicts with Thunderbird are unresolved because they were never
   reached: remote Google Fonts (blocked by CSP, non-negotiable), the `<x-dc>`/React

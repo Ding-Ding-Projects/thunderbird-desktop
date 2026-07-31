@@ -11,35 +11,48 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `chrome://messenger/content/materialMail.xhtml` content tab opened from Help →
 > Open Material Mail preview. It provides the design-folder Mail/Settings/
 > Changelog/History/Notifications/Tools pages, local preview preferences, and an
-> anchored regex builder. Genuine b66 headless captures for every page and the
-> regex builder are committed under `design/screenshots/runtime/`. The page is
-> explicitly labelled a preview: it does not replace upstream mail behavior and
-> does not close the full global-memory contract. Verify it with
-> `python design\verify-material-preview.py` plus the i18n/regex Node suites.
+> anchored regex builder. This source wave adds the design-defined tab core:
+> versioned active/order/pin persistence, a stable pinned region, measured
+> overflow, searchable all-tabs discovery with its own regex builder, drag and
+> keyboard movement, tab context actions, focus return, and appearance hand-off.
+> Genuine b66 headless captures remain committed under
+> `design/screenshots/runtime/`; they predate the tab wave and are not visual
+> proof for it. The page remains explicitly labelled a preview and does not
+> replace upstream mail behavior or close the full shared feature contract.
 
 > [!IMPORTANT]
-> **Current integration status — 2026-07-31.** The runtime/evidence source tip is
-> `9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74` on `main`; upstream check is
-> **119 ahead / 0 behind at that tip** and the Gecko gitlink remains
-> `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b70 release
-> [`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok)
-> contains the real 85,328,686-byte Windows installer from exact source `5a4f35f3ba36`.
-> Lint [30635599949](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599949)
-> is green; installer [30635599917](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599917)
-> published the release asset.
+> **Tab-core integration status — 2026-07-31.** `design/` is the complete tracked
+> authority: **162 files / 1,950,357 bytes**, with no project design ZIP.
+> `Material Mail.dc.html` remains 140,780 bytes with SHA-256
+> `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
+> The local source matrix is green: both Python verifiers, **12 / 12** preview
+> smoke checks, **9 / 9** regex tests, **5 / 5** color tests, **6 / 6** language
+> model tests, and **4 / 4** tab-model tests. The packaged browser test now covers
+> pin persistence, keyboard reorder, plain/regex all-tabs filtering, Escape focus
+> return, and the tab appearance path, but this comm-only checkout cannot execute
+> the built browser suite locally.
+>
+> The verified pre-wave source is
+> `77fe409183e580db6dd59ef2e65d093864a4f241`, **120 ahead / 0 behind** upstream
+> at task start, with Gecko pinned at
+> `fdd583cd5a10d051053acda8b760c3bd5d800034`. Lint
+> [30644045867](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045867)
+> and installer
+> [30644045825](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045825)
+> are green. Release
+> [`tb-155.0a1-b98-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b98-char-siu-bao)
+> points exactly to that source and carries the real 87,755,233-byte installer
+> (`e57e8abce22183fb4a345398be52e20ae95835a3fee63c4bee98c4b6232d7a81`),
+> but has no catalog PNG and reuses a code name. The hardened release path now
+> resolves an unused dish and exact PNG from the source-pinned verified catalog,
+> publishes exactly the installer plus photo, and verifies tag/source/assets.
+> Consult rolling Discussion #1 for the immutable post-push run, release, and
+> capture verdict; this handoff deliberately does not predict CI success.
 >
 > Browser run [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
-> completed failed because the broad legacy suites remain red, but the corrected authored
-> Material suite passed **186 / 0 failed / 13 TODO** with zero unexpected results. Artifact
-> `8795330528` contains the exact logs. These results do not promote parity, accessibility,
-> layout, or visual sign-off.
->
-> The public latest release is [`tb-155.0a1-b86-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b86-wu-gok),
-> a real 87,729,189-byte installer. Its release body names build source
-> `417a7c73e7e7116b3e87201194001274a535381e`, but the tag resolves to
-> `9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74`; it is therefore not
-> current-source proof. The release workflow now passes `--target ${{ github.sha }}` and
-> verifies the published tag; the next correctly bound installer is required before capture.
+> remains the previous broad checkpoint: authored Material/static groups passed,
+> while broad legacy suites failed. It predates this tab wave and does not promote
+> parity, accessibility, layout, or visual sign-off.
 
 > [!NOTE]
 > **Prior current-source browser checkpoint — 2026-07-31.** Dispatch

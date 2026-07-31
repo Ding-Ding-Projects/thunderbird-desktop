@@ -16,7 +16,7 @@ const FEATURE_GUIDE = Object.freeze([
   { title: ["Anchored regex builder", "貼住搜尋欄嘅正規表達式建立器"], status: ["Packaged foundation", "已打包基礎"], summary: ["Each preview search field keeps plain text as default and owns a bounded local builder.", "每個預覽搜尋欄預設純文字，並有自己嘅有界本機建立器。"], article: "design/features/runtime/regex-builder.md" },
   { title: ["Per-element appearance editor", "逐元素外觀編輯器"], status: ["Preview partial", "預覽部分完成"], summary: ["Context-menu and Shift+F10 editing persists local surface, text, shape, size, and weight overrides.", "右鍵選單同 Shift+F10 可以保存表面、文字、形狀、大小同字重覆寫。"], article: "design/features/runtime/appearance-editor.md" },
   { title: ["Continuous colour translator", "連續色彩轉換器"], status: ["Source wired · capture pending", "Source 已接通 · 等截圖"], summary: ["The picker translates named, HEX, RGB/A, HSL/A, HSV, HWB, Lab/LCH, OKLab/OKLCH, and CMYK locally.", "選色器本機轉換 named、HEX、RGB/A、HSL/A、HSV、HWB、Lab/LCH、OKLab/OKLCH 同 CMYK。"], article: "design/features/runtime/color-translator.md" },
-  { title: ["Browser-style tabs", "瀏覽器式分頁"], status: ["Open gap", "未完成"], summary: ["Overflow, pinning, grouping, four tab searches, and safe bulk-close previews remain roadmap work.", "溢出、釘選、分組、四種分頁搜尋同安全批量關閉預覽仍喺路線圖。"], article: "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md#gm-09" },
+  { title: ["Browser-style tabs", "瀏覽器式分頁"], status: ["Preview core wired", "預覽核心已接通"], summary: ["Persisted order and pinning, measured overflow, all-tabs search, regex, drag and keyboard movement, and tab context actions now match the design core; grouping, three more search scopes, and bulk-close remain open.", "保存排序同釘選、實測溢出、全部分頁搜尋、regex、拖放同鍵盤移動、分頁選單已跟設計核心接通；分組、另外三種搜尋範圍同批量關閉仍未完成。"], article: "design/features/runtime/tab-management.md" },
   { title: ["External editor integration", "外部編輯器整合"], status: ["Open gap", "未完成"], summary: ["Installed-editor discovery, selection, persistence, and graceful failure remain open.", "已安裝編輯器探索、選擇、保存同優雅失敗處理仍未完成。"], article: "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md#gm-10" },
   { title: ["Git-backed local history", "Git 本機歷史"], status: ["Preview partial", "預覽部分完成"], summary: ["The preview records append-only local revisions; production snapshots for every owned record remain open.", "預覽記錄只加不改本機版本；每個擁有記錄嘅 production snapshot 仍未完成。"], article: "design/features/runtime/local-history.md" },
   { title: ["All-release changelog", "全版本更新記錄"], status: ["Preview partial", "預覽部分完成"], summary: ["Search, typed date filters, copy, and Markdown export work on local factual entries; release-data wiring remains open.", "本機事實記錄支援搜尋、輸入日期篩選、複製同 Markdown 匯出；release data 接駁仍未完成。"], article: "design/features/runtime/changelog-viewer.md" },
@@ -74,12 +74,12 @@ const FEATURE_ARTICLES = Object.freeze({
     security: ["Conversion is bounded numeric work with no network, remote assets, analytics, or untrusted code evaluation.", "轉換係有界數值運算，冇網絡、遠端資產、analytics 或不受信任程式碼評估。"],
     verification: ["Run the color translator tests and Material preview verifier; the built-artifact picker capture remains a separate sign-off boundary.", "要跑 color translator tests 同 Material 預覽驗證器；built-artifact picker capture 仍係另一個簽核界線。"],
   },
-  "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md#gm-09": {
-    behavior: ["The current preview exposes ordinary pages as browser-style tabs, but full overflow, pinning, grouping, and four-search behavior remain an open gap.", "目前預覽用瀏覽器式分頁展示普通頁面，但完整溢出、釘選、分組同四種搜尋仍係未完成缺口。"],
-    configuration: ["The guide records the gap against the dated audit article instead of claiming the roadmap work is shipped.", "指南將缺口記錄喺有日期嘅 audit 文章，唔會扮路線圖工作已出貨。"],
-    failure: ["A narrow strip or hidden group must not silently clip or lose tabs; those states still need implementation and evidence.", "窄分頁列或者收埋嘅 group 唔可以靜靜裁走或遺失分頁；呢啲狀態仍要實作同取證。"],
-    security: ["This entry is local roadmap content and does not inspect tabs, page contents, or account data.", "呢個項目係本機路線圖內容，唔會檢查分頁、頁面內容或者帳戶資料。"],
-    verification: ["Treat the status as an open gap until the full keyboard, accessibility, persistence, and narrow-layout contract has real artifact evidence.", "未有完整鍵盤、無障礙、保存同窄版 layout 嘅真實 artifact 證據前，狀態保持未完成。"],
+  "design/features/runtime/tab-management.md": {
+    behavior: ["The preview keeps pinned tabs in a stable compact region, measures ordinary-tab overflow, and exposes every tab through a searchable anchored popover and context actions.", "預覽將釘選分頁放喺穩定精簡區，實測普通分頁溢出，並用貼住嘅搜尋面板同右鍵動作顯示全部分頁。"],
+    configuration: ["Active tab, order, and pin state use a versioned local record that drops stale ids and restores missing built-in pages safely.", "目前分頁、排序同釘選狀態用有版本嘅本機記錄，會安全移除過期 id 同補回缺少嘅內置頁面。"],
+    failure: ["A narrow strip never silently loses a tab: hidden ordinary tabs remain named in the overflow list, and Escape returns focus to the invoking control.", "窄分頁列唔會靜靜整失分頁：收起嘅普通分頁仍會喺溢出清單有名有姓，Escape 亦會將焦點還返開啟控制。"],
+    security: ["Tab search evaluates bounded local labels only and never inspects message bodies, accounts, credentials, or network content.", "分頁搜尋只會有界咁評估本機標籤，唔會檢查郵件內容、帳戶、憑證或者網絡內容。"],
+    verification: ["The pure tab model, packaged browser assertions, preview verifier, and independent regex tests cover the source-defined core; built-artifact captures, grouping, the other three search scopes, and bulk-close remain explicit follow-up work.", "純 tab model、packaged browser assertions、預覽驗證器同獨立 regex tests 覆蓋 source-defined 核心；built-artifact 截圖、分組、另外三種搜尋範圍同批量關閉仍清楚列為後續工作。"],
   },
   "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md#gm-10": {
     behavior: ["Installed-editor discovery, selection, persistence, and opening a folder or file remain an open integration gap.", "已安裝編輯器探索、選擇、保存同開啟資料夾或檔案仍係未完成整合缺口。"],
@@ -125,7 +125,7 @@ const FEATURE_ARTICLES = Object.freeze({
   },
 });
 const CHANGELOG = Object.freeze([
-  { version: "155.0a1", date: "2026-07-31", tag: "Added", title: ["Evidence-first Material workspace", "以證據先行嘅 Material 工作區"], items: [["Packaged Material Mail preview with six browser-style pages.", "打包 Material Mail 預覽，提供六個瀏覽器式頁面。"], ["Persisted language, tone, appearance, narrator, and dim-sum controls.", "保存語言、語氣、外觀、旁白同點心控制。"]] },
+  { version: "155.0a1", date: "2026-07-31", tag: "Added", title: ["Evidence-first Material workspace", "以證據先行嘅 Material 工作區"], items: [["Packaged Material Mail preview with six browser-style pages.", "打包 Material Mail 預覽，提供六個瀏覽器式頁面。"], ["Persisted language, tone, appearance, narrator, and dim-sum controls.", "保存語言、語氣、外觀、旁白同點心控制。"], ["Added persisted tab order and pinning, measured overflow, searchable all-tabs discovery, and context actions.", "加入保存分頁排序同釘選、實測溢出、可搜尋全部分頁同右鍵動作。"], ["Hardened releases to use an unused verified catalog code name and attach its exact PNG.", "強化 release：使用未用過嘅已驗證 catalog 代號，並附上完全對應嘅 PNG。"]] },
   { version: "155.0a1", date: "2026-07-29", tag: "Verified", title: ["M3 evidence capture", "M3 證據擷取"], items: [["Recorded genuine hosted and headless captures with explicit boundaries.", "記錄真實 hosted 同 headless 擷取，清楚寫明驗證邊界。"]] },
   { version: "155.0a1", date: "2026-07-24", tag: "Added", title: ["Regex builder foundation", "正規表達式建立器基礎"], items: [["Added bounded local evaluation, guided tokens, flags, captures, copy, and export.", "加入有界本機評估、引導符號、旗標、捕獲組、複製同匯出。"]] },
 ]);
@@ -135,9 +135,9 @@ const HISTORY_SEED = Object.freeze([
   { id: "seed-1", date: "2026-07-29", action: "restored", title: ["Restored relaxed density", "還原寬鬆密度"], detail: ["Restoring is recorded as a new revision; history stays append-only.", "還原會記錄成新版本，歷史保持只加不改。"] },
 ]);
 const NOTIFICATION_SEED = Object.freeze([
-  { id: "installer", kind: "success", unread: false, title: ["Installer verified", "安裝檔已驗證"], detail: ["The current published build has a real downloadable installer.", "目前公開 build 有真實可下載安裝檔。"] },
+  { id: "installer", kind: "success", unread: false, title: ["Installer evidence is explicit", "安裝檔證據寫到明"], detail: ["A release is verified only after its tag, exact source, installer, and required photo agree.", "只有 tag、exact source、installer 同必需相片全部對得上，release 先叫已驗證。"] },
   { id: "browser-proof", kind: "info", unread: true, title: ["Browser proof has a known boundary", "Browser 證據有已知邊界"], detail: ["The authored Material test is recorded separately from remaining legacy-suite failures.", "authored Material test 同其餘 legacy suite failure 分開記錄。"] },
-  { id: "release-queue", kind: "warning", unread: true, title: ["Release workflow is queued", "Release workflow 排緊隊"], detail: ["The installer is public only when the release asset exists; queued CI is not called green.", "只有 release asset 存在先叫公開；排緊隊嘅 CI 唔會扮綠燈。"] },
+  { id: "release-queue", kind: "warning", unread: true, title: ["Release evidence can be pending", "Release 證據可以等緊"], detail: ["Source changes stay pending until the exact run and required assets are verified; running CI is not called green.", "source change 要等 exact run 同必需 assets 驗證先算；跑緊嘅 CI 唔會扮綠燈。"] },
 ]);
 const APPEARANCE_KEY = "mail.material.preview.appearance";
 
@@ -303,18 +303,7 @@ function selectPage(page) {
   document.querySelectorAll(".mm-tab").forEach(tab => { const selected = tab.dataset.page === page; tab.classList.toggle("is-selected", selected); tab.setAttribute("aria-selected", String(selected)); tab.tabIndex = selected ? 0 : -1; });
   document.querySelectorAll(".mm-page").forEach(panel => { const selected = panel.id === `mm-page-${page}`; panel.classList.toggle("is-visible", selected); panel.hidden = !selected; });
 }
-function bindTabs() {
-  const tabs = [...document.querySelectorAll(".mm-tab")];
-  tabs.forEach((tab, index) => {
-    tab.addEventListener("click", () => selectPage(tab.dataset.page));
-    tab.addEventListener("keydown", event => {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-      event.preventDefault();
-      const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
-      tabs[next].focus(); selectPage(tabs[next].dataset.page);
-    });
-  });
-}
+window.mmSelectPage = selectPage;
 function setSearch(id, state) { searchState[id] = { mode: state.mode === "regex" ? "regex" : "plain", query: text(state.query), pattern: text(state.pattern), flags: text(state.flags) }; }
 function searchMatches(id, haystack) {
   const state = searchState[id] || { mode: "plain", query: "" };
@@ -497,6 +486,7 @@ window.mmUpdateAppearanceColor = (role, value) => updateAppearance(role === "tex
 function bindAppearance() {
   const editor = document.getElementById("mm-appearance-editor");
   document.addEventListener("contextmenu", event => { const target = event.target.closest(".mm-card, .mm-tab, .mm-appbar, .mm-search-field"); if (!target || editor.contains(target)) return; event.preventDefault(); openAppearance(target, event.clientX, event.clientY); });
+  document.addEventListener("mm-tab-edit-appearance", event => { const target = event.detail?.target; if (!target?.matches?.(".mm-tab")) return; const rect = target.getBoundingClientRect(); openAppearance(target, event.detail?.x ?? rect.left, event.detail?.y ?? rect.bottom + 8); });
   document.addEventListener("keydown", event => { if (event.key !== "F10" || !event.shiftKey) return; const target = event.target.closest?.(".mm-card, .mm-tab, .mm-appbar, .mm-search-field"); if (!target) return; event.preventDefault(); const rect = target.getBoundingClientRect(); openAppearance(target, rect.left, rect.bottom + 8); });
   document.getElementById("mm-appearance-close").addEventListener("click", () => { editor.hidden = true; appearanceTarget?.focus?.(); window.mmAppearanceTarget = null; });
   for (const [id, name, textId] of [["mm-appearance-surface", "--mm-custom-bg", "mm-appearance-surface-text"], ["mm-appearance-text", "--mm-custom-fg", "mm-appearance-text-text"]]) document.getElementById(id).addEventListener("input", event => { updateAppearance(name, event.target.value); document.getElementById(textId).value = event.target.value; });
@@ -507,7 +497,16 @@ function bindAppearance() {
   document.getElementById("mm-appearance-reset-all").addEventListener("click", () => { appearanceOverrides = {}; document.querySelectorAll(".mm-card, .mm-tab, .mm-appbar, .mm-search-field").forEach(target => { for (const name of ["--mm-custom-bg", "--mm-custom-fg", "--mm-custom-radius", "--mm-custom-size", "--mm-custom-weight"]) target.style.removeProperty(name); }); saveAppearance(); editor.hidden = true; showToast("All appearance overrides reset · 所有外觀覆寫已重設"); });
   applyAllAppearance();
 }
-window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "appearance") filterAppearance(); if (key === "tools") filterTools(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); if (key === "notifications") renderNotifications(); };
+window.mmSetRegexState = (key, state) => {
+  setSearch(key, state);
+  if (key === "settings") filterSettings();
+  if (key === "appearance") filterAppearance();
+  if (key === "tools") filterTools();
+  if (key === "changelog") renderChangelog();
+  if (key === "history") renderHistory();
+  if (key === "notifications") renderNotifications();
+  if (key === "tabs") document.dispatchEvent(new CustomEvent("mm-tab-search-state", { detail: state }));
+};
 window.mmSearchState = searchState;
 
-document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); ensureSettingsCustomization(); ensureToolsGuide(); bindTabs(); bindSettings(); bindDataSurfaces(); bindGuideDetails(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });
+document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); ensureSettingsCustomization(); ensureToolsGuide(); bindSettings(); bindDataSurfaces(); bindGuideDetails(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });

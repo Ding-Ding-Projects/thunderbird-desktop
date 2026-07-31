@@ -3,70 +3,83 @@
   "generatedAt": "2026-07-31",
   "repository": "Ding-Ding-Projects/thunderbird-desktop",
   "branch": "main",
-  "sourceCommit": "9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74",
+  "sourceCommit": null,
+  "sourceCommitResolution": "Resolve the commit containing this manifest; the exact pushed SHA and immutable CI/release verdict are recorded in rolling Discussion #1 after push.",
+  "baseCommit": "77fe409183e580db6dd59ef2e65d093864a4f241",
   "scope": "Material Mail 3-pane source and design evidence",
   "implementationBoundary": {
     "changedFiles": [
       "design/evidence/manifest.json",
       "design/README.md",
+      "design/HANDOFF.md",
+      "design/ROADMAP.md",
       "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md",
       "design/verify-material-preview.py",
-      "design/features/runtime/feature-guide.md",
-      "design/screenshots/runtime/",
+      "design/features/runtime/README.md",
+      "design/features/runtime/tab-management.md",
+      "design/runtime/tabs/",
+      ".github/workflows/windows-installer.yml",
       "mail/base/content/materialMail.js",
       "mail/base/content/materialMail.xhtml",
+      "mail/base/content/materialMailRegex.js",
+      "mail/base/content/materialMailTabs.mjs",
+      "mail/base/jar.mn",
+      "mail/base/test/browser/browser_m3MaterialMail.js",
       "mail/locales/en-US/messenger/materialMail.ftl",
       "mail/themes/shared/mail/material-mail.css",
-      "mail/base/content/materialMailColor.mjs",
-      "design/runtime/color/"
+      "vendor/agent-global-memory"
     ],
     "upstreamBehaviorOrMarkupChanged": false,
-    "runtimeEvidenceMode": "static inventory plus recorded CI facts and b66 headless captures; latest Changelog/History/notification/dim-sum/appearance/color/funny-level/feature-guide/article-details/narrator wave awaits built-artifact capture"
+    "runtimeEvidenceMode": "static inventory plus recorded CI facts and b66 headless captures; the tab core and all post-b66 Changelog/History/notification/dim-sum/appearance/color/funny-level/feature-guide/article-details/narrator surfaces await exact-source built-artifact capture"
   },
   "globalMemoryGapAudit": {
     "path": "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md",
     "status": "open",
-    "note": "The refreshed shared requirements identify runtime pages and behaviors that the packaged preview only partially covers; the full landing, editor, tab, history, and app-wide wiring remain open."
+    "note": "The refreshed shared requirements identify runtime pages and behaviors that the packaged preview only partially covers; the tab core is now source-wired while grouping, the remaining tab searches, bulk-close, the full landing/editor/history contracts, and app-wide wiring remain open."
   },
   "verification": {
     "release": {
-      "status": "verified",
-      "build": 70,
-      "tag": "tb-155.0a1-b70-wu-gok",
-      "name": "🥠 Wu Gok · 芋角 — Thunderbird 155.0a1 (build 70)",
-      "publishedAt": "2026-07-31T13:45:15Z",
-      "sourceCommit": "5a4f35f3ba36e8e56592005409d3d97c067318b0",
+      "status": "verified-source-installer-with-release-contract-gap",
+      "build": 98,
+      "tag": "tb-155.0a1-b98-char-siu-bao",
+      "name": "🍞 Char Siu Bao · 叉燒包 — Thunderbird 155.0a1 (build 98)",
+      "publishedAt": "2026-07-31T16:35:32Z",
+      "sourceCommit": "77fe409183e580db6dd59ef2e65d093864a4f241",
       "buildRun": {
-        "runId": 30635599917,
+        "runId": 30644045825,
         "status": "published",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599917"
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045825"
       },
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b98-char-siu-bao",
       "assets": [
         {
           "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-          "sizeBytes": 85328686,
-          "sha256": "f3e53043023f31eefe3b8854bf24cdef37dda2b7c240c6f14e7be550365d5876"
+          "sizeBytes": 87755233,
+          "sha256": "e57e8abce22183fb4a345398be52e20ae95835a3fee63c4bee98c4b6232d7a81"
         }
-      ]
+      ],
+      "requiredPhoto": {
+        "status": "missing",
+        "note": "b98 has no catalog PNG and repeats an earlier code name; it is exact-source installer evidence, not a complete release-contract result."
+      }
     },
     "latestPublicRelease": {
-      "status": "mismatched",
-      "build": 79,
-      "tag": "tb-155.0a1-b79-no-mai-chi",
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b79-no-mai-chi",
-      "sourceCommit": "1e86330431a76fd87dcf9c1ebe4f87e836dd6dde",
-      "tagCommit": "f5cb642acce232450764e884e7bf69b32af9c508",
+      "status": "verified-source-installer-with-release-contract-gap",
+      "build": 98,
+      "tag": "tb-155.0a1-b98-char-siu-bao",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b98-char-siu-bao",
+      "sourceCommit": "77fe409183e580db6dd59ef2e65d093864a4f241",
+      "tagCommit": "77fe409183e580db6dd59ef2e65d093864a4f241",
       "buildRun": {
-        "runId": 30638099607,
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30638099607"
+        "runId": 30644045825,
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045825"
       },
       "asset": {
         "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-        "sizeBytes": 87722579,
-        "sha256": "d97ba4f14f4798c2f617123f849fd960d4dbb51c5472f4ff91746299b4d3a459"
+        "sizeBytes": 87755233,
+        "sha256": "e57e8abce22183fb4a345398be52e20ae95835a3fee63c4bee98c4b6232d7a81"
       },
-      "packageInspection": "The release body names source 1e86330431a76fd87dcf9c1ebe4f87e836dd6dde while the tag resolves to f5cb642acce232450764e884e7bf69b32af9c508, so b79 is not current-source evidence."
+      "packageInspection": "The tag and installer are exact-source. The release remains contract-incomplete because no verified catalog PNG is attached and Char Siu Bao was already used by this project."
     },
     "browserRun": {
       "status": "failed",
@@ -105,14 +118,11 @@
       }
     },
     "runtimeWaveEvidence": {
-      "sourceCommit": "9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74",
-      "buildRun": {
-        "runId": 30643776590,
-        "status": "queued",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776590"
-      },
-      "status": "capture-pending",
-      "note": "The latest source contains a searchable 14-entry feature guide with localized anchored article details, searchable/date-filtered Changelog and History, retained Notifications, catalog-backed dim-sum startup, anchored appearance editing with a mounted continuous color translator, fact-preserving funny-level copy, and serialized narrator foundations. Do not promote these surfaces to runtime sign-off until the real installer is built and captured.",
+      "sourceCommit": null,
+      "baseCommit": "77fe409183e580db6dd59ef2e65d093864a4f241",
+      "buildRun": null,
+      "status": "source-verified-capture-pending",
+      "note": "This manifest's containing source adds the persisted tab core and retains the searchable 14-entry guide, article details, Changelog/History filters, Notifications, dim-sum startup, appearance/color/funny-level, and narrator foundations. Local authored checks pass, but no run, release, or capture is predicted here. Resolve the exact pushed commit and immutable verdict through rolling Discussion #1 before promoting any surface to runtime sign-off.",
       "surfaces": [
         { "surface": "Changelog search/date/copy/export", "status": "capture-pending" },
         { "surface": "History action/date/search/restore/export", "status": "capture-pending" },
@@ -123,6 +133,10 @@
         { "surface": "Independent funny-level rendered copy", "status": "capture-pending" },
         { "surface": "14-entry feature guide and guide search", "status": "capture-pending" },
         { "surface": "Feature article details and focus return", "status": "capture-pending" },
+        { "surface": "Pinned and reordered Material Mail tabs", "status": "capture-pending" },
+        { "surface": "Measured tab overflow and all-tabs search", "status": "capture-pending" },
+        { "surface": "Independent all-tabs regex builder", "status": "capture-pending" },
+        { "surface": "Tab context menu and appearance hand-off", "status": "capture-pending" },
         { "surface": "Narrator settings", "status": "capture-pending" }
       ]
     },
@@ -451,24 +465,33 @@
       "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
     },
     {
-      "id": "design.tab-search",
-      "kind": "design-only",
-      "surface": "Searchable tab-list overlay",
-      "source": [{ "path": "design/Material Mail.dc.html", "line": 586 }],
-      "selectors": ["SearchField", "tabResults", "pin buttons"],
+      "id": "runtime.material-tab-search",
+      "kind": "packaged-preview",
+      "surface": "Searchable all-tabs overlay",
+      "source": [
+        { "path": "design/Material Mail.dc.html", "line": 586 },
+        { "path": "mail/base/content/materialMail.xhtml", "selector": "#mm-tab-popover" },
+        { "path": "mail/base/content/materialMailTabs.mjs", "selector": "tab runtime controller" },
+        { "path": "design/runtime/tabs/tab-model.mjs", "selector": "pure persisted tab model" }
+      ],
+      "selectors": ["#mm-tab-popover", "#mm-tab-search", "#mm-tab-search-regex-open", "#mm-tab-search-results", ".mm-tab-result"],
       "commands": ["Search tabs", "Pin tab", "Unpin tab", "Move left", "Move right"],
       "states": ["open", "hidden-tab result", "pinned/unpinned", "empty result", "drag/reorder context"],
-      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+      "evidence": { "source": "wired", "designRender": "not run", "runtime": "packaged source; built-artifact capture pending", "screenshot": "capture-pending" }
     },
     {
-      "id": "design.tab-context-menu",
-      "kind": "design-only",
-      "surface": "Design tab context menu",
-      "source": [{ "path": "design/Material Mail.dc.html", "line": 611 }],
-      "selectors": ["role=menu", "role=menuitem"],
-      "commands": ["Pin tab", "Unpin tab", "Move left", "Move right"],
-      "states": ["open", "pinned target", "unpin target", "dismissed"],
-      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+      "id": "runtime.material-tab-context-menu",
+      "kind": "packaged-preview",
+      "surface": "Material tab context menu",
+      "source": [
+        { "path": "design/Material Mail.dc.html", "line": 611 },
+        { "path": "mail/base/content/materialMail.xhtml", "selector": "#mm-tab-context-menu" },
+        { "path": "mail/base/content/materialMailTabs.mjs", "selector": "context and appearance actions" }
+      ],
+      "selectors": ["#mm-tab-context-menu", "[role=menuitem]", ".mm-tab.is-pinned", ".mm-tab.is-overflowed"],
+      "commands": ["Pin tab", "Unpin tab", "Move left", "Move right", "Edit tab appearance"],
+      "states": ["open", "pinned target", "unpin target", "keyboard move", "appearance hand-off", "dismissed"],
+      "evidence": { "source": "wired", "designRender": "not run", "runtime": "packaged source; built-artifact capture pending", "screenshot": "capture-pending" }
     },
     {
       "id": "design.compose-dialog",
