@@ -7,7 +7,7 @@ Integration target: **`main`**. Scope: **Windows only**.
 
 > **Current shipped scope is a CSS-layer restyle plus a packaged Material Mail runtime preview.**
 > The preview is the first rewrite vertical slice; it does not yet replace the upstream
-> 3-pane or close the full global-memory feature contract. Windows CI has published b79,
+> 3-pane or close the full global-memory feature contract. Windows CI has published b86,
 > while the committed genuine headless captures below are from b66 and the broad
 > browser suites remain red. Read `ROADMAP.md` before treating any evidence as release sign-off.
 
@@ -50,15 +50,14 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, full app-wide
   feature wiring and manual visual sign-off are absent, and the upstream 3-pane remains
   behavior-compatible rather than fully replaced. See `ROADMAP.md` §"What is explicitly NOT done".
-- **Current source push:** `f5cb642acce232450764e884e7bf69b32af9c508` documents the searchable 14-entry
-  feature guide on top of the funny-level wiring.
-  Installer run [30641900242](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900242)
-  and lint [30641900455](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900455)
-  are queued. b79 is the latest public release, but its build notes identify source
-  `1e86330431a76fd87dcf9c1ebe4f87e836dd6dde` while its tag points at `f5cb642…`; the
-  extracted installer is an older source boundary and is not current-source proof. The release
-  workflow now binds tags to the build SHA and verifies that binding; new captures remain
-  pending against a correctly bound artifact.
+- **Current source push:** `9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74` adds the 14-article
+  payload contract to the searchable guide verifier on top of the anchored article details.
+  Installer run [30643776590](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776590)
+  and lint [30643776682](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776682)
+  are queued. b86 is the latest public release, but its build notes identify source
+  `417a7c73e7e7116b3e87201194001274a535381e` while its tag points at `9c3fdc…`; it is
+  not current-source proof. The release workflow now binds tags to the build SHA and verifies
+  that binding; new captures remain pending against a correctly bound artifact.
 
 ## Runtime Material vertical slice
 
@@ -150,9 +149,9 @@ a mounted continuous color translator, funny-level-driven copy, and a serialized
 [30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
 produces the real artifact. Source checks are not substituted for screenshots.
 
-The later public b79 release is recorded as a source/package mismatch: its release body
-names build source `1e86330431a76fd87dcf9c1ebe4f87e836dd6dde`, its tag currently resolves
-to `f5cb642…`, and it is not used as current-source evidence.
+The later public b86 release is recorded as a source/package mismatch: its release body
+names build source `417a7c73e7e7116b3e87201194001274a535381e`, its tag currently resolves
+to `9c3fdc…`, and it is not used as current-source evidence.
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
 matching `design/app-data.js`. The corrected authored suite result is **186 passed / 0 failed /

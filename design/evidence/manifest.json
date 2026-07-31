@@ -3,19 +3,25 @@
   "generatedAt": "2026-07-31",
   "repository": "Ding-Ding-Projects/thunderbird-desktop",
   "branch": "main",
-  "sourceCommit": "464c7d24836af2856bebecc7bdbc5746019af444",
+  "sourceCommit": "9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74",
   "scope": "Material Mail 3-pane source and design evidence",
   "implementationBoundary": {
     "changedFiles": [
       "design/evidence/manifest.json",
       "design/README.md",
       "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md",
+      "design/verify-material-preview.py",
+      "design/features/runtime/feature-guide.md",
       "design/screenshots/runtime/",
+      "mail/base/content/materialMail.js",
+      "mail/base/content/materialMail.xhtml",
+      "mail/locales/en-US/messenger/materialMail.ftl",
+      "mail/themes/shared/mail/material-mail.css",
       "mail/base/content/materialMailColor.mjs",
       "design/runtime/color/"
     ],
     "upstreamBehaviorOrMarkupChanged": false,
-    "runtimeEvidenceMode": "static inventory plus recorded CI facts and b66 headless captures; latest Changelog/History/notification/dim-sum/appearance/color/funny-level/feature-guide/narrator wave awaits built-artifact capture"
+    "runtimeEvidenceMode": "static inventory plus recorded CI facts and b66 headless captures; latest Changelog/History/notification/dim-sum/appearance/color/funny-level/feature-guide/article-details/narrator wave awaits built-artifact capture"
   },
   "globalMemoryGapAudit": {
     "path": "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md",
@@ -99,14 +105,14 @@
       }
     },
     "runtimeWaveEvidence": {
-      "sourceCommit": "464c7d24836af2856bebecc7bdbc5746019af444",
+      "sourceCommit": "9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74",
       "buildRun": {
-        "runId": 30641803803,
+        "runId": 30643776590,
         "status": "queued",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803"
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776590"
       },
       "status": "capture-pending",
-      "note": "The latest source contains a searchable feature guide, searchable/date-filtered Changelog and History, retained Notifications, catalog-backed dim-sum startup, anchored appearance editing with a mounted continuous color translator, fact-preserving funny-level copy, and serialized narrator foundations. Do not promote these surfaces to runtime sign-off until the real installer is built and captured.",
+      "note": "The latest source contains a searchable 14-entry feature guide with localized anchored article details, searchable/date-filtered Changelog and History, retained Notifications, catalog-backed dim-sum startup, anchored appearance editing with a mounted continuous color translator, fact-preserving funny-level copy, and serialized narrator foundations. Do not promote these surfaces to runtime sign-off until the real installer is built and captured.",
       "surfaces": [
         { "surface": "Changelog search/date/copy/export", "status": "capture-pending" },
         { "surface": "History action/date/search/restore/export", "status": "capture-pending" },
@@ -116,6 +122,7 @@
         { "surface": "Continuous color translator and contrast readout", "status": "capture-pending" },
         { "surface": "Independent funny-level rendered copy", "status": "capture-pending" },
         { "surface": "14-entry feature guide and guide search", "status": "capture-pending" },
+        { "surface": "Feature article details and focus return", "status": "capture-pending" },
         { "surface": "Narrator settings", "status": "capture-pending" }
       ]
     },

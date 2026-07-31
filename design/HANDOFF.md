@@ -19,8 +19,8 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Current integration status — 2026-07-31.** The runtime/evidence source tip is
-> `464c7d24836af2856bebecc7bdbc5746019af444` on `main`; upstream check is
-> **113 ahead / 0 behind at that tip** and the Gecko gitlink remains
+> `9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74` on `main`; upstream check is
+> **119 ahead / 0 behind at that tip** and the Gecko gitlink remains
 > `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b70 release
 > [`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok)
 > contains the real 85,328,686-byte Windows installer from exact source `5a4f35f3ba36`.
@@ -34,10 +34,10 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `8795330528` contains the exact logs. These results do not promote parity, accessibility,
 > layout, or visual sign-off.
 >
-> The public latest release is [`tb-155.0a1-b79-no-mai-chi`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b79-no-mai-chi),
-> a real 87,722,579-byte installer. Its release body names build source
-> `1e86330431a76fd87dcf9c1ebe4f87e836dd6dde`, but the tag resolves to
-> `f5cb642acce232450764e884e7bf69b32af9c508`; it is therefore not
+> The public latest release is [`tb-155.0a1-b86-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b86-wu-gok),
+> a real 87,729,189-byte installer. Its release body names build source
+> `417a7c73e7e7116b3e87201194001274a535381e`, but the tag resolves to
+> `9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74`; it is therefore not
 > current-source proof. The release workflow now passes `--target ${{ github.sha }}` and
 > verifies the published tag; the next correctly bound installer is required before capture.
 

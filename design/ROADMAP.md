@@ -81,13 +81,13 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   installer attached, tagged monotonically off `run_number` and code-named from a
   16-dish dim sum rotation.
 - Every release states that it is an unofficial fork build.
-- The current source/runtime baseline is `464c7d24836af2856bebecc7bdbc5746019af444` (the
-  documentation-only tip is `f5cb642acce232450764e884e7bf69b32af9c508`):
-  the upstream check is **113 ahead / 0 behind**. Lint
-  [30641900455](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900455)
-  is queued and installer [30641900242](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900242)
-  is queued. b79 is the latest public release, but its build source is `1e86330431a7` while
-  its tag resolves to `f5cb642…`; it is an older source boundary, not current-source proof.
+- The current source/runtime baseline is `3a01b73ba61baba8c9f72301e9a1bee3c6227f84` (the
+  verifier tip is `9c3fdcd61ff3b860c1448e7fef5a04f1c82ffb74`):
+  the upstream check is **119 ahead / 0 behind**. Lint
+  [30643776682](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776682)
+  is queued and installer [30643776590](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30643776590)
+  is queued. b86 is the latest public release, but its build source is `417a7c73e7e7` while
+  its tag resolves to `9c3fdc…`; it is an older source boundary, not current-source proof.
   Current-source capture therefore waits for a correctly bound installer; the workflow now
   passes `--target ${{ github.sha }}` and verifies the tag after publishing.
 - It published non-draft release
