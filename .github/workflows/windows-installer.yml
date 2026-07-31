@@ -286,9 +286,6 @@ jobs:
           if (-not (Test-Path "$env:GECKO_DIR\mach")) {
             throw "gecko/ missing mach - checkout did not populate"
           }
-          if (-not (Test-Path "$env:GECKO_DIR\package-lock.json")) {
-            throw "gecko/package-lock.json is missing - setup-node cannot use the declared npm cache input"
-          }
           # The comm checkout must keep its own .git: it is what `mach artifact
           # install` walks to find a comm-central revision with a published
           # win64-opt build. actions/checkout gives us a real .git directory
@@ -332,8 +329,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: npm
-          cache-dependency-path: D:\gecko\package-lock.json
+          # This job only needs the Node runtime for source verification. Do not
+          # enable setup-node's npm cache here: Gecko lives on D:, outside
+          # GITHUB_WORKSPACE, and the action's Windows cache-path resolver rejects
+          # that otherwise valid package-lock path before any build step can run.
 
       - name: Install Rust toolchain
         shell: pwsh
