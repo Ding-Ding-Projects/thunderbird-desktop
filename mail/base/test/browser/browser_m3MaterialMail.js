@@ -41,6 +41,8 @@ add_task(async function testMaterialMailPreviewSurface() {
     "mm-settings-search",
     "mm-changelog-search",
     "mm-history-search",
+    "mm-notifications-search",
+    "mm-notifications-filter",
     "mm-changelog-from",
     "mm-changelog-to",
     "mm-history-from",
@@ -87,5 +89,18 @@ add_task(async function testMaterialMailPreviewSurface() {
   Assert.ok(
     page.getElementById("mm-history-list").querySelectorAll("article").length >= 3,
     "History renders append-only revisions"
+  );
+
+  page.getElementById("mm-tab-notifications").click();
+  Assert.ok(
+    page.getElementById("mm-notification-list").querySelectorAll("article").length >= 3,
+    "Notifications renders a reviewable stack"
+  );
+  page.getElementById("mm-notifications-filter").value = "unread";
+  page.getElementById("mm-notifications-filter").dispatchEvent(new page.defaultView.Event("change", { bubbles: true }));
+  Assert.equal(
+    page.getElementById("mm-notification-list").querySelectorAll("article").length,
+    2,
+    "Notifications filter exposes unread records"
   );
 });

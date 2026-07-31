@@ -64,7 +64,7 @@ does not yet replace Thunderbird's existing 3-pane behavior.
 | Settings | Same page plus `materialMail.js` | Theme, density, language mode, independent funny levels, narrator/dim-sum toggles, local persistence |
 | Changelog | Same page | Local release entries, search, anchored regex builder, date filters, copy, and Markdown export; release-data wiring remains open |
 | History | Same page | Local append-only preview revisions, derived action filters, date/search filters, restore-as-new-revision, and export; production Git-backed record history remains open |
-| Notifications | Same page | Non-blocking reviewable sample stack; app-wide notification history remains open |
+| Notifications | Same page | Non-blocking reviewable stack with search, anchored regex builder, all/unread/dismissed filters, and retained local dismissal state; app-wide event wiring remains open |
 | Tools | Same page | Command/regex/editor entry points are represented; command palette and integrations remain open |
 | Search | Anchored `RegexBuilder` from `design/runtime/regex/` | Independent builders are packaged for Mail, Settings, Changelog, and History search fields; upstream mail-content search wiring remains open |
 

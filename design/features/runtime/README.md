@@ -11,6 +11,7 @@ counted as a completed replacement for Thunderbird behavior.
 | Language and funny-level model | [language-tone.md](language-tone.md) and [`design/runtime/i18n/README.md`](../../runtime/i18n/README.md) | `node --test design/runtime/i18n/tests/model.test.mjs` |
 | Changelog viewer | [changelog-viewer.md](changelog-viewer.md) | `browser_m3MaterialMail.js`, packaged browser run |
 | Local history surface | [local-history.md](local-history.md) | `browser_m3MaterialMail.js`, local persistence boundary |
+| Notification centre | [notification-centre.md](notification-centre.md) | `browser_m3MaterialMail.js`, packaged browser run |
 
 ## Shared verification rule
 

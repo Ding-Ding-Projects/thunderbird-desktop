@@ -54,6 +54,8 @@ for required in (
     "mm-settings-search",
     "mm-changelog-search",
     "mm-history-search",
+    "mm-notifications-search",
+    "mm-notifications-filter",
     "mm-changelog-from",
     "mm-changelog-to",
     "mm-history-from",
@@ -65,7 +67,7 @@ for required in (
         fail(f"missing runtime feature control {required}")
 if "localStorage" not in script or "mail.material.preview.settings" not in script:
     fail("preferences are not persisted locally")
-for required in ("CHANGELOG", "renderChangelog", "renderHistory", "downloadText", "historyActionSelection"):
+for required in ("CHANGELOG", "renderChangelog", "renderHistory", "renderNotifications", "downloadText", "historyActionSelection"):
     if required not in script:
         fail(f"runtime feature implementation is incomplete: {required}")
 if "ArrowLeft" not in script or "ArrowRight" not in script:

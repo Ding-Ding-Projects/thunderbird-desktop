@@ -3,6 +3,7 @@
 
 const STORAGE_KEY = "mail.material.preview.settings";
 const HISTORY_KEY = "mail.material.preview.history";
+const NOTIFICATION_KEY = "mail.material.preview.notifications";
 const DEFAULTS = Object.freeze({ theme: "light", density: "comfortable", language: "en", funnyEn: 2, funnyZh: 3, narrator: false, dimsum: true });
 const CHANGELOG = Object.freeze([
   { version: "155.0a1", date: "2026-07-31", tag: "Added", title: ["Evidence-first Material workspace", "以證據先行嘅 Material 工作區"], items: [["Packaged Material Mail preview with six browser-style pages.", "打包 Material Mail 預覽，提供六個瀏覽器式頁面。"], ["Persisted language, tone, appearance, narrator, and dim-sum controls.", "保存語言、語氣、外觀、旁白同點心控制。"]] },
@@ -14,9 +15,16 @@ const HISTORY_SEED = Object.freeze([
   { id: "seed-2", date: "2026-07-30", action: "created", title: ["Created Material Mail preview", "建立 Material Mail 預覽"], detail: ["The six-page preview was added to the packaged content surface.", "六頁預覽已加入打包內容頁面。"] },
   { id: "seed-1", date: "2026-07-29", action: "restored", title: ["Restored relaxed density", "還原寬鬆密度"], detail: ["Restoring is recorded as a new revision; history stays append-only.", "還原會記錄成新版本，歷史保持只加不改。"] },
 ]);
+const NOTIFICATION_SEED = Object.freeze([
+  { id: "installer", kind: "success", unread: false, title: ["Installer verified", "安裝檔已驗證"], detail: ["The current published build has a real downloadable installer.", "目前公開 build 有真實可下載安裝檔。"] },
+  { id: "browser-proof", kind: "info", unread: true, title: ["Browser proof has a known boundary", "Browser 證據有已知邊界"], detail: ["The authored Material test is recorded separately from remaining legacy-suite failures.", "authored Material test 同其餘 legacy suite failure 分開記錄。"] },
+  { id: "release-queue", kind: "warning", unread: true, title: ["Release workflow is queued", "Release workflow 排緊隊"], detail: ["The installer is public only when the release asset exists; queued CI is not called green.", "只有 release asset 存在先叫公開；排緊隊嘅 CI 唔會扮綠燈。"] },
+]);
 
 let settings = { ...DEFAULTS };
 let historyRecords = [];
+let notificationRecords = [];
+let notificationFilter = "all";
 const searchState = Object.create(null);
 const historyActionSelection = new Set();
 
@@ -37,6 +45,13 @@ function readHistory() {
   } catch (error) { historyRecords = [...HISTORY_SEED]; }
   for (const action of new Set(historyRecords.map(row => row.action))) historyActionSelection.add(action);
 }
+function readNotifications() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(NOTIFICATION_KEY) || "null");
+    notificationRecords = Array.isArray(stored) && stored.length ? stored : [...NOTIFICATION_SEED];
+  } catch (error) { notificationRecords = [...NOTIFICATION_SEED]; }
+}
+function saveNotifications() { try { localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(notificationRecords)); } catch (error) { /* Notification history remains usable. */ } }
 function saveHistory() { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(historyRecords.slice(0, 100))); } catch (error) { /* History never blocks the user operation. */ } }
 function recordRevision(action, title, detail) {
   const next = { id: `revision-${Date.now()}`, date: new Date().toISOString().slice(0, 10), action, title, detail };
@@ -45,6 +60,7 @@ function recordRevision(action, title, detail) {
   saveHistory();
   renderHistoryActions();
   renderHistory();
+  renderNotifications();
 }
 function saveSettings(reason = null) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (error) { showToast("Preferences could not be persisted locally."); }
@@ -132,6 +148,17 @@ function historyRows() {
   const to = document.getElementById("mm-history-to").value;
   return historyRecords.filter(row => historyActionSelection.has(row.action) && dateInRange(row.date, from, to) && searchMatches("history", `${row.date} ${row.action} ${row.title.join(" ")} ${row.detail.join(" ")}`));
 }
+function notificationRows() {
+  return notificationRecords.filter(row => (notificationFilter === "all" || (notificationFilter === "unread" && row.unread) || (notificationFilter === "dismissed" && row.dismissed)) && searchMatches("notifications", `${row.title.join(" ")} ${row.detail.join(" ")}`));
+}
+function renderNotifications() {
+  const list = document.getElementById("mm-notification-list");
+  if (!list) return;
+  const rows = notificationRows();
+  list.innerHTML = rows.length ? rows.map(row => `<article class="mm-card mm-notification mm-notification-${escapeHtml(row.kind)}${row.dismissed ? " is-dismissed" : ""}"><span class="mm-notification-icon" aria-hidden="true">${row.kind === "success" ? "✓" : row.kind === "warning" ? "!" : "i"}</span><div><h3>${escapeHtml(pick(row.title))}</h3><p>${escapeHtml(pick(row.detail))}</p>${row.dismissed ? `<small class="mm-notification-state">${escapeHtml(pick(["Dismissed; retained in notification history.", "已收起；仍保留喺通知歷史。 "]))}</small>` : ""}</div>${row.dismissed ? "" : `<button class="mm-icon-button" type="button" data-notification-dismiss="${escapeHtml(row.id)}" data-l10n-id="material-mail-dismiss">×</button>`}</article>`).join("") : `<div class="mm-card mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">i</span><h3>${escapeHtml(pick(["No matching notifications", "搵唔到相符通知"]))}</h3><p>${escapeHtml(pick(["Dismissed messages remain reviewable under Dismissed.", "收起咗嘅訊息仍然可以喺「已收起」度睇返。 "]))}</p></div>`;
+  document.getElementById("mm-notification-count").value = `${rows.length} notification${rows.length === 1 ? "" : "s"} · ${rows.length} 個通知`;
+  list.querySelectorAll("[data-notification-dismiss]").forEach(button => button.addEventListener("click", () => { const row = notificationRecords.find(item => item.id === button.dataset.notificationDismiss); if (!row) return; row.dismissed = true; row.unread = false; saveNotifications(); renderNotifications(); showToast("Notification dismissed and retained · 通知已收起但保留"); }));
+}
 function renderHistoryActions() {
   const container = document.getElementById("mm-history-actions");
   if (!container) return;
@@ -151,15 +178,16 @@ function renderHistory() {
 function downloadText(filename, content, type = "text/plain") { const url = URL.createObjectURL(new Blob([content], { type })); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url); }
 async function copyText(content, message) { try { await navigator.clipboard.writeText(content); showToast(message); } catch (error) { showToast("Clipboard permission unavailable · 剪貼簿權限不可用"); } }
 function bindDataSurfaces() {
-  for (const [id, key, render] of [["mm-settings-search", "settings", filterSettings], ["mm-changelog-search", "changelog", renderChangelog], ["mm-history-search", "history", renderHistory]]) { const input = document.getElementById(id); setSearch(key, { mode: "plain", query: "" }); input.addEventListener("input", () => { setSearch(key, { mode: "plain", query: input.value }); render(); }); }
+  for (const [id, key, render] of [["mm-settings-search", "settings", filterSettings], ["mm-changelog-search", "changelog", renderChangelog], ["mm-history-search", "history", renderHistory], ["mm-notifications-search", "notifications", renderNotifications]]) { const input = document.getElementById(id); setSearch(key, { mode: "plain", query: "" }); input.addEventListener("input", () => { setSearch(key, { mode: "plain", query: input.value }); render(); }); }
   for (const id of ["mm-changelog-from", "mm-changelog-to", "mm-history-from", "mm-history-to"]) document.getElementById(id).addEventListener("change", () => id.startsWith("mm-changelog") ? renderChangelog() : renderHistory());
   document.getElementById("mm-changelog-preset").addEventListener("change", event => { const latest = CHANGELOG[0].date; const now = new Date(); const today = now.toISOString().slice(0, 10); const month = `${today.slice(0, 7)}-01`; const from = document.getElementById("mm-changelog-from"); const to = document.getElementById("mm-changelog-to"); if (event.target.value === "all") { from.value = ""; to.value = ""; } else if (event.target.value === "latest") { from.value = latest; to.value = latest; } else { from.value = month; to.value = today; } renderChangelog(); });
   document.getElementById("mm-changelog-copy").addEventListener("click", () => copyText(changelogText(), "Changelog copied · 更新記錄已複製"));
   document.getElementById("mm-changelog-export").addEventListener("click", () => { downloadText("material-mail-changelog.md", `# Material Mail changelog\n\n${changelogText()}\n`, "text/markdown"); showToast("Changelog exported · 更新記錄已匯出"); });
   document.getElementById("mm-history-export").addEventListener("click", () => { const content = historyRows().map(row => `${row.date} · ${row.action}\n${pick(row.title)}\n${pick(row.detail)}`).join("\n\n"); downloadText("material-mail-history.txt", `Material Mail local history\n\n${content}\n`); showToast("History exported · 歷史已匯出"); });
+  document.getElementById("mm-notifications-filter").addEventListener("change", event => { notificationFilter = event.target.value; renderNotifications(); });
   renderHistoryActions();
 }
-window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); };
+window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); if (key === "notifications") renderNotifications(); };
 window.mmSearchState = searchState;
 
-document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); bindTabs(); bindSettings(); bindDataSurfaces(); applySettings(); });
+document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); bindTabs(); bindSettings(); bindDataSurfaces(); applySettings(); });
