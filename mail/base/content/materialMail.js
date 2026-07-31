@@ -8,6 +8,22 @@ const DEFAULTS = Object.freeze({ theme: "light", density: "comfortable", languag
 const ACCENTS = Object.freeze({ purple: ["#6750a4", "#eaddff", "#21005d"], blue: ["#415f91", "#d6e3ff", "#001b3e"], green: ["#386a20", "#b7e1a1", "#0b2003"], orange: ["#8b5000", "#ffddb4", "#2c1600"] });
 const FUNNY_EN = Object.freeze(["", " Nice and tidy.", " The preference gremlin can take a tea break.", " The tiny settings drawer is doing a victory lap.", " The bits lined up like dim sum in a steamer."]);
 const FUNNY_ZH = Object.freeze(["", " 整整齊齊。", " 個設定小精靈可以飲啖茶喇。", " 啲掣終於排隊，唔使再爭位。", " 成班設定好似點心咁乖乖入籠喇。"]);
+const FEATURE_GUIDE = Object.freeze([
+  { title: ["Material landing and documentation", "Material 入口同文件"], status: ["Partial · packaged guide", "部分 · 已打包指南"], summary: ["This page enumerates the design-folder feature articles and their current evidence boundary.", "呢頁列出 design folder 功能文章同目前證據界線。"], article: "design/features/runtime/README.md" },
+  { title: ["Language modes and funny levels", "語言模式同幽默等級"], status: ["Preview wired", "預覽已接通"], summary: ["English, Hong Kong Cantonese, bilingual copy, and independent levels 1–5 stay local and fact-preserving.", "英文、香港廣東話、雙語文字同獨立 1–5 等級只留本機，事實保持清楚。"], article: "design/features/runtime/language-tone.md" },
+  { title: ["Non-blocking notifications", "非阻塞通知"], status: ["Preview partial", "預覽部分完成"], summary: ["Notifications stack without blocking, retain dismissed history, and expose local filters.", "通知會疊放但唔阻塞，保留收起歷史，亦有本機篩選。"], article: "design/features/runtime/notification-centre.md" },
+  { title: ["Dim-sum startup surprise", "啟動點心驚喜"], status: ["Preview partial", "預覽部分完成"], summary: ["A bundled local dish can appear once per eligible launch with a persisted opt-out.", "合資格啟動可以顯示一次本機點心，並有保存嘅停用設定。"], article: "design/features/runtime/dim-sum-surprise.md" },
+  { title: ["Anchored regex builder", "貼住搜尋欄嘅正規表達式建立器"], status: ["Packaged foundation", "已打包基礎"], summary: ["Each preview search field keeps plain text as default and owns a bounded local builder.", "每個預覽搜尋欄預設純文字，並有自己嘅有界本機建立器。"], article: "design/features/runtime/regex-builder.md" },
+  { title: ["Per-element appearance editor", "逐元素外觀編輯器"], status: ["Preview partial", "預覽部分完成"], summary: ["Context-menu and Shift+F10 editing persists local surface, text, shape, size, and weight overrides.", "右鍵選單同 Shift+F10 可以保存表面、文字、形狀、大小同字重覆寫。"], article: "design/features/runtime/appearance-editor.md" },
+  { title: ["Continuous colour translator", "連續色彩轉換器"], status: ["Source wired · capture pending", "Source 已接通 · 等截圖"], summary: ["The picker translates named, HEX, RGB/A, HSL/A, HSV, HWB, Lab/LCH, OKLab/OKLCH, and CMYK locally.", "選色器本機轉換 named、HEX、RGB/A、HSL/A、HSV、HWB、Lab/LCH、OKLab/OKLCH 同 CMYK。"], article: "design/features/runtime/color-translator.md" },
+  { title: ["Browser-style tabs", "瀏覽器式分頁"], status: ["Open gap", "未完成"], summary: ["Overflow, pinning, grouping, four tab searches, and safe bulk-close previews remain roadmap work.", "溢出、釘選、分組、四種分頁搜尋同安全批量關閉預覽仍喺路線圖。"], article: "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md#gm-09" },
+  { title: ["External editor integration", "外部編輯器整合"], status: ["Open gap", "未完成"], summary: ["Installed-editor discovery, selection, persistence, and graceful failure remain open.", "已安裝編輯器探索、選擇、保存同優雅失敗處理仍未完成。"], article: "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md#gm-10" },
+  { title: ["Git-backed local history", "Git 本機歷史"], status: ["Preview partial", "預覽部分完成"], summary: ["The preview records append-only local revisions; production snapshots for every owned record remain open.", "預覽記錄只加不改本機版本；每個擁有記錄嘅 production snapshot 仍未完成。"], article: "design/features/runtime/local-history.md" },
+  { title: ["All-release changelog", "全版本更新記錄"], status: ["Preview partial", "預覽部分完成"], summary: ["Search, typed date filters, copy, and Markdown export work on local factual entries; release-data wiring remains open.", "本機事實記錄支援搜尋、輸入日期篩選、複製同 Markdown 匯出；release data 接駁仍未完成。"], article: "design/features/runtime/changelog-viewer.md" },
+  { title: ["Serialized narrator", "串行旁白"], status: ["Preview partial", "預覽部分完成"], summary: ["Optional platform speech is off by default and serializes English/Cantonese lines with cooldown.", "平台語音預設關閉，串行播放英文/廣東話並有 cooldown。"], article: "design/features/runtime/narrator.md" },
+  { title: ["Accessibility and localization", "無障礙同本地化"], status: ["Open sign-off", "等簽核"], summary: ["Focus, roles, contrast, reduced motion, CJK fallback, and narrow bilingual evidence still need full artifact sign-off.", "焦點、角色、對比度、減少動畫、CJK fallback 同窄身雙語證據仍要完整 artifact 簽核。"], article: "design/A11Y-L10N-AUDIT.md" },
+  { title: ["Release and evidence discipline", "Release 同證據紀律"], status: ["Active", "進行中"], summary: ["Every source wave records exact SHA, tests, release state, and screenshot boundaries without promoting queued CI.", "每個 source wave 都記錄 exact SHA、測試、release 狀態同 screenshot 界線，唔會將排隊 CI 扮成功。"], article: "design/evidence/manifest.json" },
+]);
 const CHANGELOG = Object.freeze([
   { version: "155.0a1", date: "2026-07-31", tag: "Added", title: ["Evidence-first Material workspace", "以證據先行嘅 Material 工作區"], items: [["Packaged Material Mail preview with six browser-style pages.", "打包 Material Mail 預覽，提供六個瀏覽器式頁面。"], ["Persisted language, tone, appearance, narrator, and dim-sum controls.", "保存語言、語氣、外觀、旁白同點心控制。"]] },
   { version: "155.0a1", date: "2026-07-29", tag: "Verified", title: ["M3 evidence capture", "M3 證據擷取"], items: [["Recorded genuine hosted and headless captures with explicit boundaries.", "記錄真實 hosted 同 headless 擷取，清楚寫明驗證邊界。"]] },
@@ -49,6 +65,18 @@ function ensureSettingsCustomization() {
   funnyPreview.textContent = "Settings saved.";
   card.append(funnyPreview);
   document.l10n?.translateFragment?.(card);
+}
+function ensureToolsGuide() {
+  if (document.getElementById("mm-tools-search")) return;
+  const page = document.getElementById("mm-page-tools");
+  const anchor = page?.querySelector(".mm-tools-card");
+  if (!page || !anchor) return;
+  const guide = document.createElement("section");
+  guide.className = "mm-card mm-guide-card";
+  guide.dataset.settingsSurface = "landing documentation feature guide roadmap evidence";
+  guide.innerHTML = `<div class="mm-card-heading"><div><h3 data-l10n-id="material-mail-guide-heading">Feature guide</h3><p class="mm-supporting" data-l10n-id="material-mail-guide-note">Design-folder index with honest runtime boundaries.</p></div><span class="mm-filter-chip" id="mm-guide-count"></span></div><div class="mm-search-row mm-page-search-row"><label class="mm-search-field" for="mm-tools-search"><span aria-hidden="true">⌕</span><input id="mm-tools-search" type="search" data-l10n-id="material-mail-search-guide-placeholder" placeholder="Search the feature guide" /><button class="mm-tonal-button mm-regex-button" id="mm-tools-regex-open" type="button" data-l10n-id="material-mail-regex-builder">Regex builder</button></label><div id="mm-tools-regex-panel" hidden="hidden"></div></div><div id="mm-guide-list" class="mm-guide-list" aria-live="polite"></div>`;
+  page.insertBefore(guide, anchor);
+  document.l10n?.translateFragment?.(guide);
 }
 const searchState = Object.create(null);
 const historyActionSelection = new Set();
@@ -151,6 +179,7 @@ function applySettings() {
   filterSettings();
   renderChangelog();
   renderHistory();
+  renderGuide();
 }
 function bindSettings() {
   const bind = (id, key, transform = value => value, reason = null) => {
@@ -204,6 +233,15 @@ function filterAppearance() {
   const editor = document.getElementById("mm-appearance-editor");
   editor?.querySelectorAll("label, .mm-color-picker").forEach(surface => { surface.hidden = Boolean(query) && !searchMatches("appearance", surface.textContent); });
 }
+function renderGuide() {
+  const list = document.getElementById("mm-guide-list");
+  if (!list) return;
+  const rows = FEATURE_GUIDE.filter(feature => searchMatches("tools", `${feature.title.join(" ")} ${feature.status.join(" ")} ${feature.summary.join(" ")} ${feature.article}`));
+  list.innerHTML = rows.length ? rows.map(feature => `<article class="mm-guide-entry"><header><h4>${escapeHtml(tone(feature.title))}</h4><span class="mm-filter-chip">${escapeHtml(pick(feature.status))}</span></header><p>${escapeHtml(tone(feature.summary))}</p><code>${escapeHtml(feature.article)}</code></article>`).join("") : `<div class="mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">⌕</span><p>${escapeHtml(tone(["No matching guide entries", "搵唔到相符指南項目"]))}</p></div>`;
+  const count = document.getElementById("mm-guide-count");
+  if (count) count.textContent = `${rows.length} / ${FEATURE_GUIDE.length}`;
+}
+function filterTools() { renderGuide(); }
 function dateInRange(date, from, to) { return (!from || date >= from) && (!to || date <= to); }
 function changelogRows() {
   const from = document.getElementById("mm-changelog-from").value;
@@ -253,7 +291,7 @@ function renderHistory() {
 function downloadText(filename, content, type = "text/plain") { const url = URL.createObjectURL(new Blob([content], { type })); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url); }
 async function copyText(content, message) { try { await navigator.clipboard.writeText(content); showToast(message); } catch (error) { showToast("Clipboard permission unavailable · 剪貼簿權限不可用"); } }
 function bindDataSurfaces() {
-  for (const [id, key, render] of [["mm-settings-search", "settings", filterSettings], ["mm-changelog-search", "changelog", renderChangelog], ["mm-history-search", "history", renderHistory], ["mm-notifications-search", "notifications", renderNotifications], ["mm-appearance-search", "appearance", filterAppearance]]) { const input = document.getElementById(id); setSearch(key, { mode: "plain", query: "" }); input.addEventListener("input", () => { setSearch(key, { mode: "plain", query: input.value }); render(); }); }
+  for (const [id, key, render] of [["mm-settings-search", "settings", filterSettings], ["mm-changelog-search", "changelog", renderChangelog], ["mm-history-search", "history", renderHistory], ["mm-notifications-search", "notifications", renderNotifications], ["mm-appearance-search", "appearance", filterAppearance], ["mm-tools-search", "tools", filterTools]]) { const input = document.getElementById(id); setSearch(key, { mode: "plain", query: "" }); input.addEventListener("input", () => { setSearch(key, { mode: "plain", query: input.value }); render(); }); }
   for (const id of ["mm-changelog-from", "mm-changelog-to", "mm-history-from", "mm-history-to"]) document.getElementById(id).addEventListener("change", () => id.startsWith("mm-changelog") ? renderChangelog() : renderHistory());
   document.getElementById("mm-changelog-preset").addEventListener("change", event => { const latest = CHANGELOG[0].date; const now = new Date(); const today = now.toISOString().slice(0, 10); const month = `${today.slice(0, 7)}-01`; const from = document.getElementById("mm-changelog-from"); const to = document.getElementById("mm-changelog-to"); if (event.target.value === "all") { from.value = ""; to.value = ""; } else if (event.target.value === "latest") { from.value = latest; to.value = latest; } else { from.value = month; to.value = today; } renderChangelog(); });
   document.getElementById("mm-changelog-copy").addEventListener("click", () => copyText(changelogText(), "Changelog copied · 更新記錄已複製"));
@@ -261,6 +299,7 @@ function bindDataSurfaces() {
   document.getElementById("mm-history-export").addEventListener("click", () => { const content = historyRows().map(row => `${row.date} · ${row.action}\n${tone(row.title)}\n${tone(row.detail)}`).join("\n\n"); downloadText("material-mail-history.txt", `Material Mail local history\n\n${content}\n`); showToast("History exported · 歷史已匯出"); });
   document.getElementById("mm-notifications-filter").addEventListener("change", event => { notificationFilter = event.target.value; renderNotifications(); });
   renderHistoryActions();
+  renderGuide();
 }
 function maybeShowDimsum() {
   if (!settings.dimsum || !settings.hasLaunched || Math.random() >= 0.01) return;
@@ -313,7 +352,7 @@ function bindAppearance() {
   document.getElementById("mm-appearance-reset-all").addEventListener("click", () => { appearanceOverrides = {}; document.querySelectorAll(".mm-card, .mm-tab, .mm-appbar, .mm-search-field").forEach(target => { for (const name of ["--mm-custom-bg", "--mm-custom-fg", "--mm-custom-radius", "--mm-custom-size", "--mm-custom-weight"]) target.style.removeProperty(name); }); saveAppearance(); editor.hidden = true; showToast("All appearance overrides reset · 所有外觀覆寫已重設"); });
   applyAllAppearance();
 }
-window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "appearance") filterAppearance(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); if (key === "notifications") renderNotifications(); };
+window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "appearance") filterAppearance(); if (key === "tools") filterTools(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); if (key === "notifications") renderNotifications(); };
 window.mmSearchState = searchState;
 
-document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); ensureSettingsCustomization(); bindTabs(); bindSettings(); bindDataSurfaces(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });
+document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); ensureSettingsCustomization(); ensureToolsGuide(); bindTabs(); bindSettings(); bindDataSurfaces(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });

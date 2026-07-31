@@ -7,6 +7,7 @@ counted as a completed replacement for Thunderbird behavior.
 | Feature | Article | Verification |
 |---|---|---|
 | Packaged Material preview | [material-preview.md](material-preview.md) | `python design/verify-material-preview.py`, packaged browser capture |
+| Material feature guide | [feature-guide.md](feature-guide.md) | `python design/verify-material-preview.py`, packaged browser contract |
 | Anchored regex builder | [regex-builder.md](regex-builder.md) and [`design/runtime/regex/README.md`](../../runtime/regex/README.md) | `node --test design/runtime/regex/regex-builder.test.mjs` |
 | Language and funny-level model | [language-tone.md](language-tone.md) and [`design/runtime/i18n/README.md`](../../runtime/i18n/README.md) | `node --test design/runtime/i18n/tests/model.test.mjs` |
 | Changelog viewer | [changelog-viewer.md](changelog-viewer.md) | `browser_m3MaterialMail.js`, packaged browser run |

@@ -9,9 +9,10 @@ Settings update theme, density, language mode, independent English/Cantonese
 funny levels, narrator opt-in, and dim-sum opt-in immediately and persist in the
 preview's local storage namespace. Changelog now has local search, date filters,
 copy, and Markdown export; History has local search, derived action filters,
-date filters, append-only restore records, and export. The independent funny
-levels alter fact-preserving copy in these surfaces, notifications, empty states,
-and exports.
+date filters, append-only restore records, and export. Tools now includes a
+14-entry searchable design-folder feature guide with its own regex builder.
+The independent funny levels alter fact-preserving copy in these surfaces,
+notifications, empty states, guide entries, and exports.
 
 ## Configuration
 

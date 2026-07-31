@@ -113,3 +113,6 @@ material-mail-color-saturation = Saturation
 material-mail-color-lightness = Lightness
 material-mail-color-space = Color space
 material-mail-color-entry = Direct value
+material-mail-guide-heading = Feature guide
+material-mail-guide-note = Design-folder index with honest runtime boundaries.
+material-mail-search-guide-placeholder = Search the feature guide

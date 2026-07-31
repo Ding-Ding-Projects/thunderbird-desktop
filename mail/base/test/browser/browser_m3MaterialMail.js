@@ -68,6 +68,8 @@ add_task(async function testMaterialMailPreviewSurface() {
     "mm-color-space",
     "mm-color-space-entry",
     "mm-color-representations",
+    "mm-tools-search",
+    "mm-guide-list",
   ]) {
     Assert.ok(page.getElementById(id), `${id} is present in the runtime feature surface`);
   }
@@ -99,6 +101,20 @@ add_task(async function testMaterialMailPreviewSurface() {
   funnyCantonese.value = "5";
   funnyCantonese.dispatchEvent(new page.defaultView.Event("input", { bubbles: true }));
   Assert.notEqual(funnyPreview.textContent, englishFunnyPreview, "Cantonese funny level changes rendered copy");
+
+  page.getElementById("mm-tab-tools").click();
+  Assert.ok(
+    page.getElementById("mm-guide-list").querySelectorAll("article").length >= 14,
+    "Tools exposes the full design-folder feature guide"
+  );
+  const guideSearch = page.getElementById("mm-tools-search");
+  guideSearch.value = "tabs";
+  guideSearch.dispatchEvent(new page.defaultView.Event("input", { bubbles: true }));
+  Assert.equal(
+    page.getElementById("mm-guide-list").querySelectorAll("article").length,
+    1,
+    "Feature guide search filters its own local catalogue"
+  );
 
   page.getElementById("mm-tab-changelog").click();
   Assert.ok(
