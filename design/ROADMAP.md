@@ -1,6 +1,6 @@
 # Roadmap — Material Mail 3-pane
 
-Status of the `design-import/thunderbird-3pane` branch, and what is left.
+Status of the Material Mail 3-pane work as it is integrated into `main`, and what is left.
 
 Read this with `REWRITE-CONTRACT.md` (the parity ledger), `INFRA.md` (build and CI)
 and `A11Y-L10N-AUDIT.md` (what must not break). This file is the summary; those
@@ -11,22 +11,22 @@ three are the evidence.
 ## The one-sentence version
 
 **This is a CSS-layer restyle of upstream Thunderbird's existing 3-pane, not a
-rewrite of it — and nothing on this branch has ever been built and launched by a
-human or an agent.**
+rewrite of it. Windows CI has now built the artifact and run the browser suites;
+the application gate is still red.**
 
 Everything below follows from those two facts. The first is why the parity
-contract can be at 38/38 without a line of behaviour code being written. The
-second is why 38/38 is not a release gate.
+contract can be at 33/38 without a line of behaviour code being written. The
+second is why a static contract is not a release gate.
 
 ---
 
 ## What is done
 
-### 1. The parity contract is at 38 / 38
+### 1. The parity contract is at 33 / 38
 
-`REWRITE-CONTRACT.md` records every box as ticked. The ticks were produced in four
-waves — a section pass (30 of 31), a cross-cutting pass (7 of 8), a lightweight-theme
-guard pass, and a fallback-prefix pass that closed the last box (Theming).
+`REWRITE-CONTRACT.md` records 33 boxes ticked and five deliberately open. The
+five open boxes are not being hidden behind the earlier 38/38 static claim: they
+need runtime, accessibility, or an explicit product decision.
 
 **What a tick means, precisely:** the named upstream behaviour still *functions* —
 no rule we added hides it, removes it from hit-testing, reparents it, mis-measures
@@ -53,7 +53,7 @@ and "Regressions found and fixed by this pass". The headline ones:
 | 9 | In-row keyboard cursor was invisible (~1.15:1) | `ArrowLeft`/`ArrowRight` cell navigation had no visible indicator at all |
 | 10 | A premature `*/` swallowed a whole rule | The unread-dot recolour was silently dropped by the parser |
 
-### 3. Windows installer CI is green and publishes releases
+### 3. Windows installer CI builds and publishes releases
 
 `.github/workflows/windows-installer.yml`, 672 lines, roughly a third of them
 comments explaining why each line is the way it is. Nine separate blockers had to
@@ -65,8 +65,9 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   installer attached, tagged monotonically off `run_number` and code-named from a
   16-dish dim sum rotation.
 - Every release states that it is an unofficial fork build.
+- The latest observed run on `fd3ce8c8f83` was successful: [30501542153](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542153).
 
-### 4. Lint CI is green, including its own self-test
+### 4. Lint wiring is live; the latest main run is red
 
 `.github/workflows/lint-m3.yml` runs `./mach commlint -l stylelint` over
 `m3-*.css` + `material-tokens.css` and `-l eslint` over `about3Pane.xhtml`.
@@ -75,8 +76,9 @@ It uses `commlint`, not `lint`, because only `commlint` inserts `comm/tools/lint
 into mozlint's `config_paths` and thereby makes comm's `.stylelintrc.js` win over
 Firefox's. It has no `|| true` and no `continue-on-error`, it fails if the glob
 matches zero files, and it carries a self-test that lints a deliberately broken
-file and fails the job if stylelint reports it clean. That self-test passes, so
-the job is known to be capable of going red rather than merely observed green.
+file and fails the job if stylelint reports it clean. The self-test passed, while
+the real CSS lint failed on the pre-Gecko-bump main run because the six M3 sheets
+were reported as needing Prettier formatting: [30501542141](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542141).
 
 ### 5. The behaviour layer is provably untouched
 
@@ -89,6 +91,19 @@ The markup delta is `about3Pane.xhtml` **+23/-0** and `messenger.xhtml` **+9/-0*
 every added line a `<link rel="stylesheet">` or an XML comment, zero deleted lines,
 zero `style=` attributes.
 
+### 6. Runtime evidence exists, and it is not green
+
+The Windows browser workflow built and executed the packaged application. The
+latest scheduled run [30538853820](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30538853820)
+passed setup, configure, build, the static packaged-CSS gate, chrome, and the
+project-authored M3 suite. It failed the 3-pane, widgets, and folder suites.
+The extracted artifact records concrete failures in folder-mode/account-central
+tests, pane-splitter accessibility handling, stored pane-width restoration, and
+folder-pane mode/count tests; preference-leak records are separate harness noise.
+The no-M3 experiment [30499955896](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30499955896)
+also failed, so it did not exonerate or isolate the restyle. No box is promoted
+from static evidence based on these failures.
+
 ---
 
 ## What is explicitly NOT done
@@ -96,11 +111,11 @@ zero `style=` attributes.
 These are not caveats. They are open work, and the contract being green does not
 touch any of them.
 
-### A. Nothing has been built and launched. Not once.
+### A. Manual visual and interaction sign-off is still missing
 
-Every proof on this branch is *static*: selector, specificity, cascade and source
-reading against the JS that consumes it. The installer CI produces a real artifact,
-but **no one has installed it and clicked through the 3-pane.**
+CI has built and launched a headless test application, but no manual Windows
+installation and click-through has been recorded. The automated application gate
+is also red, so the skin remains unapproved for release.
 
 Not yet observed by anybody, in any form:
 
@@ -112,17 +127,18 @@ Not yet observed by anybody, in any form:
 - Any interaction: drag-and-drop, the 25-item folder context menu, the column
   picker popup at its new ~780px height, sticky quick-filter persistence.
 
-Treat the whole skin as unreviewed. A green contract is not a substitute for
-running the application.
+Treat the untested visual combinations and failed suites as open. A green static
+contract or installer build is not a substitute for a passing application run.
 
 ### B. The F6 screen-reader gate cannot be closed statically — at all
 
 `A11Y-L10N-AUDIT.md` §F6 lists eight verification gates. **None of them are
 checked**, and the first one is structurally unclosable by static analysis:
 
-> `_setRowAriaAttributes` **short-circuits only when `Services.appinfo.accessibilityEnabled` **and** `Cu.isInAutomation` are BOTH false (`tree-view.mjs:1110`)**,
-> so `aria-level` / `aria-setsize` / `aria-posinset` are *literally absent* from the
-> DOM until an assistive technology is actually running.
+> `_setRowAriaAttributes` returns only when both `Services.appinfo.accessibilityEnabled`
+> and `Cu.isInAutomation` are false (`tree-view.mjs:1110`). The automated profile
+> sets `Cu.isInAutomation`, so runtime tests can observe the attributes; a real
+> NVDA/Narrator pass is still separate evidence.
 
 There is no grep, no selector audit and no specificity argument that can observe
 those attributes. It needs NVDA or Narrator attached to a running build. This is
@@ -162,40 +178,37 @@ What exists is seven stylesheets that restyle upstream's DOM. The consequences:
 
 | Defect | Where | Severity |
 |---|---|---|
-| RTL: `padding: var(--m3-row-padding)` is a physical shorthand over an asymmetric token (`12px 8px 12px 16px`), so the card's 16px inset lands on the wrong side | `m3-thread-pane.css:406`; token in `material-tokens.css` | Cosmetic mirroring, active l10n defect |
+| Runtime density/row budget can drift | `about3Pane.js#densityChange` still owns row-height constants independently of the CSS tokens | Needs behavior-layer design decision; this branch does not edit that file |
 | `aria-hidden="hidden"` is an invalid token — 11 occurrences in `about3Pane.xhtml`. Invalid maps to *undefined*, so those decorative buttons are likely exposed today | upstream markup, pre-existing | Pre-existing upstream bug. Fix to `"true"` deliberately, with verbosity re-tested — do **not** copy forward |
 | `about3Pane.js#densityChange` hardcodes its row-height constants instead of deriving them from `--m3-row-padding` / `--m3-gap` | `about3Pane.js` (must not be edited on this branch) | The M3 density axis and the uidensity axis can drift |
 | The CSS-Nesting specificity trap is a live pattern, not a one-off | any nesting under a comma-list parent containing an id | Audit before adding more nesting |
 
-### E. Documentation accuracy — one figure in the contract is overstated
+### E. Documentation accuracy — historical figures are retained, current counts are measured
 
-`REWRITE-CONTRACT.md` closes with "guard counts are layout 15 · folder-pane 61 ·
-thread-pane 42 · quick-filter 25 · message-pane 10 · chrome 11 · tokens 0", and
-presents them as mechanically verified.
+The contract contains historical guard-count tables from earlier passes. They are
+not current-tree measurements after the logical-inset and theme-safety fixes.
+Comment-stripped current selector counts are **11 · 59 · 31 · 21 · 3 · 9 · 0**
+for layout, folder-pane, thread-pane, quick-filter, message-pane, chrome, and tokens.
 
 Re-measured for this roadmap, three different numbers exist per sheet:
 
 | Sheet | Contract figure (`lwtheme` tokens, comments included) | `:root:not([lwtheme])` strings, comments included | **Actual guard selectors, comments stripped** |
 |---|---:|---:|---:|
-| `m3-layout.css` | 15 | 13 | **11** |
-| `m3-folder-pane.css` | 61 | 60 | **56** |
-| `m3-thread-pane.css` | 36* | 36 | **30** |
+| `m3-layout.css` | 15 | 12 | **11** |
+| `m3-folder-pane.css` | 67 | 65 | **59** |
+| `m3-thread-pane.css` | 44 | 38 | **31** |
 | `m3-quick-filter.css` | 25 | 22 | **21** |
-| `m3-message-pane.css` | 10 | 6 | **3** |
-| `m3-chrome.css` | 11 | 11 | **9** |
+| `m3-message-pane.css` | 11 | 7 | **3** |
+| `m3-chrome.css` | 15 | 13 | **9** |
 | `material-tokens.css` | 0 | 0 | **0** |
 
-\* the contract says 42 for thread-pane; a raw `lwtheme` token count returns 42 and
-a `:root:not([lwtheme])` string count returns 36.
-
-**This is a measurement bug in the documentation, not a defect in the CSS.** The
-contract's figure counts the bare string `lwtheme` including its many appearances
-in explanatory comment prose. The guards themselves are real and correctly spelled.
-
-Two claims in the same paragraph *do* check out exactly, re-verified independently:
-braces balance comment-stripped at 20/20, 98/98, 152/152, 74/74, 9/9 (plus chrome
-68/68 and tokens 34/34), and **zero** positive `:root[lwtheme` selectors survive in
-any sheet.
+These raw columns include explanatory comments; only the final column is the
+selector count used for current reasoning.
+Historical raw figures counted the bare string `lwtheme` including explanatory
+comment prose. The current guards are real and correctly spelled; the table above
+is the only current count to use.
+Braces balance comment-stripped at 21/21, 108/108, 154/154, 76/76, 9/9, 74/74,
+and 34/34, and **zero** positive `:root[lwtheme` selectors survive in any sheet.
 
 ---
 
@@ -203,10 +216,11 @@ any sheet.
 
 Ordered by dependency. Phase 1 gates everything after it.
 
-### Phase 1 — Run it. (Blocks all other phases.)
+### Phase 1 — Make the automated run green, then run it manually. (Blocks all other phases.)
 
-Install a release artifact on a real Windows machine and open the 3-pane. Nothing
-in the next four phases is meaningful until somebody has seen the skin render once.
+The artifact has now been launched by CI, but the application suites still fail.
+First reproduce and fix the 3-pane/widgets/folder failures on a fresh run; then
+install the verified artifact on a real Windows machine and open the 3-pane.
 
 Minimum first sitting:
 
@@ -234,9 +248,8 @@ Needs a running build and real AT. In order of value:
    before/after record is what proves it.
 3. **`zh-HK` run** — the design ships bilingual strings and CJK; confirm nothing
    clips badges, truncates folder names or breaks row height.
-4. **RTL run (`ar`/`he`)** — will surface the known `m3-thread-pane.css:406`
-   physical-shorthand bug, and should also confirm column-header arrow-key direction
-   flips.
+4. **RTL run (`ar`/`he`)** — confirm the logical row inset and column-header
+   arrow-key direction both flip correctly.
 5. **`./mach test mail/base/test/browser/browser_*3pane*`** plus the folder-tree and
    thread-tree suites.
 
@@ -294,7 +307,7 @@ repeat or refute it:
 | Guard counts (§E) | `grep -o` for `lwtheme` and for `:root:not([lwtheme])`, then a comment-stripping pass (`re.sub(r'/\*.*?\*/', '', s, flags=re.S)`) over all seven sheets |
 | Brace balance | Same comment-stripped pass, counting `{` and `}` |
 | Zero positive `[lwtheme]` selectors | `re.findall(r':root\[lwtheme', stripped)` — 0 in all seven |
-| Density axis is wired to what Thunderbird writes | `material-tokens.css:98-107` carries both `:root[data-m3-density="…"]` and `:root[uidensity="compact"|"touch"]` |
+| Density axis is wired to what Thunderbird writes | `material-tokens.css:110-138` carries both `:root[data-m3-density="…"]` and `:root[uidensity="compact"|"touch"]`, plus logical inline insets |
 | Stylesheet links and packaging | `grep` over `about3Pane.xhtml` (:39, :54-58), `messenger.xhtml` (:116-117), `jar.inc.mn` (:121-127) — 7 files packaged, 7 linked |
 | Media-query inventory | `grep -n "@media"` across all seven sheets — 27 occurrences, 6 of which are `prefers-contrast` / `forced-colors` fallbacks and are the trap surface |
 | F6 gates unmet | `A11Y-L10N-AUDIT.md:704-717` — all eight boxes are `- [ ]` |

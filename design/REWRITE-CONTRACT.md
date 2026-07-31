@@ -1,7 +1,8 @@
 # 3-Pane rewrite — feature parity contract
 
-**Status: 33 / 38 boxes ticked** (2026-07-29, after two adversarial refutation waves). Every
-unticked box carries its own honest reason inline. Nothing on this branch has been built or launched.
+**Status: 33 / 38 boxes ticked** (2026-07-31 integration audit). Every unticked box
+carries its own honest reason inline. Windows CI has built and launched the packaged
+application, but the full application suites are not green.
 
 **Mandate:** re-skin the 3-pane UI to the "Material Mail" design as a **CSS layer over upstream's
 existing markup and behaviour**. **Every feature below must survive.**
@@ -9,7 +10,8 @@ existing markup and behaviour**. **Every feature below must survive.**
 > [!NOTE]
 > **Corrected 2026-07-29.** This line used to read "full ground-up rewrite … No stock Thunderbird
 > markup carried over", which `design/README.md` and `AGENTS.md` §6 both contradict and which the
-> diff refutes outright: `git diff --stat upstream/main...HEAD -- mail/` is **10 files, zero
+> diff refutes outright: `git diff --stat upstream/main...HEAD -- mail/` is **12 files, 6,509
+> insertions, zero
 > deletions**, `mail/base/content/about3Pane.js` has never been modified, and the two upstream XHTML
 > files gained nothing but `<link rel="stylesheet">` elements and comments. That untouched-behaviour
 > fact is what every tick below actually rests on, so the mandate must not describe a rewrite that
@@ -337,7 +339,7 @@ This is groundwork, not a feature. No checkbox below is ticked by it, and
 
 ---
 
-**M3 section stylesheets — packaged and loaded** (6 files, 124,931 bytes)
+**M3 section stylesheets — packaged and loaded** (6 files, 218,230 bytes; seven M3/token files total 232,884 bytes)
 
 Six section sheets written against the tokens above are now registered in
 `mail/themes/shared/jar.inc.mn` and linked from the two documents that actually
@@ -345,17 +347,18 @@ contain the elements they target:
 
 | File | Bytes | Rule blocks | Loaded from |
 |---|---:|---:|---|
-| `m3-layout.css` | 9,614 | 12 | `about3Pane.xhtml` |
-| `m3-folder-pane.css` | 24,256 | 81 | `about3Pane.xhtml` |
-| `m3-thread-pane.css` | 29,113 | 115 | `about3Pane.xhtml` |
-| `m3-quick-filter.css` | 30,675 | 62 | `about3Pane.xhtml` |
-| `m3-message-pane.css` | 11,753 | 9 | `about3Pane.xhtml` |
-| `m3-chrome.css` | 19,520 | 68 | `messenger.xhtml` |
+| `m3-layout.css` | 18,210 | 21 | `about3Pane.xhtml` |
+| `m3-folder-pane.css` | 55,386 | 108 | `about3Pane.xhtml` |
+| `m3-thread-pane.css` | 64,367 | 154 | `about3Pane.xhtml` |
+| `m3-quick-filter.css` | 39,537 | 76 | `about3Pane.xhtml` |
+| `m3-message-pane.css` | 14,344 | 9 | `about3Pane.xhtml` |
+| `m3-chrome.css` | 26,386 | 74 | `messenger.xhtml` |
 
 Verified before landing: braces and parens balance in all six; no `@import`, no
-remote font fetch, no inline `style=`, no new user-visible strings. The two
-surviving `!important` declarations (both in `m3-folder-pane.css`) exist only to
-match an `!important` that `about3Pane.css` already sets.
+remote font fetch, no inline `style=`, no new user-visible strings. Four actual
+`!important` declarations remain: two in `m3-folder-pane.css` and two forced-colors
+system-colour declarations in `m3-quick-filter.css`, each matching an upstream
+important rule or accessibility fallback.
 
 **Load order is load-bearing.** The section sheets are linked *after*
 `about3Pane.css`, not before it. Every one of them was written to match
@@ -406,19 +409,17 @@ the near-misses so nobody re-litigates them:
 
 ### Open items that block parity
 
-1. **Nothing here has been visually verified.** No agent built or launched
-   Thunderbird. Every rule is justified by cascade and specificity reasoning
-   against the sheets it overrides, and by static syntax checking. Treat the
-   whole skin as unreviewed until someone runs it in all three layouts, both
-   themes, all four seeds and all three densities.
-2. **The density scale is dead.** `material-tokens.css` keys off
-   `:root[data-m3-density]`, but the live `mail.uidensity` pref writes
-   `:root[uidensity]`. Nothing sets `data-m3-density`, so all three M3 density
-   steps currently do nothing. `m3-folder-pane.css` works around it with private
-   `--m3-fp-*` aliases re-pointed under `[uidensity]`; the other five sheets do
-   not. This wants one decision — mirror the attribute in JS, or add `[uidensity]`
-   selectors to the token sheet — not five more workarounds. Deliberately left
-   alone in this change so the fix lands as one reviewable unit.
+1. **CI has built and launched the packaged application, but no manual visual
+   sign-off exists and the application gate is red.** The latest run passed setup,
+   build, static packaged CSS, chrome, and the authored M3 suite, but failed the
+   3-pane, widgets, and folder suites. Treat untested combinations as open until
+   a passing run and manual coverage exist for layouts, themes, seeds, and density.
+2. **The density scale is wired statically but not runtime-approved.**
+   `material-tokens.css` maps both `data-m3-density` and Thunderbird's live
+   `uidensity` attribute, and the owned row inset uses a logical inline token.
+   Runtime coverage across all three density values is still unverified, while
+   `about3Pane.js#densityChange` keeps separate row-height constants. Do not tick
+   the related parity box until a passing Windows run measures the actual rows.
 3. **`about3Pane.js#densityChange` still hardcodes its row-height constants**
    rather than deriving them from `--m3-row-padding` / `--m3-gap`. The M3 density
    axis and the uidensity axis can now drift.
@@ -616,6 +617,11 @@ requirement rather than by review-by-eyeball:
   rule nested under a comma-list parent containing an id inherits that id's
   weight. Audit before adding more nesting.
 
+> [!NOTE]
+> The ratification prose below is a historical audit trail from 2026-07-29. Its
+> old counts and "not built" wording are preserved for provenance; the current
+> state is the 2026-07-31 integration audit near the end of this document.
+
 ### Still unticked, with honest reasons
 
 > **Superseded** by the cross-cutting pass at the end of this file. Seven of the
@@ -653,6 +659,11 @@ agent claimed any of them, and this pass will not tick a box nobody proved.
   open until that one closes.
 
 ### Also landing here
+
+> **Historical snapshot notice:** the ratification prose in this section records
+> earlier 2026-07-29 audit states. The current 2026-07-31 state is the integration
+> audit and verification block below; phrases such as “nothing on this branch has
+> been built” describe that earlier snapshot, not the current CI evidence.
 
 `.github/workflows/lint-m3.yml` — a `Lint (Material Mail)` job running
 `./mach commlint -l stylelint` over `m3-*.css` + `material-tokens.css` and
@@ -1198,7 +1209,8 @@ Each is a design or scope decision, not a ratifier's edit, and each is a one- or
 - `git status --porcelain -- mail/base/content/about3Pane.js` → **empty**, and
   `git diff --stat upstream/main...HEAD -- mail/base/content/about3Pane.js` → **empty**. The
   behaviour layer is still untouched, which is still the entire safety argument.
-- `git diff --shortstat upstream/main...HEAD -- mail/` → **10 files, zero deletions**.
+- `git diff --shortstat upstream/main...HEAD -- mail/` → **12 files, 6,509 insertions,
+  zero deletions** in the current integration baseline.
 - Braces balanced comment-stripped in `m3-folder-pane.css` (105/105) after the edit.
 - Prettier 3.8.1 (`vendor/gecko/.prettierrc.js`, CSS `printWidth: 160`) `--check` clean over all six
   `m3-*.css`, `material-tokens.css` **and** the new `browser_m3Accessibility.js`, which needed
@@ -1238,6 +1250,27 @@ guarded focus ring, a stale comment, an unrun test. That is what convergence loo
 grader is adversarial. The two boxes with live rules a user would actually see are still
 `folder colors` and `Theming`, and both now have a one-line prescribed fix and named arithmetic
 waiting on one design decision each.
+
+## 2026-07-31 integration audit
+
+This audit corrected the current-state claims without changing historical entries:
+
+- `material-tokens.css` now has explicit logical inline row-inset tokens for the
+  default, compact, and touch density arms; `m3-thread-pane.css` consumes them,
+  removing the documented physical RTL shorthand.
+- The folder mode label uses font casing rather than `text-transform`, so the
+  localized accessible name is not rewritten by CSS. TLS icon colour is guarded
+  for lightweight themes, and the high-contrast selected-row focus correction is
+  scoped to `#folderTree:focus-within` like upstream.
+- The four M3 chrome focus rings split unguarded geometry from guarded palette
+  colour; installing a lightweight theme no longer removes the ring geometry.
+- Windows run [30538853820](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30538853820)
+  passed setup/build, static CSS, chrome, and the authored M3 suite, but failed
+  the 3-pane, widgets, and folder suites. The no-M3 experiment [30499955896](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30499955896)
+  also failed. These results do not justify ticking any remaining box.
+- The latest lint run [30501542141](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542141)
+  passed its self-test and failed the real CSS formatting check; the next run
+  must verify the merged Gecko pin and current files.
 
 ## Verification
 

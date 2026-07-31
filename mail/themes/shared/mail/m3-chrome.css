@@ -152,7 +152,9 @@
       /* :focus-visible rather than the design's plain :focus, so clicking a tab
        * with the mouse does not leave a ring. Inset offset keeps the 3px ring
        * inside the tab's own rounded box. */
-      outline: 3px solid var(--m3-primary);
+      outline-color: var(--m3-primary);
+      outline-style: solid;
+      outline-width: 3px;
       outline-offset: -3px;
     }
   }
@@ -218,10 +220,7 @@
   /* A background tab whose title changed is signalled only by [titlechanged] in
    * the stock chrome. The design has no equivalent, so it is carried over as a
    * weight bump rather than dropped. */
-  .tabmail-tab:not([selected])
-    .tab-background[titlechanged]
-    ~ .tab-content
-    .tab-text {
+  .tabmail-tab:not([selected]) .tab-background[titlechanged] ~ .tab-content .tab-text {
     font-weight: 600;
     color: var(--m3-on-surface);
   }
@@ -241,15 +240,13 @@
     }
 
     &:hover:active {
-      background-color: color-mix(
-        in srgb,
-        var(--m3-on-surface) 16%,
-        var(--m3-s5)
-      );
+      background-color: color-mix(in srgb, var(--m3-on-surface) 16%, var(--m3-s5));
     }
 
     &:focus-visible {
-      outline: 2px solid var(--m3-primary);
+      outline-color: var(--m3-primary);
+      outline-style: solid;
+      outline-width: 2px;
       outline-offset: -2px;
     }
   }
@@ -264,8 +261,7 @@
    * to out-specify this compound selector and would drift the first time either
    * side is edited. */
   @media (hover: hover) and (pointer: fine) and (not (prefers-contrast)) {
-    .tabmail-tab:not(:hover, [selected]):not(:focus-within)
-      button.tab-close-button {
+    .tabmail-tab:not(:hover, [selected]):not(:focus-within) button.tab-close-button {
       opacity: 0;
       transition: opacity var(--m3-chrome-transition);
     }
@@ -337,7 +333,9 @@
     }
 
     &:focus-visible {
-      outline: 3px solid var(--m3-primary);
+      outline-color: var(--m3-primary);
+      outline-style: solid;
+      outline-width: 3px;
       outline-offset: -3px;
     }
 
@@ -525,13 +523,42 @@
     border-radius: var(--m3-radius-s);
 
     &:focus-visible:not(:hover) {
-      outline: 2px solid var(--m3-primary);
+      outline-color: var(--m3-primary);
+      outline-style: solid;
+      outline-width: 2px;
     }
   }
 
   .spaces-badge-container {
     border-radius: var(--m3-radius-full);
   }
+}
+
+/* Focus-ring geometry is an accessibility fallback, not palette paint. Keep it
+ * outside the lightweight-theme guard so installing a theme cannot remove the
+ * ring; the four guarded rules above still provide the M3 colour when no theme
+ * is installed. */
+.tabmail-tab:focus-visible {
+  outline-style: solid;
+  outline-width: 3px;
+  outline-offset: -3px;
+}
+
+.tabmail-tab button.tab-close-button:focus-visible {
+  outline-style: solid;
+  outline-width: 2px;
+  outline-offset: -2px;
+}
+
+#alltabs-button:focus-visible {
+  outline-style: solid;
+  outline-width: 3px;
+  outline-offset: -3px;
+}
+
+.spaces-toolbar-button:focus-visible:not(:hover) {
+  outline-style: solid;
+  outline-width: 2px;
 }
 
 /* ==========================================================================
@@ -634,8 +661,7 @@
      * reached it. Restated at (0,6,1) it ties and wins on source order.
      * #alltabs-button above needs no such help: its base is
      * `:root:not([lwtheme]) #alltabs-button`, (1,2,0) against (1,2,0). */
-    .tabmail-tab:not(:hover, [selected]):not(:focus-within)
-      button.tab-close-button {
+    .tabmail-tab:not(:hover, [selected]):not(:focus-within) button.tab-close-button {
       transition: none;
     }
   }

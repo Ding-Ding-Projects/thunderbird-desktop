@@ -281,14 +281,8 @@ body#paneLayout {
     opacity var(--m3-motion-duration, 150ms) ease;
 }
 
-#folderPaneSplitter:not([disabled], .splitter-collapsed):is(
-    :hover,
-    .splitter-resizing
-  )::after,
-#messagePaneSplitter:not([disabled], .splitter-collapsed):is(
-    :hover,
-    .splitter-resizing
-  )::after {
+#folderPaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after,
+#messagePaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after {
   /* New affordance: an expanded (not collapsed) splitter now shows a tinted
    * bar on hover/drag, which it previously did not. `transform: none` beats
    * both the scaleY(0) and the [resize-direction="horizontal"] scaleX(0)
@@ -344,14 +338,8 @@ body#paneLayout {
     border-color: var(--m3-outline);
   }
 
-  #folderPaneSplitter:not([disabled], .splitter-collapsed):is(
-      :hover,
-      .splitter-resizing
-    )::after,
-  #messagePaneSplitter:not([disabled], .splitter-collapsed):is(
-      :hover,
-      .splitter-resizing
-    )::after {
+  #folderPaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after,
+  #messagePaneSplitter:not([disabled], .splitter-collapsed):is(:hover, .splitter-resizing)::after {
     /* 32% of --m3-primary is not distinguishable in high contrast. */
     opacity: 1;
   }

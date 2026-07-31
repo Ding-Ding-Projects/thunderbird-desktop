@@ -6,6 +6,21 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 (the 38-box parity ledger and its evidence), `INFRA.md` (runners and pipeline),
 `A11Y-L10N-AUDIT.md` (what must not break), `README.md` (the design snapshot).
 
+> [!IMPORTANT]
+> **Current integration status — 2026-07-31.** The working branch has pulled
+> `origin` first, merged `upstream/main` through `0c20bfcd944`, and recorded the
+> Gecko gitlink update `ca6e9493686`. The current integration work is headed to
+> `main`; do not treat the historical branch names below as the final target.
+>
+> Windows run [30538853820](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30538853820)
+> built the application and passed setup/build, static packaged CSS, chrome, and
+> the authored M3 suite, but failed the 3-pane, widgets, and folder suites. The
+> no-M3 experiment [30499955896](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30499955896)
+> also failed. Installer run [30501542153](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542153)
+> passed; lint run [30501542141](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30501542141)
+> passed its self-test but failed the real CSS formatting gate. The roadmap and
+> contract are now corrected to distinguish these facts from historical reports.
+
 ---
 
 ## 0. The thirty-second briefing
@@ -24,16 +39,17 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 ---
 
-## 0.1 STATE AT HANDOFF — 2026-07-29, and the one thing you must read first
+## 0.1 Historical runtime snapshot — 2026-07-29 (superseded by the current block above)
 
 **The browser tests ran. This project is no longer static-proof-only.** For the whole of its
 life until today every claim here rested on reading selectors and computing specificity.
 There is now runtime evidence, and it is **not green**.
 
-`HEAD` = `48cc94017df` on `design-import/thunderbird-3pane`, pushed. **0 behind `upstream/main`.**
-Contract: **33 / 38**. Guards, comments-stripped: **133** total, `material-tokens.css` at **0**.
-`about3Pane.js` untouched. `git diff --shortstat upstream/main...HEAD -- mail/` = 12 files,
-**6120 insertions, zero deletions**.
+At that snapshot, `HEAD` was `48cc94017df` on `design-import/thunderbird-3pane`,
+pushed and level with the then-current `upstream/main`. The contract was 33 / 38,
+and the mail delta was measured before later upstream merges and the current CSS
+translation. Use the current integration block above for HEAD, upstream drift,
+guard counts, file sizes, and CI verdicts.
 
 ### The test results, honestly
 
@@ -42,7 +58,7 @@ Contract: **33 / 38**. Guards, comments-stripped: **133** total, `material-token
 | harness self-test (asserts a failure IS reported) | ✅ so the suite is **not** vacuous in that respect |
 | `static` — `browser_parsable_css` over the **packaged** M3 sheets | ✅ **success** — our CSS parses in a real build |
 | `chrome` — spaces toolbar, tabmail | ✅ success |
-| project-authored M3 tests | ⚠️ step said **success** while the log holds **13 failures** — see below |
+| project-authored M3 tests | ✅ **98 passed / 0 unexpected**; 13 TODO entries are expected upstream-compatibility cases |
 | `3-pane` — thread tree, folder tree, pane focus, findbar | ❌ failure |
 | `widgets` — tree-view, pane-splitter, thread-card tags | ❌ failure |
 | `folder pane`, folder modes, quick filter | ❌ failure |
@@ -517,11 +533,17 @@ every row).
 
 **What must stay UNGUARDED, and this is equally load-bearing:**
 
-- Every `:focus-visible` outline, and the two keyboard-cursor rings that are not
-  literally `:focus-visible` (`tr.card-layout.current`, `tr.table-layout.current`).
-  **Accessibility must never depend on which theme is installed.**
-- Icon `fill` / `stroke` / `-moz-context-properties`, including the folder-colour
-  `--icon-color` path, which `folder-tree-row.mjs:259` writes inline.
+- Focus-ring geometry must stay available regardless of theme. The four chrome
+  rings split their unguarded `outline-style`, `outline-width`, and
+  `outline-offset` from their guarded palette colour; the thread and folder
+  forced-colors focus groups and the two keyboard-cursor rings that are not
+  literally `:focus-visible` (`tr.card-layout.current`, `tr.table-layout.current`)
+  remain unguarded. **Accessibility must never depend on which theme is installed.**
+- Icon `fill` / `stroke` / `-moz-context-properties` geometry remains unguarded,
+  while palette-bearing icon colours are guarded when they compete with a theme;
+  in particular the TLS `--icon-color` override is guarded even though it retains
+  `!important`, and the folder-colour path written by `folder-tree-row.mjs:259`
+  remains a separate inline-data path.
 - `background-image` that carries an icon glyph rather than a surface.
 - `content:`.
 - `border-width` / `border-style` / `border-radius` — kept outside the guard in all
@@ -602,8 +624,9 @@ written to *match* `about3Pane.css`'s specificity rather than escalate past it, 
 they win on source order alone and need no `!important`. Linking them earlier would
 silently revert most of the skin while leaving the files looking installed.
 
-Only two `!important` declarations survive anywhere, both in `m3-folder-pane.css`,
-and both exist only to match an `!important` that `about3Pane.css` already sets.
+Four actual `!important` declarations survive in the current tree: two in
+`m3-folder-pane.css` and two system-colour declarations in `m3-quick-filter.css`.
+Each is an explicit upstream-important or forced-colors accessibility match.
 
 Custom-property resolution is unaffected by order — `var()` resolves at
 computed-value time — which is why `material-tokens.css` remains the single
@@ -613,23 +636,23 @@ definition site.
 
 ## 5. Standing caveats — every one of these is still true
 
-1. **Nothing has been built and launched.** Not once, by anyone. Every proof is
-   static: selector, specificity, cascade and source reading against the JS that
-   consumes it. Eleven fixes and four ratification passes have not moved this.
-   A green contract is not a working application.
+1. **CI has built and launched the application, but the application gate is red.**
+   The latest run passed setup/build, static packaged CSS, chrome, and the authored
+   M3 suite, but failed the 3-pane, widgets, and folder suites. A green installer
+   build or static contract is not a working application.
 2. **The F6 screen-reader gate cannot be closed statically.** `_setRowAriaAttributes`
-   short-circuits unless `Services.appinfo.accessibilityEnabled`, so `aria-level` /
-   `aria-setsize` / `aria-posinset` are literally absent from the DOM until AT is
-   running. No grep can observe them. All eight F6 gates in `A11Y-L10N-AUDIT.md:704-717`
-   are unchecked.
+   returns only when both `Services.appinfo.accessibilityEnabled` and
+   `Cu.isInAutomation` are false. Mochitest automation can therefore observe the
+   runtime attributes; a real NVDA/Narrator pass is still required. All eight F6
+   gates in `A11Y-L10N-AUDIT.md:704-717` are unchecked.
 3. **The markup rewrite has not happened.** The message pane reading body lives in
    about:message inside `#messageBrowser`, a separate document that links no M3 sheet;
    `layout-classic` and `layout-wide` are styled only by inheritance; the folder filter
    field, empty states, avatar, body-preview line, command palette, toast stack and
    pinned tabs have no DOM and were correctly not invented.
-4. **A known RTL bug ships.** `m3-thread-pane.css:406` uses the physical shorthand
-   `padding: var(--m3-row-padding)` over an asymmetric token (`12px 8px 12px 16px`),
-   so the card's 16px inset lands on the wrong side under RTL.
+4. **The documented RTL inset bug is fixed in the current integration.** The M3
+   tokens now expose a logical inline inset and `m3-thread-pane.css` consumes it.
+   RTL runtime coverage remains an open F6 gate, so this is not yet a visual sign-off.
 5. **A pre-existing upstream bug ships.** All 11 `aria-hidden="hidden"` in
    `about3Pane.xhtml` use an invalid token — `aria-hidden` takes `true`/`false`, and an
    invalid value maps to *undefined*, so those decorative buttons are likely exposed
@@ -640,18 +663,16 @@ definition site.
    block. It applied an M3 colour *precisely when* a theme is installed — the bug in
    miniature — and with the fill above it now guarded there is no M3 surface left for
    it to protect. It is still the only declaration loss across all five content sheets.
-7. **The contract's guard counts are overstated.** `REWRITE-CONTRACT.md`'s closing
-   figures (layout 15 · folder-pane 61 · thread-pane 42 · quick-filter 25 ·
-   message-pane 10 · chrome 11) count the bare string `lwtheme` including comment
-   prose. Comment-stripped, the real guard-selector counts are **11 · 56 · 30 · 21 ·
-   3 · 9**, tokens 0. The guards are real and correctly spelled — this is a
-   measurement bug in the documentation, not a defect in the CSS. The same
-   paragraph's brace-balance figures (20/20, 98/98, 152/152, 74/74, 9/9) and its
-   "zero positive `[lwtheme]` selectors" claim both re-verify exactly.
-8. **The command count in the contract's checklist header is wrong.** It says 137
-   `cmd_*` commands; `grep -rhoE '\bcmd_[A-Za-z0-9_]+' mail/base/content | sort -u`
-   returns **167**. Of those, 155 have a locatable DOM trigger, and exactly **5** are
-   reachable by any M3 selector at all.
+7. **Guard counts must be measured from the current tree, not copied from history.**
+   The current comment-stripped selector counts are **11 · 59 · 31 · 21 · 3 · 9**
+   for layout, folder-pane, thread-pane, quick-filter, message-pane, and chrome;
+   tokens remain 0. There are zero positive `:root[lwtheme]` selectors and each
+   sheet's comment-stripped braces balance. These are source measurements, not
+   runtime theme sign-off.
+8. **The command enumeration is corrected but remains a runtime gate.** The current
+   source count is **167** distinct `cmd_*` names; the contract must not revive the
+   historical 137 figure. Wiring and enabled/disabled behavior still need the
+   application suite before this box can be ticked.
 9. **The self-hosted runners cannot build the Windows installer.** `fowshan-x64` is
    Linux/x86_64 and `super-arm64` is a Raspberry Pi 5 on Linux/aarch64 — wrong OS, and
    in the second case wrong architecture too. The installer belongs on GitHub-hosted

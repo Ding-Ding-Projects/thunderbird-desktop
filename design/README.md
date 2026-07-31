@@ -3,12 +3,12 @@
 This directory holds the design source for the Material Design 3 restyle of
 Thunderbird's 3-pane, and the project documents that govern the work.
 
-Branch: **`design-import/thunderbird-3pane`**. Scope: **Windows only**.
+Integration target: **`main`**. Scope: **Windows only**.
 
-> **This is a CSS-layer restyle of upstream's existing 3-pane, not a rewrite of it,
-> and nothing on this branch has ever been built and launched.** Read `ROADMAP.md`
-> before drawing any conclusion from the fact that `REWRITE-CONTRACT.md` shows
-> 38 / 38 ticked.
+> **This is a CSS-layer restyle of upstream's existing 3-pane, not a rewrite of it.**
+> Windows CI has built and launched the packaged test application, but the 3-pane,
+> widgets, and folder suites remain red. Read `ROADMAP.md` before treating static
+> contract evidence as release sign-off.
 
 ---
 
@@ -17,7 +17,7 @@ Branch: **`design-import/thunderbird-3pane`**. Scope: **Windows only**.
 | Document | What it is |
 |---|---|
 | **`ROADMAP.md`** | What is done, what is explicitly not done, and what a next phase would need. Read first. |
-| **`HANDOFF.md`** | Everything a successor needs cold: the nine CI blockers and their fixes, the two cascade rules, file ownership, what must never be edited, standing caveats. |
+| **`HANDOFF.md`** | Everything a successor needs cold: nine installer blockers plus one browser-test blocker, the two cascade rules, file ownership, what must never be edited, and standing caveats. |
 | **`REWRITE-CONTRACT.md`** | The 38-box feature-parity ledger, its evidence, and the eleven regressions the proof requirement caught. |
 | **`A11Y-L10N-AUDIT.md`** | What the rewrite must not break — the ARIA/tabindex surface, the ~2/3 of it applied at runtime and invisible in the markup, the full l10n inventory, and the F6 verification gates. |
 | **`INFRA.md`** | Runners, the Windows installer pipeline, and why the self-hosted boxes cannot build it. |
@@ -31,15 +31,37 @@ Branch: **`design-import/thunderbird-3pane`**. Scope: **Windows only**.
 - **The behaviour layer is untouched.** `about3Pane.js` and `widgets/*.mjs` have never
   been modified. The markup delta is `about3Pane.xhtml` +23/-0 and `messenger.xhtml`
   +9/-0 — link elements and XML comments only, zero deletions, zero `style=`.
-- **The parity contract is at 38 / 38**, established over four ratification passes.
+- **The parity contract is at 33 / 38**, with five boxes deliberately open.
   A tick certifies that the named upstream behaviour still *functions* against named
   selectors and specificity. It is **not** a visual sign-off.
-- **Both CI workflows are reported green** — the Windows installer (which publishes a
-  real release per push) and the M3 lint job (whose "prove the linter fails on a
-  known-bad file" self-test passes, so it is known to be able to go red).
-- **Not done:** nothing built and launched; all eight `A11Y-L10N-AUDIT.md` F6 gates
-  unchecked, one of them structurally unclosable by static analysis; the markup
-  rewrite itself has not started. See `ROADMAP.md` §"What is explicitly NOT done".
+- **CI is mixed:** the installer passed on `fd3ce8c8f83`, the M3 lint run failed on
+  formatting, and the latest browser run failed the 3-pane/widgets/folder suites
+  while the static, chrome, and project-authored M3 suites passed.
+- **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, manual
+  visual sign-off is absent, and the markup rewrite itself has not started. See
+  `ROADMAP.md` §"What is explicitly NOT done".
+
+## Design-to-shipped verification
+
+The design folder is the source of truth for Material values. The shipped CSS is
+checked against `app-data.js` and the `Material Mail.dc.html` snapshot, with any
+Thunderbird-specific translation recorded instead of silently drifting:
+
+| Design source | Shipped implementation | Current result |
+|---|---|---|
+| `SEEDS` and `NEUTRALS` in `app-data.js` | `material-tokens.css` palette and neutral tokens | Exact light/dark purple, blue, green, orange, and neutral values are present. |
+| `DENSITY` in `app-data.js` | `--m3-row-padding`, `--m3-row-padding-inline`, `--m3-gap`, `--m3-control-height`, and `--m3-avatar-size` | Compact, comfortable, and relaxed values match the design; the thread row also consumes a logical inline inset for RTL correctness. |
+| M3 shape, type scale, elevation, and motion in the snapshot | Token definitions plus the six section sheets | Applied where the existing XUL/XHTML DOM exposes the required component; unsupported design-only markup remains tracked below. |
+| Design typography (`Roboto`, `Roboto Flex`, `Noto Sans HK`) | Local-first/system fallback stacks in `material-tokens.css` | Intentional translation: Thunderbird cannot fetch Google Fonts at startup, so the design names are retained while local or platform CJK-safe faces are used. |
+
+The snapshot is React/`<x-dc>` visual specification rather than embeddable
+Thunderbird markup. Its message body, toast stack, command palette, pinned-tab
+strip, and other design-only component structure therefore remain markup-phase
+work in `ROADMAP.md`; CSS is not used to claim those surfaces already exist.
+`font-variant-caps: all-small-caps` is used where the design requests casing so
+the localized Fluent accessible name remains factual, and the separate
+28/36/48px list-row budget preserves Thunderbird virtualization while the
+design density values control the surrounding Material rhythm.
 
 ---
 

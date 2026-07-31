@@ -13,7 +13,7 @@ invisible to a sighted developer — a screen-reader user simply stops being tol
 
 | File | Why it matters here |
 |---|---|
-| `mail/base/content/about3Pane.xhtml` (773 lines) | the markup being replaced; static roles/aria/tabindex/l10n |
+| `mail/base/content/about3Pane.xhtml` (796 lines) | the current markup; static roles/aria/tabindex/l10n; 23 added lines are stylesheet links/comments |
 | `mail/base/content/quickFilterBar.inc.xhtml` (130) | `#include`d into the body — part of the same document |
 | `mail/base/content/mailContext.inc.xhtml` (350) | `#include`d into the popupset |
 | `mail/base/content/templates/messagePaneTemplate.inc.xhtml` (26) | `#include`d |
@@ -743,8 +743,9 @@ The cost, stated plainly:
    name or get "Sort by star" as a column name.
 6. **Accesskeys dropped when XUL menus become Material list items.** ~55 in this document, all
    localizer-chosen, all invisible in an English-only smoke test.
-7. **Threading semantics lost.** `aria-level`/`setsize`/`posinset`/`aria-expanded` are guarded by
-   `accessibilityEnabled` and will pass every non-AT test while being completely broken.
+7. **Threading semantics lost.** `aria-level`/`setsize`/`posinset`/`aria-expanded` are
+   absent in an ordinary non-AT profile, but mochitest can observe them because
+   `Cu.isInAutomation` satisfies the runtime guard. Manual AT verification remains open.
 8. **Design strings leak in.** "Material Mail", "Workspaces", dim sum names, `MSG_COPY` toasts —
    hardcoded once "just to see the layout", never removed.
 9. **Bilingual concatenation shipped as a string.** Two languages in one node with one `lang`

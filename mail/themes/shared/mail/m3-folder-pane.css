@@ -18,9 +18,9 @@
  * [data-is-busy] overrides, which deliberately match about3Pane.css exactly
  * rather than escalating specificity and locking out future themes).
  *
- * LIGHTWEIGHT THEMES: everything colour-bearing below is guarded by
- * :root:not([lwtheme]) so an installed theme still wins — same pattern and same
- * formatting as m3-chrome.css. See the note above "Pane shell" for why.
+ * LIGHTWEIGHT THEMES: colour-bearing palette rules below are guarded by
+ * :root:not([lwtheme]) so an installed theme still wins. Focus-ring geometry and
+ * forced-colors fallbacks remain unguarded accessibility exceptions.
  *
  * Deliberate deviations from the design, and why:
  *  - Two count badges, not one. The design shows a single plain-text count.
@@ -38,22 +38,17 @@
 /* ==========================================================================
  * Density bridge.
  *
- * material-tokens.css keys its density scale off :root[data-m3-density], but
- * Thunderbird's live preference (mail.uidensity) writes :root[uidensity].
- * Nothing currently sets data-m3-density, so the m3 density steps would be
- * dead here. Rather than redefine any --m3-* token (which would leak into every
- * other surface), the pane derives private --m3-fp-* aliases and re-points them
- * per uidensity. If the integration agent ever mirrors uidensity onto
- * data-m3-density, only this block needs deleting.
+ * material-tokens.css maps both the design's data-m3-density vocabulary and
+ * Thunderbird's live mail.uidensity attribute. The pane still derives private
+ * --m3-fp-* aliases for pane-specific geometry, so those metrics can differ from
+ * the shared control and row tokens without leaking into other surfaces.
  *
  * NOT guarded: these are custom property *definitions*, i.e. metrics, not
  * colour application. A lightweight theme changes the palette, not the density.
  * ======================================================================== */
 
 #folderPane {
-  --m3-fp-control: var(
-    --m3-control-size
-  ); /* 48px comfortable - CONTROLS only */
+  --m3-fp-control: var(--m3-control-size); /* 48px comfortable - CONTROLS only */
   /* Row height is a separate token from control size. See the long note at
    * material-tokens.css --m3-list-row: deriving a folder row's height from
    * --m3-control-size gave a 52px pitch, 2.00x upstream's 26px, and pushed low
@@ -245,11 +240,7 @@
 }
 
 :root:not([lwtheme]) #folderPaneWriteMessage:enabled:hover:active {
-  background-color: color-mix(
-    in srgb,
-    var(--m3-on-primary-container) 12%,
-    var(--m3-primary-container)
-  );
+  background-color: color-mix(in srgb, var(--m3-on-primary-container) 12%, var(--m3-primary-container));
 }
 
 /* .button:disabled only drops opacity; keep it that way. The button is disabled
@@ -303,9 +294,10 @@
   font-size: var(--m3-fp-overline-size);
   font-weight: 500;
   letter-spacing: 0.5px;
-  /* Visual casing only — the string still comes from Fluent, so this does not
-   * hardcode or bake in English. Locales without case mapping are unaffected. */
-  text-transform: uppercase;
+  /* Use font casing rather than text-transform: Gecko includes transformed text
+   * in the accessible name of this treeitem, while font casing leaves Fluent's
+   * localized string intact for assistive technology. */
+  font-variant-caps: all-small-caps;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow-x: hidden;
@@ -327,20 +319,12 @@
   color: var(--m3-on-surface-variant);
 }
 
-:root:not([lwtheme])
-  #folderTree
-  > li
-  > .mode-container
-  > .mode-button:enabled:hover {
+:root:not([lwtheme]) #folderTree > li > .mode-container > .mode-button:enabled:hover {
   background-color: var(--m3-s4);
   border-color: transparent;
 }
 
-:root:not([lwtheme])
-  #folderTree
-  > li
-  > .mode-container
-  > .mode-button:enabled:hover:active {
+:root:not([lwtheme]) #folderTree > li > .mode-container > .mode-button:enabled:hover:active {
   background-color: var(--m3-s5);
 }
 
@@ -447,11 +431,7 @@
  * (`#folderTree li.selected > .container > .icon { --icon-color: currentColor
  * !important }`) is unaffected either way: it is !important, so it outranks
  * this rule guarded or not. No rule-2 fallback regression is possible here. */
-:root:not([lwtheme])
-  #folderTree
-  li.selected:not([data-folder-type], [data-server-type], [data-tag-key])
-  > .container
-  > .icon {
+:root:not([lwtheme]) #folderTree li.selected:not([data-folder-type], [data-server-type], [data-tag-key]) > .container > .icon {
   --icon-color: var(--m3-on-secondary-container);
 }
 
@@ -565,19 +545,11 @@
  * they keep beating the TLS tint, exactly as source order made them do before
  * this file existed.
  *
- * NOT guarded — rule 3, the !important exemption, not the reason the
- * selected-row --icon-color above used to give (that rule is guarded now, and
- * the reason it cited was wrong). Both this rule and its competitor
+ * Guarded: a lightweight theme owns this palette too. Both this rule and its competitor
  * `#folderTree li.tls-error > .container > .icon` (1,3,1) are !important, so
- * the winner is decided on specificity alone and ours at (1,4,1) already takes
- * it; a guard would neither help nor hurt the contest. It stays off because an
- * !important rule needs no specificity help and because a broken-TLS warning is
- * a safety affordance, which per rule 3 must not depend on whether someone
- * installed a theme. */
-#folderTree
-  li.tls-error:not([data-is-busy="true"], [data-has-error="true"])
-  > .container
-  > .icon {
+ * the winner is decided on specificity alone and ours at (1,6,1) already takes
+ * it; the guard changes only the palette owner, not the !important contest. */
+:root:not([lwtheme]) #folderTree li.tls-error:not([data-is-busy="true"], [data-has-error="true"]) > .container > .icon {
   --icon-color: var(--m3-error) !important;
 }
 
@@ -626,14 +598,8 @@
 
 /* Collapsed parents whose unread lives in hidden children keep the outlined
  * variant — that distinction is the only cue that the count is not local. */
-#folderTree
-  li.unread.children.collapsed:has(ul > .unread)
-  > .container
-  > .unread-count,
-#folderTree
-  li.new-messages.unread.children.collapsed:has(ul > .new-messages)
-  > .container
-  > .unread-count {
+#folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
+#folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
   padding-block: 1px;
 }
 
@@ -658,23 +624,12 @@
  * No geometry risk: .container has `contain: strict`, the badge carries
  * `min-inline-size` and `font-variant-numeric: tabular-nums`, and tabular digits
  * do not change advance width with weight. */
-#folderTree
-  li.new-messages.unread.children.collapsed:has(ul > .new-messages)
-  > .container
-  > .unread-count {
+#folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
   font-weight: 700;
 }
 
-:root:not([lwtheme])
-  #folderTree
-  li.unread.children.collapsed:has(ul > .unread)
-  > .container
-  > .unread-count,
-:root:not([lwtheme])
-  #folderTree
-  li.new-messages.unread.children.collapsed:has(ul > .new-messages)
-  > .container
-  > .unread-count {
+:root:not([lwtheme]) #folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
+:root:not([lwtheme]) #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
   background-color: transparent;
   color: var(--m3-on-surface-variant);
   border: 1px solid var(--m3-on-surface-variant);
@@ -722,11 +677,7 @@
  * the last word under high contrast. The outlined shape is
  * untouched: transparent fill and the 1px border are inherited from the rule
  * above, so the "this count is not local" cue survives for both states. */
-:root:not([lwtheme])
-  #folderTree
-  li.new-messages.unread.children.collapsed:has(ul > .new-messages)
-  > .container
-  > .unread-count {
+:root:not([lwtheme]) #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
   color: var(--m3-primary);
   border-color: var(--m3-primary);
 }
@@ -807,10 +758,7 @@
  * ======================================================================== */
 
 :root:not([lwtheme]) #folderTree li[role="treeitem"].drop-target > .container,
-:root:not([lwtheme])
-  #folderTree:focus-within
-  li[role="treeitem"].drop-target
-  > .container {
+:root:not([lwtheme]) #folderTree:focus-within li[role="treeitem"].drop-target > .container {
   background-color: var(--m3-primary-container);
   color: var(--m3-on-primary-container);
   outline: 2px solid var(--m3-primary);
@@ -826,14 +774,8 @@
   border-color: var(--m3-outline);
 }
 
-:root:not([lwtheme])
-  #folderTree
-  li.context-menu-target:not(.selected)
-  > .container,
-:root:not([lwtheme])
-  #folderTree
-  li.context-menu-target:not(.selected)
-  > .container:hover {
+:root:not([lwtheme]) #folderTree li.context-menu-target:not(.selected) > .container,
+:root:not([lwtheme]) #folderTree li.context-menu-target:not(.selected) > .container:hover {
   background-color: color-mix(in srgb, var(--m3-primary) 10%, transparent);
   outline: 1px dashed var(--m3-primary);
   outline-offset: -1px;
@@ -1069,14 +1011,8 @@
      * high-contrast selection fill, the one combination this block exists to
      * prevent. Re-stated at matching specificity; only the palette hands back,
      * the outlined shape that distinguishes a non-local count is preserved. */
-    #folderTree
-      li.unread.children.collapsed:has(ul > .unread)
-      > .container
-      > .unread-count,
-    #folderTree
-      li.new-messages.unread.children.collapsed:has(ul > .new-messages)
-      > .container
-      > .unread-count {
+    #folderTree li.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
+    #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
       background-color: transparent;
       color: var(--folderpane-unread-count-background);
       border-color: var(--folderpane-unread-count-background);
@@ -1094,22 +1030,13 @@
      * Restated at the same (1,9,2) so source order carries it, and still below
      * the `.selected` arms at (1,9,2) / (1,10,2). The outlined shape is
      * untouched; only the palette hands back. */
-    #folderTree
-      li.new-messages.unread.children.collapsed:has(ul > .new-messages)
-      > .container
-      > .unread-count {
+    #folderTree li.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
       color: var(--folderpane-unread-new-count-background);
       border-color: var(--folderpane-unread-new-count-background);
     }
 
-    #folderTree
-      li.selected.unread.children.collapsed:has(ul > .unread)
-      > .container
-      > .unread-count,
-    #folderTree
-      li.selected.new-messages.unread.children.collapsed:has(ul > .new-messages)
-      > .container
-      > .unread-count {
+    #folderTree li.selected.unread.children.collapsed:has(ul > .unread) > .container > .unread-count,
+    #folderTree li.selected.new-messages.unread.children.collapsed:has(ul > .new-messages) > .container > .unread-count {
       background-color: var(--folderpane-unread-count-text);
       color: var(--treeitem-background-active);
       border-color: var(--treeitem-background-active);
@@ -1219,8 +1146,8 @@
    * (1,4,1) already beats its (1,3,0) without help, and adding the guard here
    * would delete the correction for anyone with a lightweight theme installed —
    * the over-guarding failure m3-layout.css's splitter comment documents. */
-  #folderTree li.selected > .container > .name:focus-visible,
-  #folderTree li.selected > .container > .status-icon:focus-visible {
+  #folderTree:focus-within li.selected > .container > .name:focus-visible,
+  #folderTree:focus-within li.selected > .container > .status-icon:focus-visible {
     outline-color: currentColor;
   }
 }
