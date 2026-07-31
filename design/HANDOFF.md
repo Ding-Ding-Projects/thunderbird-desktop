@@ -34,12 +34,13 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `8795330528` contains the exact logs. These results do not promote parity, accessibility,
 > layout, or visual sign-off.
 >
-> The public latest release is [`tb-155.0a1-b75-lin-yung-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b75-lin-yung-bao),
-> a real 85,319,245-byte installer. Inspection of its embedded `omni.ja` found no
-> `materialMailColor.mjs`, so it is not current-source proof; the newer runtime waves through
-> `464c7d24836a` are waiting on
-> installer run [30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
-> before built-artifact captures can be taken. The queued state is not a CI success claim.
+> The public latest release is [`tb-155.0a1-b77-zaa-leung`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b77-zaa-leung),
+> a real 85,332,926-byte installer. Its release body names build source
+> `8f499ebb89541970de250ca9a6b2200d7b054784`, but the tag resolves to
+> `464c7d24836af2856bebecc7bdbc5746019af444`; extracted `omni.ja` lacks
+> `materialMailColor.mjs` and the 14-entry feature guide. It is therefore not
+> current-source proof. The release workflow now passes `--target ${{ github.sha }}` and
+> verifies the published tag; the next correctly bound installer is required before capture.
 
 > [!NOTE]
 > **Prior current-source browser checkpoint — 2026-07-31.** Dispatch

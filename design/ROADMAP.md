@@ -81,13 +81,15 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   installer attached, tagged monotonically off `run_number` and code-named from a
   16-dish dim sum rotation.
 - Every release states that it is an unofficial fork build.
-- The current source/runtime baseline is `464c7d24836af2856bebecc7bdbc5746019af444`:
+- The current source/runtime baseline is `464c7d24836af2856bebecc7bdbc5746019af444` (the
+  documentation-only tip is `f5cb642acce232450764e884e7bf69b32af9c508`):
   the upstream check is **113 ahead / 0 behind**. Lint
-  [30641803695](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803695)
-  is queued and installer [30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
-  is queued. b75 is the latest real public release, but its embedded preview was inspected
-  and does not contain the current color/funny-level source wave; current-source capture waits
-  for the queued installer to publish.
+  [30641900455](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900455)
+  is queued and installer [30641900242](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900242)
+  is queued. b77 is the latest public release, but its build source is `8f499ebb8954` while
+  its tag resolves to `464c7d…`, and its package lacks the translator and feature guide.
+  Current-source capture therefore waits for a correctly bound installer; the workflow now
+  passes `--target ${{ github.sha }}` and verifies the tag after publishing.
 - It published non-draft release
   [`tb-155.0a1-b54-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok)
   with a real Windows installer built from the exact source SHA. The b54 package

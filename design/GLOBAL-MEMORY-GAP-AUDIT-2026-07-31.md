@@ -6,7 +6,9 @@ snapshot or CSS token is not counted as a shipped interaction.
 
 ## Baseline
 
-- Current public artifact: `tb-155.0a1-b75-lin-yung-bao` (real installer; its embedded preview is older than the current c618 source wave).
+- Current public artifact: `tb-155.0a1-b77-zaa-leung` (real installer; its release body names
+  `8f499ebb89541970de250ca9a6b2200d7b054784`, its tag resolves to `464c7d…`, and its embedded
+  preview is older than the current c618/feature-guide source wave).
 - Current main source: `464c7d24836af2856bebecc7bdbc5746019af444`.
 - The seven Material sheets are packaged byte-for-byte in that artifact.
 - Current implementation boundary: CSS plus the packaged Material preview scripts;

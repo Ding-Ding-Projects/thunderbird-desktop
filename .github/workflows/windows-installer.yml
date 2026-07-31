@@ -646,9 +646,14 @@ jobs:
           # immediately-visible release.
           gh release create "$tag" "${{ steps.find.outputs.installer }}" `
             --repo "${{ github.repository }}" `
+            --target "${{ github.sha }}" `
             --title "$title" `
             --notes "$notes" `
             --latest
+          $tagSha = (gh api "repos/${{ github.repository }}/git/ref/tags/$tag" --jq '.object.sha').Trim()
+          if ($tagSha -ne "${{ github.sha }}") {
+            throw "Release tag $tag points at $tagSha, expected build commit ${{ github.sha }}"
+          }
           Write-Host "Published $tag ($($dish.en) / $($dish.zh))"
           "### $($dish.emoji) Released ``$tag`` — $($dish.en) · $($dish.zh)" >> $env:GITHUB_STEP_SUMMARY
 

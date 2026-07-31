@@ -7,7 +7,7 @@ Integration target: **`main`**. Scope: **Windows only**.
 
 > **Current shipped scope is a CSS-layer restyle plus a packaged Material Mail runtime preview.**
 > The preview is the first rewrite vertical slice; it does not yet replace the upstream
-> 3-pane or close the full global-memory feature contract. Windows CI has published b75,
+> 3-pane or close the full global-memory feature contract. Windows CI has published b77,
 > while the committed genuine headless captures below are from b66 and the broad
 > browser suites remain red. Read `ROADMAP.md` before treating any evidence as release sign-off.
 
@@ -50,13 +50,15 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, full app-wide
   feature wiring and manual visual sign-off are absent, and the upstream 3-pane remains
   behavior-compatible rather than fully replaced. See `ROADMAP.md` §"What is explicitly NOT done".
-- **Current source push:** `464c7d24836af2856bebecc7bdbc5746019af444` adds the searchable 14-entry
+- **Current source push:** `f5cb642acce232450764e884e7bf69b32af9c508` documents the searchable 14-entry
   feature guide on top of the funny-level wiring.
-  Windows installer run [30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
-  is queued and lint [30641803695](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803695)
-  is queued. b75 is the latest real public release, but its embedded preview was inspected
-  and does not contain the current color/funny-level source wave; new captures remain pending
-  against the current-source artifact.
+  Installer run [30641900242](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900242)
+  and lint [30641900455](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900455)
+  are queued. b77 is the latest public release, but its build notes identify source
+  `8f499ebb89541970de250ca9a6b2200d7b054784` while its tag points at `464c7d…`; the
+  extracted installer also lacks `materialMailColor.mjs` and the feature guide. The release
+  workflow now binds tags to the build SHA and verifies that binding; new captures remain
+  pending against a correctly bound artifact.
 
 ## Runtime Material vertical slice
 
@@ -113,7 +115,8 @@ not evidence for current runtime coverage.
 
 ### Current CI evidence
 
-Build 70 is the latest release with a fully recorded installer digest in this manifest
+Build 70 remains the latest release with a fully recorded installer digest from an exact
+source match in this manifest
 [`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok),
 published by installer run [30635599917](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599917)
 from exact main SHA `5a4f35f3ba36`. The real asset is 85,328,686 bytes with SHA-256
@@ -146,6 +149,11 @@ a mounted continuous color translator, funny-level-driven copy, and a serialized
 [`design/evidence/manifest.json`](evidence/manifest.json) until installer run
 [30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
 produces the real artifact. Source checks are not substituted for screenshots.
+
+The later public b77 release is recorded as a source/package mismatch: its release body
+names build source `8f499ebb89541970de250ca9a6b2200d7b054784`, its tag currently resolves
+to `464c7d…`, and its extracted package lacks the current translator and guide. It is not
+used as current-source evidence.
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
 matching `design/app-data.js`. The corrected authored suite result is **186 passed / 0 failed /
