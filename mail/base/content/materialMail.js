@@ -20,11 +20,14 @@ const NOTIFICATION_SEED = Object.freeze([
   { id: "browser-proof", kind: "info", unread: true, title: ["Browser proof has a known boundary", "Browser 證據有已知邊界"], detail: ["The authored Material test is recorded separately from remaining legacy-suite failures.", "authored Material test 同其餘 legacy suite failure 分開記錄。"] },
   { id: "release-queue", kind: "warning", unread: true, title: ["Release workflow is queued", "Release workflow 排緊隊"], detail: ["The installer is public only when the release asset exists; queued CI is not called green.", "只有 release asset 存在先叫公開；排緊隊嘅 CI 唔會扮綠燈。"] },
 ]);
+const APPEARANCE_KEY = "mail.material.preview.appearance";
 
 let settings = { ...DEFAULTS };
 let historyRecords = [];
 let notificationRecords = [];
 let notificationFilter = "all";
+let appearanceOverrides = {};
+let appearanceTarget = null;
 const searchState = Object.create(null);
 const historyActionSelection = new Set();
 
@@ -51,6 +54,8 @@ function readNotifications() {
     notificationRecords = Array.isArray(stored) && stored.length ? stored : [...NOTIFICATION_SEED];
   } catch (error) { notificationRecords = [...NOTIFICATION_SEED]; }
 }
+function readAppearance() { try { appearanceOverrides = JSON.parse(localStorage.getItem(APPEARANCE_KEY) || "{}"); } catch (error) { appearanceOverrides = {}; } }
+function saveAppearance() { try { localStorage.setItem(APPEARANCE_KEY, JSON.stringify(appearanceOverrides)); } catch (error) { showToast("Appearance could not be persisted locally."); } }
 function saveNotifications() { try { localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(notificationRecords)); } catch (error) { /* Notification history remains usable. */ } }
 function saveHistory() { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(historyRecords.slice(0, 100))); } catch (error) { /* History never blocks the user operation. */ } }
 function recordRevision(action, title, detail) {
@@ -193,7 +198,51 @@ function maybeShowDimsum() {
   surprise.hidden = false;
   document.getElementById("mm-dimsum-dismiss").addEventListener("click", () => { surprise.hidden = true; });
 }
+function appearanceKey(target) {
+  if (!target.dataset.appearanceKey) target.dataset.appearanceKey = target.id || `element-${[...document.querySelectorAll(".mm-card, .mm-tab, .mm-appbar, .mm-search-field")].indexOf(target)}`;
+  return target.dataset.appearanceKey;
+}
+function hexFromCss(value, fallback) { const match = text(value).match(/rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)/i); if (match) return `#${[match[1], match[2], match[3]].map(part => Number(part).toString(16).padStart(2, "0")).join("")}`; return /^#[0-9a-f]{6}$/i.test(value) ? value : fallback; }
+function applyAppearance(target) {
+  const value = appearanceOverrides[appearanceKey(target)];
+  if (!value) return;
+  for (const [name, cssValue] of Object.entries(value)) target.style.setProperty(name, cssValue);
+}
+function applyAllAppearance() { document.querySelectorAll(".mm-card, .mm-tab, .mm-appbar, .mm-search-field").forEach(applyAppearance); }
+function openAppearance(target, x = 24, y = 24) {
+  appearanceTarget = target;
+  target.classList.add("mm-appearance-target");
+  const key = appearanceKey(target);
+  const value = appearanceOverrides[key] || {};
+  const computed = getComputedStyle(target);
+  const surface = hexFromCss(value["--mm-custom-bg"] || computed.backgroundColor, "#f3edf7");
+  const foreground = hexFromCss(value["--mm-custom-fg"] || computed.color, "#1d1b20");
+  document.getElementById("mm-appearance-target").textContent = `${target.id || target.className} · ${key}`;
+  document.getElementById("mm-appearance-surface").value = surface; document.getElementById("mm-appearance-surface-text").value = surface;
+  document.getElementById("mm-appearance-text").value = foreground; document.getElementById("mm-appearance-text-text").value = foreground;
+  document.getElementById("mm-appearance-radius").value = value["--mm-custom-radius"]?.replace("px", "") || 16;
+  document.getElementById("mm-appearance-font-size").value = value["--mm-custom-size"]?.replace("px", "") || 14;
+  document.getElementById("mm-appearance-weight").value = value["--mm-custom-weight"] || 400;
+  document.getElementById("mm-appearance-radius-value").textContent = `${document.getElementById("mm-appearance-radius").value}px`;
+  document.getElementById("mm-appearance-font-size-value").textContent = `${document.getElementById("mm-appearance-font-size").value}px`;
+  const editor = document.getElementById("mm-appearance-editor"); editor.hidden = false; editor.style.left = `${Math.max(12, Math.min(x, innerWidth - 360))}px`; editor.style.top = `${Math.max(12, Math.min(y, innerHeight - 520))}px`;
+  document.getElementById("mm-appearance-surface").focus();
+}
+function updateAppearance(name, value, textId = null) { if (!appearanceTarget) return; const key = appearanceKey(appearanceTarget); appearanceOverrides[key] = { ...(appearanceOverrides[key] || {}), [name]: value }; appearanceTarget.style.setProperty(name, value); saveAppearance(); if (textId) document.getElementById(textId).value = value; }
+function bindAppearance() {
+  const editor = document.getElementById("mm-appearance-editor");
+  document.addEventListener("contextmenu", event => { const target = event.target.closest(".mm-card, .mm-tab, .mm-appbar, .mm-search-field"); if (!target || editor.contains(target)) return; event.preventDefault(); openAppearance(target, event.clientX, event.clientY); });
+  document.addEventListener("keydown", event => { if (event.key !== "F10" || !event.shiftKey) return; const target = event.target.closest?.(".mm-card, .mm-tab, .mm-appbar, .mm-search-field"); if (!target) return; event.preventDefault(); const rect = target.getBoundingClientRect(); openAppearance(target, rect.left, rect.bottom + 8); });
+  document.getElementById("mm-appearance-close").addEventListener("click", () => { editor.hidden = true; appearanceTarget?.focus?.(); });
+  for (const [id, name, textId] of [["mm-appearance-surface", "--mm-custom-bg", "mm-appearance-surface-text"], ["mm-appearance-text", "--mm-custom-fg", "mm-appearance-text-text"]]) document.getElementById(id).addEventListener("input", event => { updateAppearance(name, event.target.value); document.getElementById(textId).value = event.target.value; });
+  for (const [id, name, output] of [["mm-appearance-radius", "--mm-custom-radius", "mm-appearance-radius-value"], ["mm-appearance-font-size", "--mm-custom-size", "mm-appearance-font-size-value"]]) document.getElementById(id).addEventListener("input", event => { updateAppearance(name, `${event.target.value}px`); document.getElementById(output).textContent = `${event.target.value}px`; });
+  document.getElementById("mm-appearance-weight").addEventListener("change", event => updateAppearance("--mm-custom-weight", event.target.value));
+  for (const [id, colorId, name] of [["mm-appearance-surface-text", "mm-appearance-surface", "--mm-custom-bg"], ["mm-appearance-text-text", "mm-appearance-text", "--mm-custom-fg"]]) document.getElementById(id).addEventListener("change", event => { if (!/^#[0-9a-f]{6}$/i.test(event.target.value)) return; document.getElementById(colorId).value = event.target.value; updateAppearance(name, event.target.value); });
+  document.getElementById("mm-appearance-reset").addEventListener("click", () => { if (!appearanceTarget) return; const key = appearanceKey(appearanceTarget); delete appearanceOverrides[key]; for (const name of ["--mm-custom-bg", "--mm-custom-fg", "--mm-custom-radius", "--mm-custom-size", "--mm-custom-weight"]) appearanceTarget.style.removeProperty(name); saveAppearance(); openAppearance(appearanceTarget); showToast("Element appearance reset · 元素外觀已重設"); });
+  document.getElementById("mm-appearance-reset-all").addEventListener("click", () => { appearanceOverrides = {}; document.querySelectorAll(".mm-card, .mm-tab, .mm-appbar, .mm-search-field").forEach(target => { for (const name of ["--mm-custom-bg", "--mm-custom-fg", "--mm-custom-radius", "--mm-custom-size", "--mm-custom-weight"]) target.style.removeProperty(name); }); saveAppearance(); editor.hidden = true; showToast("All appearance overrides reset · 所有外觀覆寫已重設"); });
+  applyAllAppearance();
+}
 window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); if (key === "notifications") renderNotifications(); };
 window.mmSearchState = searchState;
 
-document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); bindTabs(); bindSettings(); bindDataSurfaces(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });
+document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); bindTabs(); bindSettings(); bindDataSurfaces(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });

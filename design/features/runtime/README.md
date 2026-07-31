@@ -13,6 +13,7 @@ counted as a completed replacement for Thunderbird behavior.
 | Local history surface | [local-history.md](local-history.md) | `browser_m3MaterialMail.js`, local persistence boundary |
 | Notification centre | [notification-centre.md](notification-centre.md) | `browser_m3MaterialMail.js`, packaged browser run |
 | Dim-sum surprise | [dim-sum-surprise.md](dim-sum-surprise.md) | static packaging verifier, built-artifact probabilistic capture pending |
+| Appearance editor foundation | [appearance-editor.md](appearance-editor.md) | static verifier and packaged browser entry-path test |
 
 ## Shared verification rule
 

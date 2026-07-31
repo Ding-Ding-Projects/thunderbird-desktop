@@ -154,7 +154,7 @@ the following design-folder surfaces or their required behavior:
 | Notifications and notification history | Upstream notifications only | Add non-blocking toast stack plus a reviewable centre/history. |
 | Dim-sum startup delight | Packaged Classic har gow local image, first-run suppression, opt-out, and 1% non-blocking draw | Add the full catalog rotation, release-code-name display, and deterministic built-artifact capture. |
 | Anchored regex builder | Design component only | Implement the full local builder and bind an independent instance to every search field. |
-| Appearance editor and infinite color translator | Token CSS only | Add per-element anchored editing, Word-depth typography, color-space translation, persistence, presets, import/export, and reset. |
+| Appearance editor and infinite color translator | Packaged anchored editor foundation for local target overrides | Add every-element coverage, Word-depth typography, full color-space translation, persistence presets, import/export, and reset depth. |
 | Browser-style tabs | Existing Thunderbird tabs, no design parity | Add overflow, reorder, pinning, grouping, four tab searches, and safe bulk-close actions. |
 | External editor integration | Not present in the Material layer | Add editor discovery, selection, persistence, and graceful failure. |
 | Local Git-backed history | Not present in the Material layer | Snapshot every user-managed record and setting, with diff, restore-as-new-revision, retention, and export. |

@@ -24,7 +24,7 @@ snapshot or CSS token is not counted as a shipped interaction.
 | GM-04 | Non-blocking notifications plus history/centre | Packaged local notification centre with search, regex builder, all/unread/dismissed filters, and retained dismissal state; upstream event wiring remains open | Partial / open |
 | GM-05 | One-percent local dim-sum startup card and opt-out | Packaged Classic har gow catalog image, first-run suppression, persisted opt-out, and 1% non-blocking draw | Partial / open: probabilistic built-artifact capture pending |
 | GM-06 | Full anchored regex builder on every search bar | `design/runtime/regex/` module and packaged preview entry point | Foundation shipped; every app search surface open |
-| GM-07 | Per-element appearance editor and Word-depth typography | M3 tokens and CSS only | Open |
+| GM-07 | Per-element appearance editor and Word-depth typography | Packaged anchored editor foundation with persisted per-target color/radius/size/weight and reset; Word-depth typography remains open | Partial / open |
 | GM-08 | Continuous color picker and bidirectional color-space translator | No runtime picker | Open |
 | GM-09 | Browser tabs with overflow, pinning, grouping, four searches, and bulk-close preview | Existing Thunderbird tab behavior; no target design feature set | Open |
 | GM-10 | External editor discovery and persisted choice | No Material integration | Open |

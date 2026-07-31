@@ -49,6 +49,12 @@ add_task(async function testMaterialMailPreviewSurface() {
     "mm-history-to",
     "mm-changelog-export",
     "mm-history-export",
+    "mm-appearance-editor",
+    "mm-appearance-surface",
+    "mm-appearance-text",
+    "mm-appearance-radius",
+    "mm-appearance-font-size",
+    "mm-appearance-weight",
   ]) {
     Assert.ok(page.getElementById(id), `${id} is present in the runtime feature surface`);
   }
@@ -102,5 +108,12 @@ add_task(async function testMaterialMailPreviewSurface() {
     page.getElementById("mm-notification-list").querySelectorAll("article").length,
     2,
     "Notifications filter exposes unread records"
+  );
+
+  const appearanceTarget = page.querySelector(".mm-card");
+  appearanceTarget.dispatchEvent(new page.defaultView.MouseEvent("contextmenu", { bubbles: true, clientX: 40, clientY: 40 }));
+  Assert.ok(
+    !page.getElementById("mm-appearance-editor").hidden,
+    "Context menu opens the anchored appearance editor"
   );
 });
