@@ -86,8 +86,8 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   the upstream check is **113 ahead / 0 behind**. Lint
   [30641900455](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900455)
   is queued and installer [30641900242](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900242)
-  is queued. b77 is the latest public release, but its build source is `8f499ebb8954` while
-  its tag resolves to `464c7d…`, and its package lacks the translator and feature guide.
+  is queued. b79 is the latest public release, but its build source is `1e86330431a7` while
+  its tag resolves to `f5cb642…`; it is an older source boundary, not current-source proof.
   Current-source capture therefore waits for a correctly bound installer; the workflow now
   passes `--target ${{ github.sha }}` and verifies the tag after publishing.
 - It published non-draft release

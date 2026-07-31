@@ -34,11 +34,10 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `8795330528` contains the exact logs. These results do not promote parity, accessibility,
 > layout, or visual sign-off.
 >
-> The public latest release is [`tb-155.0a1-b77-zaa-leung`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b77-zaa-leung),
-> a real 85,332,926-byte installer. Its release body names build source
-> `8f499ebb89541970de250ca9a6b2200d7b054784`, but the tag resolves to
-> `464c7d24836af2856bebecc7bdbc5746019af444`; extracted `omni.ja` lacks
-> `materialMailColor.mjs` and the 14-entry feature guide. It is therefore not
+> The public latest release is [`tb-155.0a1-b79-no-mai-chi`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b79-no-mai-chi),
+> a real 87,722,579-byte installer. Its release body names build source
+> `1e86330431a76fd87dcf9c1ebe4f87e836dd6dde`, but the tag resolves to
+> `f5cb642acce232450764e884e7bf69b32af9c508`; it is therefore not
 > current-source proof. The release workflow now passes `--target ${{ github.sha }}` and
 > verifies the published tag; the next correctly bound installer is required before capture.
 

@@ -7,7 +7,7 @@ Integration target: **`main`**. Scope: **Windows only**.
 
 > **Current shipped scope is a CSS-layer restyle plus a packaged Material Mail runtime preview.**
 > The preview is the first rewrite vertical slice; it does not yet replace the upstream
-> 3-pane or close the full global-memory feature contract. Windows CI has published b77,
+> 3-pane or close the full global-memory feature contract. Windows CI has published b79,
 > while the committed genuine headless captures below are from b66 and the broad
 > browser suites remain red. Read `ROADMAP.md` before treating any evidence as release sign-off.
 
@@ -54,9 +54,9 @@ Integration target: **`main`**. Scope: **Windows only**.
   feature guide on top of the funny-level wiring.
   Installer run [30641900242](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900242)
   and lint [30641900455](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641900455)
-  are queued. b77 is the latest public release, but its build notes identify source
-  `8f499ebb89541970de250ca9a6b2200d7b054784` while its tag points at `464c7d…`; the
-  extracted installer also lacks `materialMailColor.mjs` and the feature guide. The release
+  are queued. b79 is the latest public release, but its build notes identify source
+  `1e86330431a76fd87dcf9c1ebe4f87e836dd6dde` while its tag points at `f5cb642…`; the
+  extracted installer is an older source boundary and is not current-source proof. The release
   workflow now binds tags to the build SHA and verifies that binding; new captures remain
   pending against a correctly bound artifact.
 
@@ -150,10 +150,9 @@ a mounted continuous color translator, funny-level-driven copy, and a serialized
 [30641803803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30641803803)
 produces the real artifact. Source checks are not substituted for screenshots.
 
-The later public b77 release is recorded as a source/package mismatch: its release body
-names build source `8f499ebb89541970de250ca9a6b2200d7b054784`, its tag currently resolves
-to `464c7d…`, and its extracted package lacks the current translator and guide. It is not
-used as current-source evidence.
+The later public b79 release is recorded as a source/package mismatch: its release body
+names build source `1e86330431a76fd87dcf9c1ebe4f87e836dd6dde`, its tag currently resolves
+to `f5cb642…`, and it is not used as current-source evidence.
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
 matching `design/app-data.js`. The corrected authored suite result is **186 passed / 0 failed /

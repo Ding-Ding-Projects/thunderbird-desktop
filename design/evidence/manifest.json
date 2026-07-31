@@ -46,21 +46,21 @@
     },
     "latestPublicRelease": {
       "status": "mismatched",
-      "build": 77,
-      "tag": "tb-155.0a1-b77-zaa-leung",
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b77-zaa-leung",
-      "sourceCommit": "8f499ebb89541970de250ca9a6b2200d7b054784",
-      "tagCommit": "464c7d24836af2856bebecc7bdbc5746019af444",
+      "build": 79,
+      "tag": "tb-155.0a1-b79-no-mai-chi",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b79-no-mai-chi",
+      "sourceCommit": "1e86330431a76fd87dcf9c1ebe4f87e836dd6dde",
+      "tagCommit": "f5cb642acce232450764e884e7bf69b32af9c508",
       "buildRun": {
-        "runId": 30637724773,
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30637724773"
+        "runId": 30638099607,
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30638099607"
       },
       "asset": {
         "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-        "sizeBytes": 85332926,
-        "sha256": "999b5ab91439ef39586cf5e741a9815b511375eb35dc2dae9519a812cc6b25a8"
+        "sizeBytes": 87722579,
+        "sha256": "d97ba4f14f4798c2f617123f849fd960d4dbb51c5472f4ff91746299b4d3a459"
       },
-      "packageInspection": "The downloaded asset was extracted and launched headlessly; its embedded omni.ja contained neither materialMailColor.mjs nor the 14-entry feature guide. The release body names source 8f499ebb89541970de250ca9a6b2200d7b054784 while the tag resolves to 464c7d24836af2856bebecc7bdbc5746019af444, so b77 is not current-source evidence."
+      "packageInspection": "The release body names source 1e86330431a76fd87dcf9c1ebe4f87e836dd6dde while the tag resolves to f5cb642acce232450764e884e7bf69b32af9c508, so b79 is not current-source evidence."
     },
     "browserRun": {
       "status": "failed",
