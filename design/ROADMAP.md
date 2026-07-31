@@ -26,8 +26,9 @@ Mail, Settings, Changelog, History, Notifications, and Tools pages. It uses the
 design token layer, persists appearance/language/funny-level/narrator controls,
 provides searchable/date-filtered Changelog and History surfaces, retained
 Notifications, a catalog-backed dim-sum draw, anchored appearance editing with a
-mounted continuous color translator, and packages independent anchored regex
-builders. `verify-material-preview.py` and the
+mounted continuous color translator, fact-preserving funny-level copy wiring,
+and packages independent anchored regex builders. `verify-material-preview.py`
+and the
 module test suites pass. This is an implementation milestone, not completion:
 the existing upstream 3-pane still owns mail behavior, and every remaining gap
 in `GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md` stays open until wired to real data and
@@ -80,11 +81,11 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   installer attached, tagged monotonically off `run_number` and code-named from a
   16-dish dim sum rotation.
 - Every release states that it is an unofficial fork build.
-- The current source/runtime baseline is `8a16241646b7ea9cc07bf6729e8d9645e0252fb1`:
-  the upstream check is **107 ahead / 0 behind**. Lint
-  [30640046429](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640046429)
-  and installer [30640046453](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640046453)
-  are queued; b72 remains the latest verified public release until a newer installer
+- The current source/runtime baseline is `c618a3643d02a7499fa949f2a6ab52e80a094800`:
+  the upstream check is **110 ahead / 0 behind**. Lint
+  [30640642457](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642457)
+  is pending and installer [30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
+  is queued; b72 remains the latest verified public release until a newer installer
   actually publishes.
 - It published non-draft release
   [`tb-155.0a1-b54-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok)

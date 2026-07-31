@@ -50,10 +50,11 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, full app-wide
   feature wiring and manual visual sign-off are absent, and the upstream 3-pane remains
   behavior-compatible rather than fully replaced. See `ROADMAP.md` §"What is explicitly NOT done".
-- **Current source push:** `8a16241646b7ea9cc07bf6729e8d9645e0252fb1` adds the mounted local
-  color translator. Windows installer run [30640046453](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640046453)
-  is queued, so b72 remains the latest verified public release and new color-picker captures
-  are not yet runtime evidence.
+- **Current source push:** `c618a3643d02a7499fa949f2a6ab52e80a094800` wires both funny levels into
+  fact-preserving runtime copy. Windows installer run [30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
+  is queued and lint [30640642457](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642457)
+  is pending, so b72 remains the latest verified public release and new captures are not yet
+  runtime evidence.
 
 ## Runtime Material vertical slice
 
@@ -89,7 +90,7 @@ Feature articles are indexed in [`features/runtime/README.md`](features/runtime/
 
 The complete surface inventory is machine-readable in
 [`evidence/manifest.json`](evidence/manifest.json). It is anchored to the current
-main evidence source commit `8a16241646b7ea9cc07bf6729e8d9645e0252fb1` and covers
+main evidence source commit `c618a3643d02a7499fa949f2a6ab52e80a094800` and covers
 both classes of surface from the audit:
 
 - **Runtime-reachable:** the 3-pane shell and layouts; folder pane and its context
@@ -139,9 +140,9 @@ in the manifest and committed below; none is a full visual sign-off.
 
 The current source wave adds Changelog/History filters and export, retained
 Notifications, catalog-backed dim-sum startup, an anchored appearance editor,
-a mounted continuous color translator, and a serialized narrator. Their evidence is explicitly `capture-pending` in
+a mounted continuous color translator, funny-level-driven copy, and a serialized narrator. Their evidence is explicitly `capture-pending` in
 [`design/evidence/manifest.json`](evidence/manifest.json) until installer run
-[30640046453](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640046453)
+[30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
 produces the real artifact. Source checks are not substituted for screenshots.
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
@@ -162,7 +163,7 @@ the following design-folder surfaces or their required behavior:
 |---|---|---|
 | Material landing page and in-app documentation | Design-only snapshot | Add a real local landing/documentation surface that enumerates every feature and links to detailed articles. |
 | English / playful HK Cantonese / bilingual modes | Existing Thunderbird localization only | Add persisted mode selection and compact bilingual rendering for the new Material surfaces. |
-| Independent funny-level sliders | Missing | Add persisted English and Cantonese levels 1–5 and apply them to all user-facing copy without changing facts. |
+| Independent funny-level sliders | Packaged runtime persists both levels and applies fact-preserving variants to preview messages, entries, notifications, empty states, and exports | Wire the same tone policy into all Thunderbird app-wide events/errors and obtain built-artifact captures. |
 | Notifications and notification history | Upstream notifications only | Add non-blocking toast stack plus a reviewable centre/history. |
 | Dim-sum startup delight | Packaged Classic har gow local image, first-run suppression, opt-out, and 1% non-blocking draw | Add the full catalog rotation, release-code-name display, and deterministic built-artifact capture. |
 | Anchored regex builder | Design component only | Implement the full local builder and bind an independent instance to every search field. |

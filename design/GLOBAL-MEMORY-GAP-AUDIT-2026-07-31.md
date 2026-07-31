@@ -7,7 +7,7 @@ snapshot or CSS token is not counted as a shipped interaction.
 ## Baseline
 
 - Current shipped artifact: `tb-155.0a1-b72-pai-gwat`.
-- Current main source: `8a16241646b7ea9cc07bf6729e8d9645e0252fb1`.
+- Current main source: `c618a3643d02a7499fa949f2a6ab52e80a094800`.
 - The seven Material sheets are packaged byte-for-byte in that artifact.
 - Current implementation boundary: CSS plus the packaged Material preview scripts;
   upstream behavior and the 3-pane markup are preserved.
@@ -20,7 +20,7 @@ snapshot or CSS token is not counted as a shipped interaction.
 |---|---|---|---|
 | GM-01 | Local Material landing page enumerating every feature and hosting its docs | Packaged Material preview exists; full landing/docs surface remains separate | Partial / open |
 | GM-02 | Persisted English, playful HK Cantonese, and bilingual modes | Preview controls plus `design/runtime/i18n/model.mjs` | Foundation shipped; app-wide wiring open |
-| GM-03 | Independent persisted funny sliders, levels 1–5, affecting all copy | Preview controls plus persisted tone model | Foundation shipped; app-wide copy wiring open |
+| GM-03 | Independent persisted funny sliders, levels 1–5, affecting all copy | Packaged runtime persists independent English/Cantonese levels, renders fact-preserving tone variants across Settings feedback, Changelog, History, Notifications, empty states, and exports, and browser assertions exercise both sliders | Partial / open: full Thunderbird app-wide event/error wiring and built-artifact capture remain open |
 | GM-04 | Non-blocking notifications plus history/centre | Packaged local notification centre with search, regex builder, all/unread/dismissed filters, and retained dismissal state; upstream event wiring remains open | Partial / open |
 | GM-05 | One-percent local dim-sum startup card and opt-out | Packaged Classic har gow catalog image, first-run suppression, persisted opt-out, and 1% non-blocking draw | Partial / open: probabilistic built-artifact capture pending |
 | GM-06 | Full anchored regex builder on every search bar | `design/runtime/regex/` module and packaged preview entry point | Foundation shipped; every app search surface open |
