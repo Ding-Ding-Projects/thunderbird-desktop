@@ -132,6 +132,13 @@ in the manifest and committed below; none is a full visual sign-off.
 | [`b66-material-tools.png`](screenshots/runtime/b66-material-tools.png) | Real b66 Tools tab with command palette, regex, and external-editor entry points. | Headless runtime capture |
 | [`b66-material-regex-builder.png`](screenshots/runtime/b66-material-regex-builder.png) | Real b66 anchored bilingual regex builder beside the Mail search field. | Headless runtime capture |
 
+The current source wave adds Changelog/History filters and export, retained
+Notifications, catalog-backed dim-sum startup, an anchored appearance editor,
+and a serialized narrator. Their evidence is explicitly `capture-pending` in
+[`design/evidence/manifest.json`](evidence/manifest.json) until installer run
+[30638425669](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30638425669)
+produces the real artifact. Source checks are not substituted for screenshots.
+
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
 matching `design/app-data.js`. The corrected authored suite result is **186 passed / 0 failed /
 13 TODO** with zero unexpected results. The broad legacy suite failures remain an explicit runtime boundary.

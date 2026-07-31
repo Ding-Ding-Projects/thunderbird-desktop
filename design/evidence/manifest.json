@@ -3,7 +3,7 @@
   "generatedAt": "2026-07-31",
   "repository": "Ding-Ding-Projects/thunderbird-desktop",
   "branch": "main",
-  "sourceCommit": "c8631c2b27f1defd75dd7e0d63ad689b0fbc6061",
+  "sourceCommit": "fb6c807863bae804af4d0c70c0644294b27de018",
   "scope": "Material Mail 3-pane source and design evidence",
   "implementationBoundary": {
     "changedFiles": [
@@ -13,7 +13,7 @@
       "design/screenshots/runtime/"
     ],
     "upstreamBehaviorOrMarkupChanged": false,
-    "runtimeEvidenceMode": "static inventory plus recorded CI facts and b66 headless captures; no clean visual sign-off"
+    "runtimeEvidenceMode": "static inventory plus recorded CI facts and b66 headless captures; latest Changelog/History/notification/dim-sum/appearance/narrator wave awaits built-artifact capture"
   },
   "globalMemoryGapAudit": {
     "path": "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md",
@@ -77,6 +77,24 @@
         "artifactId": 8791840623,
         "m3": { "passed": 119, "failed": 4, "todo": 13, "failingTest": "testM3DensityTokensFollowLiveAttributes" }
       }
+    },
+    "runtimeWaveEvidence": {
+      "sourceCommit": "fb6c807863bae804af4d0c70c0644294b27de018",
+      "buildRun": {
+        "runId": 30638425669,
+        "status": "queued",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30638425669"
+      },
+      "status": "capture-pending",
+      "note": "The latest source contains searchable/date-filtered Changelog and History, retained Notifications, catalog-backed dim-sum startup, anchored appearance editing, and serialized narrator foundations. Do not promote these surfaces to runtime sign-off until the real installer is built and captured.",
+      "surfaces": [
+        { "surface": "Changelog search/date/copy/export", "status": "capture-pending" },
+        { "surface": "History action/date/search/restore/export", "status": "capture-pending" },
+        { "surface": "Notifications search/dismissed history", "status": "capture-pending" },
+        { "surface": "Dim-sum startup card", "status": "capture-pending" },
+        { "surface": "Anchored appearance editor", "status": "capture-pending" },
+        { "surface": "Narrator settings", "status": "capture-pending" }
+      ]
     },
     "referenceAssets": [
       {
