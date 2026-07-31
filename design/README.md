@@ -49,6 +49,48 @@ Integration target: **`main`**. Scope: **Windows only**.
   visual sign-off is absent, and the markup rewrite itself has not started. See
   `ROADMAP.md` §"What is explicitly NOT done".
 
+## Evidence coverage
+
+The complete surface inventory is machine-readable in
+[`evidence/manifest.json`](evidence/manifest.json). It is anchored to the exact
+current `main` source commit `e4867411c3aa81de4527d843913b966d0ef89c1c` and covers
+both classes of surface from the audit:
+
+- **Runtime-reachable:** the 3-pane shell and layouts; folder pane and its context
+  menus; thread header/list and display, sort, and column menus; quick-filter bar
+  and menus; message-pane shell and findbars; application chrome, tabs, all-tabs,
+  tab-context, global-search and autocomplete popups; spaces/notifications; and
+  existing upstream dialogs/windows reached from the 3-pane.
+- **Design-only:** the Material Mail mail, settings, changelog, history, and
+  notification pages; command palette; searchable tab overlay; tab context menu;
+  compose dialog; anchored search/regex builder; and toast/dim-sum surfaces.
+
+Every manifest entry records its source path, selector or component anchor,
+command family, major states, and screenshot status. `screenshot: "missing"`
+means there is no surface-specific capture committed or mapped here; the existing
+`design/screenshots/mail-check.png` is retained as a `reference-only` asset and is
+not evidence for current runtime coverage.
+
+### Current CI evidence
+
+Build 54 is the non-draft release
+[`tb-155.0a1-b54-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok),
+published by the successful [Windows installer run 30625833498](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833498)
+with the installer from the exact source SHA above. The matching
+[browser run 30625878368](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368)
+completed with the packaged-CSS and chrome suites passing; the 3-pane, widgets,
+folder-pane, and project-authored M3 gates failed. The M3 gate recorded 137 checks,
+132 expected results, and 5 unexpected density-token results in
+`testM3DensityTokensFollowLiveAttributes`. Its
+[uploaded log artifact](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368/artifacts/8791840623)
+contains run-level logs and failure screenshots, but those screenshots have not
+been mapped to individual manifest surfaces, so the per-surface status remains
+**missing**.
+
+This evidence update changes documentation only. It does not touch upstream
+behavior or markup, and it is not a visual sign-off or a claim that the design-only
+surfaces exist in the desktop runtime.
+
 ## Design-to-shipped verification
 
 The design folder is the source of truth for Material values. The shipped CSS is

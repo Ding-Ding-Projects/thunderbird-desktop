@@ -1,0 +1,349 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-31",
+  "repository": "Ding-Ding-Projects/thunderbird-desktop",
+  "branch": "main",
+  "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+  "scope": "Material Mail 3-pane source and design evidence",
+  "implementationBoundary": {
+    "changedFiles": [
+      "design/evidence/manifest.json",
+      "design/README.md"
+    ],
+    "upstreamBehaviorOrMarkupChanged": false,
+    "runtimeEvidenceMode": "static inventory plus recorded CI facts; no local application launch"
+  },
+  "verification": {
+    "release": {
+      "status": "verified",
+      "build": 54,
+      "tag": "tb-155.0a1-b54-wu-gok",
+      "name": "🥔 Wu Gok · 芋角 — Thunderbird 155.0a1 (build 54)",
+      "publishedAt": "2026-07-31T11:23:00Z",
+      "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+      "buildRun": {
+        "runId": 30625833498,
+        "status": "passed",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833498"
+      },
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok",
+      "assets": [
+        {
+          "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
+          "sizeBytes": 85307604,
+          "sha256": "1a7b761e4d000c96193f04966ca2d3c71a99d0748ac0a1618e1ecbb4d8740ae2"
+        }
+      ]
+    },
+    "browserRun": {
+      "status": "failed",
+      "runId": 30625878368,
+      "event": "workflow_dispatch",
+      "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368",
+      "artifact": {
+        "name": "m3-browser-test-logs",
+        "id": 8791840623,
+        "sizeBytes": 504317,
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368/artifacts/8791840623"
+      },
+      "screenshotCapture": {
+        "status": "run-level-only",
+        "note": "The workflow used screenshot-on-fail and uploaded the artifact, but no surface-specific screenshot has been mapped into this repository manifest."
+      },
+      "suites": {
+        "3-pane": { "status": "failed", "unexpectedResults": null },
+        "widgets": { "status": "failed", "unexpectedResults": null },
+        "static-packaged-css": { "status": "passed", "unexpectedResults": 0 },
+        "folder-pane": { "status": "failed", "unexpectedResults": null },
+        "chrome": { "status": "passed", "unexpectedResults": 0 },
+        "project-authored-m3": {
+          "status": "failed",
+          "checks": 137,
+          "expectedResults": 132,
+          "unexpectedResults": 5,
+          "failingTest": "testM3DensityTokensFollowLiveAttributes"
+        }
+      }
+    },
+    "referenceAssets": [
+      {
+        "path": "design/screenshots/mail-check.png",
+        "status": "reference-only",
+        "note": "Existing design reference capture; not current-main runtime evidence and not reused as surface proof."
+      }
+    ]
+  },
+  "coverage": [
+    {
+      "id": "runtime.layout-shell",
+      "kind": "runtime",
+      "surface": "3-pane shell and layouts",
+      "source": [
+        { "path": "mail/base/content/about3Pane.xhtml", "line": 87 },
+        { "path": "mail/themes/shared/mail/m3-layout.css", "line": 112 }
+      ],
+      "selectors": ["#paneLayout", "#folderPane", "#threadPane", "#messagePane", "#folderPaneSplitter", "#messagePaneSplitter"],
+      "commands": ["cmd_viewClassicMailLayout", "cmd_viewVerticalMailLayout", "cmd_viewWideMailLayout", "cmd_toggleFolderPane", "cmd_toggleMessagePane"],
+      "states": ["classic", "vertical", "wide", "folder pane hidden", "message pane hidden", "splitter resized", "splitter collapsed", "stored-width restore"],
+      "evidence": { "source": "verified", "runtime": "not locally rerun", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.folder-pane",
+      "kind": "runtime",
+      "surface": "Folder pane",
+      "source": [
+        { "path": "mail/base/content/about3Pane.xhtml", "line": 88 },
+        { "path": "mail/themes/shared/mail/m3-folder-pane.css", "line": 110 }
+      ],
+      "selectors": ["#folderPane", "#folderPaneHeaderBar", "#folderTree", ".mode-container", ".container", ".unread-count", ".status-icon"],
+      "commands": ["cmd_getNewMessages", "cmd_newMessage", "cmd_newFolder", "cmd_deleteFolder", "cmd_renameFolder", "cmd_compactFolder", "cmd_favoriteFolder", "cmd_properties", "cmd_settings", "cmd_createFilterFromMenu", "cmd_manageTags"],
+      "states": ["all/smart/unread/favorite/recent/tags modes", "selected", "current", "unread", "new mail", "TLS error", "busy", "collapsed", "drag target", "drop target", "context-menu target", "empty filter result"],
+      "evidence": { "source": "verified", "runtime": "failed suite in b54; exact count not extracted", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.folder-menus",
+      "kind": "runtime",
+      "surface": "Folder context and mode menus",
+      "source": [
+        { "path": "mail/base/content/about3Pane.xhtml", "line": 386 },
+        { "path": "mail/themes/shared/mail/m3-folder-pane.css", "line": 745 }
+      ],
+      "selectors": ["#folderPaneContext", "#folderPaneMoreContext", "#folderPaneModeContext", "#folderPaneGetMessagesContext"],
+      "commands": ["cmd_getNewMessages", "cmd_newFolder", "cmd_deleteFolder", "cmd_renameFolder", "cmd_moveMessage", "cmd_copyMessage", "cmd_compactFolder", "cmd_markAllRead", "cmd_sendUnsentMsgs", "cmd_subscribe", "cmd_properties"],
+      "states": ["folder context", "folder modes submenu", "header visibility toggles", "count/path/local-folder toggles", "move/copy submenu", "get-all-messages menu"],
+      "evidence": { "source": "verified", "runtime": "failed folder suite in b54", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.thread-pane",
+      "kind": "runtime",
+      "surface": "Thread header and message list",
+      "source": [
+        { "path": "mail/base/content/about3Pane.xhtml", "line": 150 },
+        { "path": "mail/themes/shared/mail/m3-thread-pane.css", "line": 241 }
+      ],
+      "selectors": ["#threadPaneHeaderBar", "#threadPaneFolderName", "#threadPaneSelectedCount", "#threadTree", "[rows=thread-row]", "[rows=thread-card]", "#threadPaneNotificationBox"],
+      "commands": ["cmd_threadPaneViewTable", "cmd_threadPaneViewCards", "cmd_sort", "cmd_selectAll", "cmd_markAsRead", "cmd_markAsUnread", "cmd_markAsFlagged", "cmd_archive", "cmd_deleteMessage", "cmd_markAsJunk", "cmd_moveMessage", "cmd_copyMessage"],
+      "states": ["table view", "cards view", "selected", "current", "unread", "new", "dummy row", "threaded", "unthreaded", "grouped by sort", "no messages", "multiple folders", "notification bar"],
+      "evidence": { "source": "verified", "runtime": "failed 3-pane suite in b54", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.thread-menus",
+      "kind": "runtime",
+      "surface": "Thread display, sort, and column menus",
+      "source": [
+        { "path": "mail/base/content/about3Pane.xhtml", "line": 626 },
+        { "path": "mail/themes/shared/mail/m3-thread-pane.css", "line": 440 }
+      ],
+      "selectors": ["#threadPaneDisplayContext", "#menu_threadPaneSortPopup", ".menupopup-column-picker"],
+      "commands": ["cmd_threadPaneViewTable", "cmd_threadPaneViewCards", "cmd_sort", "threadPane.confirmApplyColumns", "threadPane.confirmApplyView"],
+      "states": ["table/cards choice", "15-field sort", "ascending/descending", "threaded/unthreaded/grouped-by-sort", "column picker", "apply to folder", "apply to folder and children"],
+      "evidence": { "source": "verified", "runtime": "not individually mapped in b54 artifact", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.quick-filter",
+      "kind": "runtime",
+      "surface": "Quick-filter bar",
+      "source": [
+        { "path": "mail/base/content/quickFilterBar.inc.xhtml", "line": 6 },
+        { "path": "mail/themes/shared/mail/m3-quick-filter.css", "line": 66 }
+      ],
+      "selectors": ["#quick-filter-bar", "#qfb-qs-textbox", "#qfb-sticky", "#qfd-dropdown", "#qfb-unread", "#qfb-starred", "#qfb-inaddrbook", "#qfb-tags", "#qfb-attachment", "#qfb-results-label"],
+      "commands": ["cmd_toggleQuickFilterBar", "cmd_find", "cmd_findAgain", "cmd_findPrevious"],
+      "states": ["hidden", "visible", "sticky", "text search", "sender/recipient/subject/body filters", "pressed filters", "searching", "no results", "tags row", "Gloda upsell"],
+      "evidence": { "source": "verified", "runtime": "failed folder suite in b54", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.quick-filter-menus",
+      "kind": "runtime",
+      "surface": "Quick-filter tag and button menus",
+      "source": [
+        { "path": "mail/base/content/quickFilterBar.inc.xhtml", "line": 78 },
+        { "path": "mail/themes/shared/mail/m3-quick-filter.css", "line": 785 }
+      ],
+      "selectors": ["#qfb-tag-filter-mode > menupopup", "#quickFilterButtonsContext"],
+      "commands": ["cmd_toggleQuickFilterBar"],
+      "states": ["any tags", "all tags", "no tags", "filter-button context"],
+      "evidence": { "source": "verified", "runtime": "not individually mapped in b54 artifact", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.message-pane",
+      "kind": "runtime",
+      "surface": "Message-pane shell and findbars",
+      "source": [
+        { "path": "mail/base/content/templates/messagePaneTemplate.inc.xhtml", "line": 5 },
+        { "path": "mail/themes/shared/mail/m3-message-pane.css", "line": 66 }
+      ],
+      "selectors": ["#messagePane", "#webBrowser", "#messageBrowser", "#multiMessageBrowser", "conversation-view", "#webBrowserFindToolbar", "#multiMessageViewFindToolbar"],
+      "commands": ["cmd_find", "cmd_findAgain", "cmd_findPrevious"],
+      "states": ["no selection watermark", "single message", "multi-message summary", "web browser", "account central", "conversation view", "findbar visible/hidden", "pane collapsed"],
+      "evidence": { "source": "verified", "runtime": "failed 3-pane suite in b54", "screenshot": "missing", "note": "The message body inside about:message is a separate document and is not covered by this stylesheet." }
+    },
+    {
+      "id": "runtime.chrome-tabs",
+      "kind": "runtime",
+      "surface": "Application chrome, toolbar, and tabs",
+      "source": [
+        { "path": "mail/base/content/messenger.xhtml", "line": 503 },
+        { "path": "mail/themes/shared/mail/m3-chrome.css", "line": 71 }
+      ],
+      "selectors": ["#navigation-toolbox", "#titlebar", "#toolbar-menubar", "#tabs-toolbar", "#tabmail-tabs", ".tabmail-tab", "#tabmail-arrowscrollbox", "#alltabs-button"],
+      "commands": ["cmd_close", "cmd_newMessage", "cmd_openMessage", "cmd_openConversation", "Browser:Back", "Browser:Forward"],
+      "states": ["selected/unselected tab", "hover", "focus-visible", "title changed", "loading", "close-on-hover", "overflow arrows", "all-tabs button"],
+      "evidence": { "source": "verified", "runtime": "passed chrome suite in b54", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.chrome-popups",
+      "kind": "runtime",
+      "surface": "All-tabs, tab-context, global-search, and autocomplete popups",
+      "source": [
+        { "path": "mail/base/content/messenger.xhtml", "line": 404 },
+        { "path": "mail/themes/shared/mail/m3-chrome.css", "line": 349 }
+      ],
+      "selectors": ["#alltabs-popup", "#tabContextMenu", "#PopupGlodaAutocomplete", "global-search-bar"],
+      "commands": ["Browser:Back", "Browser:Forward", "cmd_close"],
+      "states": ["all-tabs list", "selected tab row", "tab context menu", "global-search autocomplete", "selected result"],
+      "evidence": { "source": "verified", "runtime": "passed chrome suite in b54", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.spaces-notifications",
+      "kind": "runtime",
+      "surface": "Spaces toolbar and in-app notifications",
+      "source": [
+        { "path": "mail/base/content/messenger.xhtml", "line": 677 },
+        { "path": "mail/themes/shared/mail/m3-chrome.css", "line": 459 }
+      ],
+      "selectors": ["#spacesToolbar", ".spaces-toolbar-button", ".spaces-badge-container", "in-app-notification-container"],
+      "commands": ["cmd_newMessage", "cmd_close"],
+      "states": ["active/inactive space", "badge", "toolbar focus", "in-app notification"],
+      "evidence": { "source": "verified", "runtime": "passed chrome suite in b54", "screenshot": "missing" }
+    },
+    {
+      "id": "runtime.native-dialogs",
+      "kind": "runtime",
+      "surface": "Existing Thunderbird dialogs/windows reached from the 3-pane",
+      "source": [
+        { "path": "mail/base/content/mainCommandSet.inc.xhtml", "line": 13 },
+        { "path": "mail/base/content/mailCommon.js", "line": 90 },
+        { "path": "mail/base/content/mailContext.js", "line": 82 }
+      ],
+      "selectors": ["cmd_newMessage", "cmd_properties", "cmd_applyFilters", "cmd_openMessage", "cmd_openConversation"],
+      "commands": ["cmd_newMessage", "cmd_properties", "cmd_openMessage", "cmd_openConversation", "cmd_subscribe", "cmd_createFilterFromMenu"],
+      "states": ["compose window", "folder properties", "message search", "filter list", "subscribe/feed dialogs", "apply-column/view confirmations"],
+      "evidence": { "source": "verified", "runtime": "dialog opens are recorded in b54 logs, but no Material-specific screenshot is mapped", "screenshot": "missing", "note": "These are upstream surfaces; this task does not restyle or rewrite them." }
+    },
+    {
+      "id": "design.mail-page",
+      "kind": "design-only",
+      "surface": "Material Mail design mail page",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 31 }],
+      "selectors": ["role=tablist", "role=tabpanel", "SearchField", "role=listbox", "role=option"],
+      "commands": ["Compose", "Reply", "Reply all", "Forward", "Archive", "Delete", "Mark unread", "Open in external editor"],
+      "states": ["workspace tabs", "folder drawer", "folder/label search", "list search", "sort menu", "all/unread/starred/attachment filters", "selected/read/unread/starred/attachment rows", "detail", "no selection", "empty/no-match list", "inline reply/reply-all/forward", "draft/discard/send"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.settings-page",
+      "kind": "design-only",
+      "surface": "Settings page",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 309 }],
+      "selectors": ["settingsGroups", "SearchField", "role=group", "role=switch"],
+      "commands": ["Theme", "Accent colour", "Density", "Interface font", "Language mode", "Funny level", "Narrator", "Dim sum", "External editor", "History export"],
+      "states": ["appearance controls", "English/Cantonese/bilingual", "independent funny levels", "narrator on/off and language", "dim-sum toggle/preview", "editor choice/custom command", "history retention/export", "account address", "live preview", "search/no match"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.changelog-page",
+      "kind": "design-only",
+      "surface": "Changelog page",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 370 }],
+      "selectors": ["SearchField", "calendar", "releases"],
+      "commands": ["Search", "Date range", "Copy", "Export Markdown"],
+      "states": ["search", "regex mode", "typed dates", "invalid date", "calendar month navigation", "range selection", "presets", "filtered releases", "no match", "copy/export"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.history-page",
+      "kind": "design-only",
+      "surface": "Version-history page",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 451 }],
+      "selectors": ["SearchField", "revisions", "diff"],
+      "commands": ["Rename revision", "Restore revision", "Export history"],
+      "states": ["revision search", "revision list", "selected revision", "before/after diff", "restore-as-new-revision", "empty/no-match", "export"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.notifications-page",
+      "kind": "design-only",
+      "surface": "Notification-centre page",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 520 }],
+      "selectors": ["SearchField", "filters", "notification rows"],
+      "commands": ["All", "Success", "Info", "Warning", "Clear all"],
+      "states": ["all/success/info/warning filters", "notification rows", "empty", "no match"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.command-palette",
+      "kind": "design-only",
+      "surface": "Command palette",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 558 }],
+      "selectors": ["role=dialog", "SearchField", "palette results"],
+      "commands": ["Ctrl/Cmd+K", "navigation", "mail actions", "appearance", "language", "tools"],
+      "states": ["open", "keyboard-selected result", "empty result", "escape/close"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.tab-search",
+      "kind": "design-only",
+      "surface": "Searchable tab-list overlay",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 586 }],
+      "selectors": ["SearchField", "tabResults", "pin buttons"],
+      "commands": ["Search tabs", "Pin tab", "Unpin tab", "Move left", "Move right"],
+      "states": ["open", "hidden-tab result", "pinned/unpinned", "empty result", "drag/reorder context"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.tab-context-menu",
+      "kind": "design-only",
+      "surface": "Design tab context menu",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 611 }],
+      "selectors": ["role=menu", "role=menuitem"],
+      "commands": ["Pin tab", "Unpin tab", "Move left", "Move right"],
+      "states": ["open", "pinned target", "unpin target", "dismissed"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.compose-dialog",
+      "kind": "design-only",
+      "surface": "Design compose dialog",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 624 }],
+      "selectors": ["role=dialog", "To input", "Subject input", "Message textarea"],
+      "commands": ["Compose", "Save draft", "Cancel", "Send"],
+      "states": ["empty form", "edited form", "save draft", "cancel", "send"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.regex-builder",
+      "kind": "design-only",
+      "surface": "Anchored regex builder",
+      "source": [
+        { "path": "design/SearchField.dc.html", "line": 21 },
+        { "path": "design/RegexBuilder.dc.html", "line": 10 }
+      ],
+      "selectors": ["SearchField", "role=dialog", "pattern", "flags", "sample", "matches"],
+      "commands": ["Use regular expression", "Open regex builder", "Use in search", "Copy", "Export"],
+      "states": ["plain-text mode", "regex mode", "valid pattern", "invalid pattern", "no match", "zero-width match", "capture groups", "capped results"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    },
+    {
+      "id": "design.toast-dimsum",
+      "kind": "design-only",
+      "surface": "Toast stack and dim-sum surprise",
+      "source": [{ "path": "design/Material Mail.dc.html", "line": 654 }],
+      "selectors": ["aria-live=polite", "role=status", "dimsum status card"],
+      "commands": ["Undo", "Dismiss", "Show one now"],
+      "states": ["success/info/warning toast", "undo action", "dismissed notification", "1% startup dim sum", "manual dim-sum preview"],
+      "evidence": { "source": "verified", "designRender": "not run", "runtime": "not present in desktop markup", "screenshot": "missing" }
+    }
+  ]
+}
