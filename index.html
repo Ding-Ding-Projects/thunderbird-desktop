@@ -39,7 +39,7 @@
 
     <section class="hero">
       <h1>Material Mail</h1>
-      <p>A Material Design 3 CSS-layer restyle of Thunderbird's 3-pane, with a larger runtime rewrite tracked openly in the roadmap.</p>
+      <p>A Material Design 3 CSS-layer restyle of Thunderbird's 3-pane, now with a packaged Material Mail runtime preview and a larger rewrite tracked openly in the roadmap.</p>
       <p class="zh" lang="zh-HK">而家係 Thunderbird 三欄介面嘅 Material Design 3 CSS 外皮；更完整嘅 runtime 重寫照住 roadmap 公開追蹤。</p>
       <div class="cta">
         <a class="btn" href="docs.html">Read the docs</a>
@@ -64,22 +64,22 @@
             <tr><th>M3 token layer</th><td><span class="pill ok">landed</span> <code>material-tokens.css</code> — 24 tokens, 4 seeds × light/dark</td></tr>
             <tr><th>Section stylesheets</th><td><span class="pill ok">landed</span> — six <code>m3-*.css</code> files, 4,062 lines</td></tr>
             <tr><th>Feature parity</th><td><span class="pill">33 / 38</span> static contract boxes currently ticked in <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/main/design/REWRITE-CONTRACT.md">REWRITE-CONTRACT.md</a>; visual sign-off remains open</td></tr>
-            <tr><th>Windows installer</th><td><span class="pill ok">green</span> — build 59 <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b59-lin-yung-bao">🥮 Lin Yung Bao · 蓮蓉包</a>, 85,317,666 bytes, built by CI</td></tr>
+            <tr><th>Windows installer</th><td><span class="pill ok">green</span> — build 66 <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao">🍖 Char Siu Bao · 叉燒包</a>, 85,315,700 bytes, built by CI</td></tr>
             <tr><th>Lint CI</th><td><span class="pill ok">green</span> — stylelint + eslint, and its known-bad-file self-test passes</td></tr>
-            <tr><th>Run-time verification</th><td><span class="pill">partial</span> — hosted browser captures and a local headless b54 capture exist; browser gates remain red</td></tr>
+            <tr><th>Run-time verification</th><td><span class="pill">partial</span> — b66 headless captures cover every packaged preview page and the anchored regex builder; broad browser gates remain red</td></tr>
             <tr><th>Platform</th><td>Windows only — macOS/Linux paths untouched, not deleted</td></tr>
             <tr><th>Scope</th><td>~18,450 lines · 167 <code>cmd_*</code> commands, all to be preserved</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="secondary">The static contract is currently 33 / 38. The b59 installer is real; the final browser run is still being verified. Screenshots in the repository are labelled as evidence, diagnostics, or explicit gaps; none are silently promoted to sign-off.</p>
-      <p class="secondary zh" lang="zh-HK">靜態契約而家係 33 / 38。b59 installer 係真嘅；final browser run 仲驗緊。repo 入面啲截圖會標明係證據、診斷定明確 gap,唔會偷換成 sign-off。</p>
+      <p class="secondary">The static contract is currently 33 / 38. The b66 installer is real, and the preview captures are genuine but not a full sign-off; the authored browser check is being rerun after its privileged-chrome storage assertion was corrected.</p>
+      <p class="secondary zh" lang="zh-HK">靜態契約而家係 33 / 38。b66 installer 係真嘅，preview 截圖亦係真，但未係全套 sign-off；修正 privileged chrome storage assertion 後，authored browser check 正重新跑緊。</p>
     </div>
 
     <div class="card">
       <h2>Current evidence and rewrite ledger</h2>
-      <p>Five genuine runtime captures are mapped in the repository's <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/main/design/evidence/manifest.json">evidence manifest</a>:
-        three-pane shell, message pane, chrome, splitter diagnostics, and the upstream onboarding gap.</p>
+      <p>Twelve genuine runtime captures are mapped in the repository's <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/main/design/evidence/manifest.json">evidence manifest</a>:
+        five hosted diagnostics/gaps plus seven b66 headless Material Mail pages and the anchored regex builder.</p>
       <p>The refreshed global-memory requirements are tracked in the <a href="https://github.com/Ding-Ding-Projects/thunderbird-desktop/blob/main/design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md">rewrite gap audit</a>:
         language modes, funny sliders, notifications, dim sum, anchored regex builders, per-element appearance, tabs, history, changelog, and optional narration remain runtime work.</p>
       <p class="secondary zh" lang="zh-HK">五張真實 runtime capture 已經入 evidence manifest；global memory 更新要求嘅語言模式、funny slider、通知、點心、regex builder、逐元素外觀、tabs、history、changelog 同 narrator 就逐項列入 rewrite gap audit,仲未扮完成。</p>
