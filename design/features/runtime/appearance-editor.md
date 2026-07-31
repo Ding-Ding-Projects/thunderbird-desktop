@@ -10,7 +10,8 @@ key and the editor returns focus to the target when closed.
 
 ## Configuration
 
-Overrides are stored under `mail.material.preview.appearance`. The editor now
+Overrides are stored in the Thunderbird profile preference
+`mail.material.preview.appearance`. The editor now
 mounts a continuous local HSL control, direct entry for named/HEX/HEX8/RGB/A,
 HSL/A, HSV, HWB, CIELAB/LCH, OKLab/OKLCH, and CMYK, translated representations
 with copy actions, an sRGB clipping warning, and a live surface/text contrast
@@ -26,7 +27,7 @@ weight controls using the design folder's local palette/font choices.
   the source space and alpha are retained in the translated output.
 - Clipboard denial leaves the representation visible and reports a non-blocking
   notification instead of blocking color editing.
-- Storage failure leaves live edits usable for the session and reports a
+- Profile-preference failure leaves live edits usable for the session and reports a
   non-blocking status.
 - Viewport-edge placement is clamped inside the window; the editor never blocks
   the underlying page.

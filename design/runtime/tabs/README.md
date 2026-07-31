@@ -16,9 +16,9 @@ state and DOM measurement.
 - Describes every tab with active, pinned, and hidden metadata for an all-tabs
   search surface.
 
-The browser adapter owns local storage, element measurement, focus, events, and
-rendering. The model has no network, account, message, command, or filesystem
-access.
+The browser adapter owns the Thunderbird profile-preference boundary, element
+measurement, focus, events, and rendering. The model has no network, account,
+message, command, or filesystem access.
 
 ## Verification
 

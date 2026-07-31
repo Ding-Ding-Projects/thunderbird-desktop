@@ -23,7 +23,8 @@ second is why a static contract is not a release gate.
 
 The new `materialMail.xhtml`/`materialMail.js` surface is a real content tab with
 Mail, Settings, Changelog, History, Notifications, and Tools pages. It uses the
-design token layer, persists appearance/language/funny-level/narrator controls,
+design token layer, persists appearance/language/funny-level/narrator controls
+through Thunderbird profile preferences,
 provides searchable/date-filtered Changelog and History surfaces, retained
 Notifications, a catalog-backed dim-sum draw, anchored appearance editing with a
 mounted continuous color translator, fact-preserving funny-level copy wiring,
@@ -36,6 +37,16 @@ module test suites pass. This is an implementation milestone, not completion:
 the existing upstream 3-pane still owns mail behavior, and every remaining gap
 in `GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md` stays open until wired to real data and
 captured from the built application.
+
+The first hosted tab-wave browser run
+[`30666929947`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30666929947)
+rejected the runtime with **222 passed / 7 failed / 13 TODO**. The failures
+established that dynamically inserted settings/guide controls were absent when
+the packaged page bound them and that the test used an unavailable wait helper.
+The containing source moves those controls into static XHTML, uses the supported
+test helper, and replaces privileged-page `localStorage` with profile
+preferences. Those repairs remain pending exact-source hosted and installed-
+artifact proof rather than borrowing the failed run's partial passes.
 
 ---
 

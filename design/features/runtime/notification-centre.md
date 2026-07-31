@@ -9,13 +9,14 @@ keeps dismissed messages in local history instead of deleting them.
 
 ## Configuration
 
-Notification state is stored locally under `mail.material.preview.notifications`.
-The preview seed is fixture data; production notification sources still need to
-connect to Thunderbird's event pipeline and preserve the same review behavior.
+Notification state is stored in the Thunderbird profile preference
+`mail.material.preview.notifications`. The preview seed is fixture data;
+production notification sources still need to connect to Thunderbird's event
+pipeline and preserve the same review behavior.
 
 ## Failure modes
 
-- Local storage failure leaves the seeded stack visible and never blocks the
+- Profile-preference failure leaves the seeded stack visible and never blocks the
   underlying operation.
 - Invalid search patterns produce no matches through the bounded regex builder.
 - Dismissal changes only local notification state and can be reviewed again from

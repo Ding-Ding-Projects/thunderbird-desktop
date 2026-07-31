@@ -23,19 +23,21 @@ and safe containing/not-containing bulk-close previews remain explicit work.
 
 ## Configuration
 
-The runtime stores a versioned record under
-`mail.material.preview.tabs`. It contains only the active page id, ordered
+The runtime stores a versioned JSON record in Thunderbird's profile preferences
+under `mail.material.preview.tabs`. It contains only the active page id, ordered
 built-in ids, and pinned ids. Loading normalizes that record against the current
 built-in page inventory: unknown ids are dropped, missing ids are restored in
 their default order, duplicates are removed, and an invalid active id falls back
-to Mail.
+to Mail. A preference observer keeps another open preview synchronized without
+depending on `chrome://` page storage.
 
 Tab labels and page content remain local. The feature adds no account access,
 mail-server calls, remote fonts, remote images, analytics, or third-party code.
 
 ## Failure modes
 
-- Invalid or unavailable storage falls back to the complete default page order.
+- Invalid or unavailable profile preferences fall back to the complete default
+  page order.
 - A stale stored page id is discarded without hiding a current built-in page.
 - A narrow strip moves ordinary tabs to the overflow list; pinned tabs remain in
   their dedicated, horizontally reachable region and keep their full accessible
@@ -50,7 +52,8 @@ mail-server calls, remote fonts, remote images, analytics, or third-party code.
 
 Tab search evaluates bounded local visible labels only. It does not inspect page
 contents, hidden message data, accounts, credentials, files, or network content.
-Persisted data contains built-in page ids, not user mail or browsing history.
+Persisted profile data contains built-in page ids, not user mail or browsing
+history.
 
 ## Accessibility and verification
 
@@ -65,7 +68,7 @@ Verification is split deliberately:
 - `node --test design/runtime/tabs/tab-model.test.mjs` covers persisted-state
   normalization, moves, pins, and visible/overflow selection.
 - `python design/verify-material-preview.py` checks packaging, DOM hooks,
-  localization, independent regex wiring, and the storage contract.
+  localization, independent regex wiring, and the preference contract.
 - `browser_m3MaterialMail.js` exercises the packaged tab, popover, pin, move,
   context-menu, and focus paths.
 - Built-artifact captures for pinned, overflow, searched overflow, regex, and

@@ -1,6 +1,9 @@
 /* Material Mail runtime preview controls and local-first feature surfaces. */
 "use strict";
 
+const { Services: MaterialServices } = ChromeUtils.importESModule(
+  "resource://gre/modules/Services.sys.mjs"
+);
 const STORAGE_KEY = "mail.material.preview.settings";
 const HISTORY_KEY = "mail.material.preview.history";
 const NOTIFICATION_KEY = "mail.material.preview.notifications";
@@ -90,7 +93,7 @@ const FEATURE_ARTICLES = Object.freeze({
   },
   "design/features/runtime/local-history.md": {
     behavior: ["History renders append-only local revisions, composes action/date/search filters, and records restore as a new revision.", "歷史顯示只加不改本機版本，組合 action／日期／搜尋篩選，還原亦會新增版本。"],
-    configuration: ["Settings and history use separate local-storage namespaces, bounded to the newest 100 preview rows.", "設定同歷史用分開嘅 local-storage namespace，預覽歷史最多保留最新 100 行。"],
+    configuration: ["Settings and history use separate Thunderbird profile preferences, bounded to the newest 100 preview rows.", "設定同歷史用分開嘅 Thunderbird profile preferences，預覽歷史最多保留最新 100 行。"],
     failure: ["Unavailable storage keeps fixture rows usable, and a failed history write never fails the setting or restore operation.", "儲存唔得時 fixture 行仍可用，歷史寫入失敗亦唔會令設定或還原操作失敗。"],
     security: ["Preview rows are fixture descriptions only; production history must preserve encryption and stable authenticated-data binding.", "預覽行只係 fixture 描述；production history 必須保留加密同穩定 authenticated-data binding。"],
     verification: ["The browser contract covers seeded rows, derived filters, restore labeling, and export while the real Git-backed store remains open.", "browser contract 覆蓋 seeded rows、衍生篩選、還原標籤同匯出，真正 Git-backed store 仍未完成。"],
@@ -209,26 +212,34 @@ function speakPair(pair) {
   if (!settings.narrator || Date.now() - narratorLastAt < 1200 || !window.speechSynthesis) return;
   narratorLastAt = Date.now(); narratorQueue = [pair]; drainNarrator();
 }
+function readPreferenceJson(name, fallback) {
+  return JSON.parse(
+    MaterialServices.prefs.getStringPref(name, JSON.stringify(fallback))
+  );
+}
+function writePreferenceJson(name, value) {
+  MaterialServices.prefs.setStringPref(name, JSON.stringify(value));
+}
 function readSettings() {
-  try { settings = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") }; } catch (error) { console.warn("Material preview preferences unavailable", error); }
+  try { settings = { ...DEFAULTS, ...readPreferenceJson(STORAGE_KEY, {}) }; } catch (error) { console.warn("Material preview preferences unavailable", error); }
 }
 function readHistory() {
   try {
-    const stored = JSON.parse(localStorage.getItem(HISTORY_KEY) || "null");
+    const stored = readPreferenceJson(HISTORY_KEY, null);
     historyRecords = Array.isArray(stored) && stored.length ? stored : [...HISTORY_SEED];
   } catch (error) { historyRecords = [...HISTORY_SEED]; }
   for (const action of new Set(historyRecords.map(row => row.action))) historyActionSelection.add(action);
 }
 function readNotifications() {
   try {
-    const stored = JSON.parse(localStorage.getItem(NOTIFICATION_KEY) || "null");
+    const stored = readPreferenceJson(NOTIFICATION_KEY, null);
     notificationRecords = Array.isArray(stored) && stored.length ? stored : [...NOTIFICATION_SEED];
   } catch (error) { notificationRecords = [...NOTIFICATION_SEED]; }
 }
-function readAppearance() { try { appearanceOverrides = JSON.parse(localStorage.getItem(APPEARANCE_KEY) || "{}"); } catch (error) { appearanceOverrides = {}; } }
-function saveAppearance() { try { localStorage.setItem(APPEARANCE_KEY, JSON.stringify(appearanceOverrides)); } catch (error) { showToast("Appearance could not be persisted locally."); } }
-function saveNotifications() { try { localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(notificationRecords)); } catch (error) { /* Notification history remains usable. */ } }
-function saveHistory() { try { localStorage.setItem(HISTORY_KEY, JSON.stringify(historyRecords.slice(0, 100))); } catch (error) { /* History never blocks the user operation. */ } }
+function readAppearance() { try { appearanceOverrides = readPreferenceJson(APPEARANCE_KEY, {}); } catch (error) { appearanceOverrides = {}; } }
+function saveAppearance() { try { writePreferenceJson(APPEARANCE_KEY, appearanceOverrides); } catch (error) { showToast("Appearance could not be persisted locally."); } }
+function saveNotifications() { try { writePreferenceJson(NOTIFICATION_KEY, notificationRecords); } catch (error) { /* Notification history remains usable. */ } }
+function saveHistory() { try { writePreferenceJson(HISTORY_KEY, historyRecords.slice(0, 100)); } catch (error) { /* History never blocks the user operation. */ } }
 function recordRevision(action, title, detail) {
   const next = { id: `revision-${Date.now()}`, date: new Date().toISOString().slice(0, 10), action, title, detail };
   historyRecords.unshift(next);
@@ -239,7 +250,7 @@ function recordRevision(action, title, detail) {
   renderNotifications();
 }
 function saveSettings(reason = null) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(settings)); } catch (error) { showToast("Preferences could not be persisted locally."); }
+  try { writePreferenceJson(STORAGE_KEY, settings); } catch (error) { showToast("Preferences could not be persisted locally."); }
   if (reason) recordRevision("settings changed", reason, ["The setting change was recorded locally.", "設定變更已記錄到本機。"]);
 }
 function showToast(message) {

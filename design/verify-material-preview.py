@@ -123,10 +123,24 @@ for required in (
 ):
     if f'id="{required}"' not in page:
         fail(f"missing runtime feature control {required}")
-if "localStorage" not in script or "mail.material.preview.settings" not in script:
-    fail("preferences are not persisted locally")
-if "localStorage" not in tabs_script or "mail.material.preview.tabs" not in tabs_script:
-    fail("tab order, pinning, and active state are not persisted locally")
+for required in (
+    "MaterialServices.prefs",
+    "getStringPref",
+    "setStringPref",
+    "mail.material.preview.settings",
+    "mail.material.preview.history",
+    "mail.material.preview.notifications",
+    "mail.material.preview.appearance",
+):
+    if required not in script:
+        fail("runtime state is not persisted in Thunderbird profile preferences")
+if "localStorage" in script:
+    fail("privileged runtime state must not use unavailable chrome-page localStorage")
+for required in ("Services.prefs", "getStringPref", "setStringPref", "mail.material.preview.tabs"):
+    if required not in tabs_script:
+        fail("tab order, pinning, and active state are not persisted in a profile preference")
+if "localStorage" in tabs_script:
+    fail("privileged tab state must not use unavailable chrome-page localStorage")
 for required in ("CHANGELOG", "FEATURE_GUIDE", "FEATURE_ARTICLES", "renderChangelog", "renderHistory", "renderNotifications", "renderGuide", "openGuideDetails", "closeGuideDetails", "bindGuideDetails", "guideDetailsAnchor", "data-guide-article", "downloadText", "historyActionSelection", "bindAppearance", "contextmenu", "mm-appearance-reset-all", "narratorQueue", "speechSynthesis", "ensureSettingsCustomization", "ensureToolsGuide", "ACCENTS", "FUNNY_EN", "FUNNY_ZH", "function tone", "mm-funny-preview", "mm-tools-search", "mm-font-scale"):
     if required not in script:
         fail(f"runtime feature implementation is incomplete: {required}")

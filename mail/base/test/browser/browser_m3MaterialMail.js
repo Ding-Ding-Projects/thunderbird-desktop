@@ -1,8 +1,39 @@
 /* Browser coverage for the packaged Material Mail runtime vertical slice. */
 
 const MATERIAL_MAIL_URL = "chrome://messenger/content/materialMail.xhtml";
+const MATERIAL_MAIL_TAB_PREF = "mail.material.preview.tabs";
+const MATERIAL_MAIL_PREFS = [
+  "mail.material.preview.settings",
+  "mail.material.preview.history",
+  "mail.material.preview.notifications",
+  "mail.material.preview.appearance",
+  MATERIAL_MAIL_TAB_PREF,
+];
 
 add_task(async function testMaterialMailPreviewSurface() {
+  const previousPrefs = new Map();
+  for (const name of MATERIAL_MAIL_PREFS) {
+    const hadUserValue = Services.prefs.prefHasUserValue(name);
+    previousPrefs.set(
+      name,
+      hadUserValue ? Services.prefs.getStringPref(name) : null
+    );
+    if (hadUserValue) {
+      Services.prefs.clearUserPref(name);
+    }
+  }
+  registerCleanupFunction(() => {
+    for (const [name, value] of previousPrefs) {
+      if (value === null) {
+        if (Services.prefs.prefHasUserValue(name)) {
+          Services.prefs.clearUserPref(name);
+        }
+      } else {
+        Services.prefs.setStringPref(name, value);
+      }
+    }
+  });
+
   const tabmail = document.getElementById("tabmail");
   const tab = tabmail.openTab("contentTab", {
     url: MATERIAL_MAIL_URL,
@@ -85,7 +116,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     Assert.ok(page.getElementById(id), `${id} is present in the runtime feature surface`);
   }
 
-  await BrowserTestUtils.waitForCondition(
+  await TestUtils.waitForCondition(
     () => page.defaultView.mmMaterialMailTabs,
     "the packaged Material tab controller initializes"
   );
@@ -120,12 +151,12 @@ add_task(async function testMaterialMailPreviewSurface() {
     "the tab action toggles the dedicated pinned region"
   );
   const persistedTabs = JSON.parse(
-    page.defaultView.localStorage.getItem("mail.material.preview.tabs")
+    Services.prefs.getStringPref(MATERIAL_MAIL_TAB_PREF)
   );
   Assert.deepEqual(
     persistedTabs.order,
     tabSnapshot.state.order,
-    "tab order is written to the versioned local record"
+    "tab order is written to the versioned profile preference"
   );
   settingsTab.dispatchEvent(
     new page.defaultView.MouseEvent("contextmenu", {
@@ -261,6 +292,13 @@ add_task(async function testMaterialMailPreviewSurface() {
   funnyCantonese.value = "5";
   funnyCantonese.dispatchEvent(new page.defaultView.Event("input", { bubbles: true }));
   Assert.notEqual(funnyPreview.textContent, englishFunnyPreview, "Cantonese funny level changes rendered copy");
+  const persistedSettings = JSON.parse(
+    Services.prefs.getStringPref("mail.material.preview.settings")
+  );
+  Assert.equal(persistedSettings.density, "relaxed", "density persists in the profile");
+  Assert.equal(persistedSettings.language, "both", "language mode persists in the profile");
+  Assert.equal(persistedSettings.funnyEn, 5, "English funny level persists independently");
+  Assert.equal(persistedSettings.funnyZh, 5, "Cantonese funny level persists independently");
 
   page.getElementById("mm-tab-tools").click();
   Assert.ok(
@@ -329,5 +367,12 @@ add_task(async function testMaterialMailPreviewSurface() {
     page.getElementById("mm-appearance-surface-text").value,
     /^#/,
     "Continuous color control writes a local hex value"
+  );
+  const persistedAppearance = JSON.parse(
+    Services.prefs.getStringPref("mail.material.preview.appearance")
+  );
+  Assert.ok(
+    Object.keys(persistedAppearance).length,
+    "appearance overrides persist in the Thunderbird profile"
   );
 });

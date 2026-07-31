@@ -12,8 +12,9 @@ all messages, including warnings and errors, can be styled.
 
 ## Configuration and failure modes
 
-Preferences are validated field-by-field and persisted through an injected local
-storage adapter. Malformed or unavailable storage falls back to safe defaults.
+Preferences are validated field-by-field and persisted through the Thunderbird
+profile-preference adapter. Malformed or unavailable preferences fall back to
+safe defaults.
 Unknown modes or levels are normalized rather than allowed to erase a valid
 preference. The model is DOM-free, while the packaged adapter is covered by the
 Material preview verifier and browser contract.

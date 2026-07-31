@@ -11,7 +11,10 @@ import {
 } from "chrome://messenger/content/materialTabModel.mjs";
 import { validatePattern } from "chrome://messenger/content/materialRegexBuilder.mjs";
 
-const STORAGE_KEY = "mail.material.preview.tabs";
+const { Services } = ChromeUtils.importESModule(
+  "resource://gre/modules/Services.sys.mjs"
+);
+const PREF_NAME = "mail.material.preview.tabs";
 const DEFAULT_PINNED = ["mail"];
 const MAX_SEARCH_LENGTH = 512;
 
@@ -87,6 +90,7 @@ export class MaterialMailTabsController {
     this.popoverReturnFocus = null;
     this.measureHandle = null;
     this.resizeObserver = null;
+    this.prefObserver = null;
   }
 
   isReady() {
@@ -122,7 +126,7 @@ export class MaterialMailTabsController {
 
   readState() {
     try {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+      const saved = JSON.parse(Services.prefs.getStringPref(PREF_NAME, "null"));
       if (!saved || typeof saved !== "object") {
         return null;
       }
@@ -138,9 +142,9 @@ export class MaterialMailTabsController {
 
   saveState() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+      Services.prefs.setStringPref(PREF_NAME, JSON.stringify(this.state));
     } catch {
-      // Tab interaction remains usable when private storage is unavailable.
+      // Tab interaction remains usable if the profile preference is unavailable.
     }
   }
 
@@ -171,18 +175,30 @@ export class MaterialMailTabsController {
       this.positionPopover();
       this.scheduleMeasure();
     });
-    window.addEventListener("storage", event => {
-      if (event.key !== STORAGE_KEY) {
-        return;
-      }
-      this.state = normalizeTabState(this.readState(), this.tabRecords, {
-        defaultActive: this.state.active,
-        defaultPinned: DEFAULT_PINNED,
-      });
-      this.renderRegions();
-      this.select(this.state.active, { focus: false, persist: false });
-      this.scheduleMeasure();
-    });
+    this.prefObserver = {
+      observe: (_subject, _topic, name) => {
+        if (name !== PREF_NAME) {
+          return;
+        }
+        const nextState = normalizeTabState(this.readState(), this.tabRecords, {
+          defaultActive: this.state.active,
+          defaultPinned: DEFAULT_PINNED,
+        });
+        if (JSON.stringify(nextState) === JSON.stringify(this.state)) {
+          return;
+        }
+        this.state = nextState;
+        this.renderRegions();
+        this.select(this.state.active, { focus: false, persist: false });
+        this.scheduleMeasure();
+      },
+    };
+    Services.prefs.addObserver(PREF_NAME, this.prefObserver);
+    window.addEventListener(
+      "unload",
+      () => Services.prefs.removeObserver(PREF_NAME, this.prefObserver),
+      { once: true }
+    );
 
     document.l10n?.ready?.then(() => {
       this.refreshTabRecords();
@@ -774,6 +790,9 @@ export class MaterialMailTabsController {
 }
 
 export function initMaterialMailTabs(root = document) {
+  if (window.mmMaterialMailTabs) {
+    return window.mmMaterialMailTabs;
+  }
   const controller = new MaterialMailTabsController(root);
   if (!controller.init()) {
     return null;

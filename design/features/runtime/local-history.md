@@ -10,16 +10,17 @@ row. The surface exports the filtered view as plain text.
 
 ## Configuration
 
-The preview stores settings and history in separate local-storage namespaces:
-`mail.material.preview.settings` and `mail.material.preview.history`. History is
-bounded to the newest 100 local rows. The production gap remains a real
+The preview stores settings and history in separate Thunderbird profile
+preferences: `mail.material.preview.settings` and
+`mail.material.preview.history`. History is bounded to the newest 100 local
+rows. The production gap remains a real
 Git-backed repository beside app data that snapshots every user-managed record,
 not merely this preview's settings.
 
 ## Failure modes
 
-- If local storage is unavailable, sample revisions remain usable and a history
-  write never blocks the setting or restore operation.
+- If profile preferences are unavailable, sample revisions remain usable and a
+  history write never blocks the setting or restore operation.
 - An empty action/date/search combination reports no matching revisions.
 - Export failures are reported through a non-blocking toast; no record is deleted
   or rewritten.

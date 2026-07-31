@@ -11,7 +11,7 @@ counted as a completed replacement for Thunderbird behavior.
 | Anchored regex builder | [regex-builder.md](regex-builder.md) and [`design/runtime/regex/README.md`](../../runtime/regex/README.md) | `node --test design/runtime/regex/regex-builder.test.mjs` |
 | Language and funny-level model | [language-tone.md](language-tone.md) and [`design/runtime/i18n/README.md`](../../runtime/i18n/README.md) | `node --test design/runtime/i18n/tests/model.test.mjs` |
 | Changelog viewer | [changelog-viewer.md](changelog-viewer.md) | `browser_m3MaterialMail.js`, packaged browser run |
-| Local history surface | [local-history.md](local-history.md) | `browser_m3MaterialMail.js`, local persistence boundary |
+| Local history surface | [local-history.md](local-history.md) | `browser_m3MaterialMail.js`, profile-preference persistence boundary |
 | Notification centre | [notification-centre.md](notification-centre.md) | `browser_m3MaterialMail.js`, packaged browser run |
 | Dim-sum surprise | [dim-sum-surprise.md](dim-sum-surprise.md) | static packaging verifier, built-artifact probabilistic capture pending |
 | Appearance editor foundation | [appearance-editor.md](appearance-editor.md) | static verifier and packaged browser entry-path test |

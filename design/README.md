@@ -27,7 +27,7 @@ Integration target: **`main`**. Scope: **Windows only**.
 ## Current state, in brief
 
 - **`design/` is the authoritative source, not a generated approximation.** The current
-  tree contains **162 files / 1,950,357 bytes**. Its primary snapshot,
+  tree contains **162 files / 1,953,961 bytes**. Its primary snapshot,
   `Material Mail.dc.html`, is **140,780 bytes** with SHA-256
   `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
   There is no project design ZIP because the complete tracked folder is kept directly in
@@ -60,6 +60,13 @@ Integration target: **`main`**. Scope: **Windows only**.
   now exercises pin persistence, keyboard reorder, plain/regex all-tabs search, focus
   return, and appearance hand-off; this comm-only checkout cannot execute that browser
   test without the CI Gecko build.
+- **The first hosted tab-wave browser result is red and useful.** Run
+  [30666929947](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30666929947)
+  recorded **222 passed / 7 failed / 13 TODO** and exposed missing dynamically
+  injected controls plus an unsupported wait helper. The containing source makes
+  those controls static, uses the supported helper, and moves all privileged
+  preview persistence to Thunderbird profile preferences. A new exact-source run
+  is required; the failed run is not recycled as proof of the repair.
 - **Broad browser verification is still mixed.** Run
   [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
   failed legacy suites while the authored Material/static groups passed. It is not
@@ -78,7 +85,7 @@ does not yet replace Thunderbird's existing 3-pane behavior.
 | Surface | Implementation | Current boundary |
 |---|---|---|
 | Mail | `mail/base/content/materialMail.xhtml` | Design-aligned three-column sample workspace; sample data only |
-| Settings | Same page plus `materialMail.js` | Theme, density, language mode, independent funny levels, narrator/dim-sum toggles, local persistence |
+| Settings | Same page plus `materialMail.js` | Theme, density, language mode, independent funny levels, narrator/dim-sum toggles, Thunderbird profile-preference persistence |
 | Changelog | Same page | Local release entries, search, anchored regex builder, date filters, copy, and Markdown export; release-data wiring remains open |
 | History | Same page | Local append-only preview revisions, derived action filters, date/search filters, restore-as-new-revision, and export; production Git-backed record history remains open |
 | Notifications | Same page | Non-blocking reviewable stack with search, anchored regex builder, all/unread/dismissed filters, and retained local dismissal state; app-wide event wiring remains open |

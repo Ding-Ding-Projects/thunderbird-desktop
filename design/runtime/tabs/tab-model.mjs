@@ -1,8 +1,8 @@
 /**
  * Dependency-free state model for the Material Mail tab strip.
  *
- * The model deliberately knows nothing about the DOM or localStorage. The
- * packaged adapter owns those boundaries while this module keeps ordering,
+ * The model deliberately knows nothing about the DOM or profile preferences.
+ * The packaged adapter owns those boundaries while this module keeps ordering,
  * pinning, stale-state recovery, and overflow selection deterministic.
  */
 

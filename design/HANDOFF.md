@@ -10,8 +10,9 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > **Runtime vertical slice — 2026-07-31.** `main` now contains a packaged
 > `chrome://messenger/content/materialMail.xhtml` content tab opened from Help →
 > Open Material Mail preview. It provides the design-folder Mail/Settings/
-> Changelog/History/Notifications/Tools pages, local preview preferences, and an
-> anchored regex builder. This source wave adds the design-defined tab core:
+> Changelog/History/Notifications/Tools pages, profile-backed preview
+> preferences, and an anchored regex builder. This source wave adds the
+> design-defined tab core:
 > versioned active/order/pin persistence, a stable pinned region, measured
 > overflow, searchable all-tabs discovery with its own regex builder, drag and
 > keyboard movement, tab context actions, focus return, and appearance hand-off.
@@ -22,7 +23,7 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Tab-core integration status — 2026-07-31.** `design/` is the complete tracked
-> authority: **162 files / 1,950,357 bytes**, with no project design ZIP.
+> authority: **162 files / 1,953,961 bytes**, with no project design ZIP.
 > `Material Mail.dc.html` remains 140,780 bytes with SHA-256
 > `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
 > The local source matrix is green: both Python verifiers, **12 / 12** preview
@@ -31,6 +32,16 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > pin persistence, keyboard reorder, plain/regex all-tabs filtering, Escape focus
 > return, and the tab appearance path, but this comm-only checkout cannot execute
 > the built browser suite locally.
+>
+> The first hosted tab-wave browser run
+> [30666929947](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30666929947)
+> failed with **222 passed / 7 failed / 13 TODO**. Its exact failures were the
+> dynamically injected typography/guide controls missing at bind time and an
+> unavailable `BrowserTestUtils.waitForCondition` helper. The containing source
+> makes both control groups static, switches to `TestUtils.waitForCondition`,
+> and moves tabs plus every preview setting/history/notification/appearance
+> record from rejected chrome-page `localStorage` into Thunderbird profile
+> preferences. Do not call those repairs verified until their own hosted run.
 >
 > The verified pre-wave source is
 > `77fe409183e580db6dd59ef2e65d093864a4f241`, **120 ahead / 0 behind** upstream

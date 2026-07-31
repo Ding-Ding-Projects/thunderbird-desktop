@@ -15,7 +15,7 @@ the funny-level setting.
 
 ## Failure modes
 
-- Missing local storage leaves the preview usable and suppresses the surprise
+- Missing profile preferences leave the preview usable and suppress the surprise
   rather than making startup dependent on persistence.
 - The card is never shown twice by one launch and never appears on first launch.
 - The image is a local catalog asset; no network fallback is attempted.
