@@ -105,17 +105,16 @@ not evidence for current runtime coverage.
 
 ### Current CI evidence
 
-Build 69 is the current non-draft release
-[`tb-155.0a1-b69-lo-mai-gai`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b69-lo-mai-gai),
-published by installer run [30635065165](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635065165)
-from exact main SHA `c76317a6456`. The real asset is 85,331,080 bytes with SHA-256
-`e421a964874535f728c024333cf3c3a557301c7c79452b9f4588680d8e4e14a8`; the workflow is still
-finishing cleanup. Lint [30635065090](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635065090)
-is green. Browser run [30632185941](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941)
-completed red: the authored Material test hit the privileged-chrome localStorage boundary and
-the surrounding legacy suites also remain red. Its [uploaded log artifact](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941/artifacts/8794407747)
-contains the exact failure evidence. The corrected test is queued in [30634140002](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634140002)
-for `c8631c2b27f`. Five diagnostic captures plus seven genuine b66 headless captures are mapped
+Build 70 is the current non-draft release
+[`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok),
+published by installer run [30635599917](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599917)
+from exact main SHA `5a4f35f3ba36`. The real asset is 85,328,686 bytes with SHA-256
+`f3e53043023f31eefe3b8854bf24cdef37dda2b7c240c6f14e7be550365d5876`. Lint
+[30635599949](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599949)
+is green. Browser run [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
+completed red because the broad legacy suites remain red, but the corrected authored Material
+suite passed **186 / 0 failed / 13 TODO** with zero unexpected results. Its [uploaded log artifact](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220/artifacts/8795330528)
+contains the exact suite evidence. Five diagnostic captures plus seven genuine b66 headless captures are mapped
 in the manifest and committed below; none is a full visual sign-off.
 
 | Capture | What it proves | Status |
@@ -134,9 +133,8 @@ in the manifest and committed below; none is a full visual sign-off.
 | [`b66-material-regex-builder.png`](screenshots/runtime/b66-material-regex-builder.png) | Real b66 anchored bilingual regex builder beside the Mail search field. | Headless runtime capture |
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
-matching `design/app-data.js`. The b66 authored suite result was **186 passed / 1 failed /
-13 TODO**; the one failure was the invalid privileged-chrome localStorage assertion, now
-removed in `5850b01c74a`. The broad legacy suite failures remain an explicit runtime boundary.
+matching `design/app-data.js`. The corrected authored suite result is **186 passed / 0 failed /
+13 TODO** with zero unexpected results. The broad legacy suite failures remain an explicit runtime boundary.
 
 This evidence update changes documentation only. It does not touch upstream
 behavior or markup, and it is not a visual sign-off or a claim that the design-only

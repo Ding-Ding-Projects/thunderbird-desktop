@@ -23,52 +23,52 @@
   "verification": {
     "release": {
       "status": "verified",
-      "build": 69,
-      "tag": "tb-155.0a1-b69-lo-mai-gai",
-      "name": "🍚 Lo Mai Gai · 糯米雞 — Thunderbird 155.0a1 (build 69)",
-      "publishedAt": "2026-07-31T13:41:53Z",
-      "sourceCommit": "c76317a64560cc7578cb2a7324ce51ad6b47c04a",
+      "build": 70,
+      "tag": "tb-155.0a1-b70-wu-gok",
+      "name": "🥠 Wu Gok · 芋角 — Thunderbird 155.0a1 (build 70)",
+      "publishedAt": "2026-07-31T13:45:15Z",
+      "sourceCommit": "5a4f35f3ba36e8e56592005409d3d97c067318b0",
       "buildRun": {
-        "runId": 30635065165,
+        "runId": 30635599917,
         "status": "published",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635065165"
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599917"
       },
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b69-lo-mai-gai",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok",
       "assets": [
         {
           "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-          "sizeBytes": 85331080,
-          "sha256": "e421a964874535f728c024333cf3c3a557301c7c79452b9f4588680d8e4e14a8"
+          "sizeBytes": 85328686,
+          "sha256": "f3e53043023f31eefe3b8854bf24cdef37dda2b7c240c6f14e7be550365d5876"
         }
       ]
     },
     "browserRun": {
       "status": "failed",
-      "runId": 30632185941,
+      "runId": 30634411220,
       "event": "workflow_dispatch",
-      "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941",
+      "sourceCommit": "dfcb6a4b548484b29b0ccce16f96c598c99d17c3",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220",
       "artifact": {
         "status": "uploaded",
-        "artifactId": 8794407747,
-        "note": "The hosted job completed with suite-level failures; the authored Material test failed only because privileged chrome content cannot expose localStorage directly."
+        "artifactId": 8795330528,
+        "note": "The broad upstream suites completed with failures, but the corrected authored Material suite passed 186 with 0 failed, 13 TODO, and 0 unexpected results."
       },
       "screenshotCapture": {
         "status": "mapped",
         "note": "The workflow used screenshot-on-fail and uploaded the artifact. The repository also records genuine b66 headless captures below; they are runtime evidence, not complete visual sign-off."
       },
       "suites": {
-        "3-pane": { "status": "failed", "unexpectedResults": null },
-        "widgets": { "status": "failed", "unexpectedResults": null },
+        "3-pane": { "status": "failed", "unexpectedResults": 93 },
+        "widgets": { "status": "failed", "unexpectedResults": 2 },
         "static-packaged-css": { "status": "passed", "unexpectedResults": 0 },
-        "folder-pane": { "status": "failed", "unexpectedResults": null },
-        "chrome": { "status": "failed", "unexpectedResults": null },
+        "folder-pane": { "status": "failed", "unexpectedResults": 12 },
+        "chrome": { "status": "failed", "unexpectedResults": 2 },
         "project-authored-m3": {
-          "status": "failed",
+          "status": "passed",
           "passed": 186,
-          "failed": 1,
+          "failed": 0,
           "todo": 13,
-          "failingTest": "testMaterialMailPreviewSurface: privileged chrome localStorage unavailable"
+          "unexpectedResults": 0
         }
       },
       "historicalB54": {

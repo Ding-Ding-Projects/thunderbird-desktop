@@ -19,22 +19,20 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Current integration status — 2026-07-31.** The current pushed source is
-> `dfcb6a4b548484b29b0ccce16f96c598c99d17c3` on `main`; upstream check is
+> `5a4f35f3ba36e8e56592005409d3d97c067318b0` on `main`; upstream check is
 > **90 ahead / 0 behind** and the Gecko gitlink remains
-> `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b66 release
-> [`tb-155.0a1-b66-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao)
-> contains the real Windows installer from exact source `84d3f6d2364`.
-> Lint [30634396287](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634396287)
-> is green; installer [30634396297](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634396297)
-> is still running for the latest evidence push.
+> `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b70 release
+> [`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok)
+> contains the real 85,328,686-byte Windows installer from exact source `5a4f35f3ba36`.
+> Lint [30635599949](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599949)
+> is green; installer [30635599917](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599917)
+> published the release asset.
 >
-> Browser run [30632185941](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941)
-> completed failed: the authored Material test reached the packaged page but attempted
-> direct `localStorage` access from privileged `chrome://` content, producing
-> `NS_ERROR_NOT_AVAILABLE`; the surrounding legacy suites also remain red. The corrected
-> authored test is running in [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
-> for the exact latest source. These results do not promote parity, accessibility, layout,
-> or visual sign-off.
+> Browser run [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
+> completed failed because the broad legacy suites remain red, but the corrected authored
+> Material suite passed **186 / 0 failed / 13 TODO** with zero unexpected results. Artifact
+> `8795330528` contains the exact logs. These results do not promote parity, accessibility,
+> layout, or visual sign-off.
 
 > [!NOTE]
 > **Prior current-source browser checkpoint — 2026-07-31.** Dispatch
