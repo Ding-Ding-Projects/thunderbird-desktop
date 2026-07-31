@@ -15,7 +15,7 @@ counted as a completed replacement for Thunderbird behavior.
 | Dim-sum surprise | [dim-sum-surprise.md](dim-sum-surprise.md) | static packaging verifier, built-artifact probabilistic capture pending |
 | Appearance editor foundation | [appearance-editor.md](appearance-editor.md) | static verifier and packaged browser entry-path test |
 | Optional narrator foundation | [narrator.md](narrator.md) | static verifier and packaged browser configuration test |
-| Color translator foundation | [appearance-editor.md](appearance-editor.md) and [`design/runtime/color/README.md`](../../runtime/color/README.md) | `node --test design/runtime/color/color-translator.test.mjs` |
+| Continuous color picker and translator | [color-translator.md](color-translator.md) and [`design/runtime/color/README.md`](../../runtime/color/README.md) | `node --test design/runtime/color/color-translator.test.mjs`, `python design/verify-material-preview.py` |
 
 ## Shared verification rule
 

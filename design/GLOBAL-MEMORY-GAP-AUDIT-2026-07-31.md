@@ -7,10 +7,10 @@ snapshot or CSS token is not counted as a shipped interaction.
 ## Baseline
 
 - Current shipped artifact: `tb-155.0a1-b72-pai-gwat`.
-- Current main source: `4fe4f0135921459edc2be9f25e9dd8934433518d`.
+- Current main source: `8a16241646b7ea9cc07bf6729e8d9645e0252fb1`.
 - The seven Material sheets are packaged byte-for-byte in that artifact.
-- Current implementation boundary: CSS plus stylesheet links; upstream behavior
-  and the 3-pane markup are preserved.
+- Current implementation boundary: CSS plus the packaged Material preview scripts;
+  upstream behavior and the 3-pane markup are preserved.
 - The design snapshot contains the target pages/components, but it is not runtime
   Thunderbird markup and does not itself satisfy the feature requirements.
 
@@ -25,7 +25,7 @@ snapshot or CSS token is not counted as a shipped interaction.
 | GM-05 | One-percent local dim-sum startup card and opt-out | Packaged Classic har gow catalog image, first-run suppression, persisted opt-out, and 1% non-blocking draw | Partial / open: probabilistic built-artifact capture pending |
 | GM-06 | Full anchored regex builder on every search bar | `design/runtime/regex/` module and packaged preview entry point | Foundation shipped; every app search surface open |
 | GM-07 | Per-element appearance editor and Word-depth typography | Packaged anchored editor plus live persisted accent seed, interface font, font scale, font weight, and reset foundation; Word-depth typography remains open | Partial / open |
-| GM-08 | Continuous color picker and bidirectional color-space translator | DOM-free local translator foundation covers named/HEX/RGB/HSL/HSV/HWB/Lab/LCH/OKLab/OKLCH/CMYK with alpha and gamut reporting; packaged picker mounting remains open | Partial / open |
+| GM-08 | Continuous color picker and bidirectional color-space translator | Packaged anchored editor mounts local continuous HSL controls, direct named/HEX/HEX8/RGB/A/HSL/A/HSV/HWB/CIELAB/LCH/OKLab/OKLCH/CMYK entry, translated copy rows, clipping/gamut status, and contrast readout; translator tests pass | Partial / open: Word-depth typography, eyedropper, presets/import-export, every-element coverage, and built-artifact capture remain open |
 | GM-09 | Browser tabs with overflow, pinning, grouping, four searches, and bulk-close preview | Existing Thunderbird tab behavior; no target design feature set | Open |
 | GM-10 | External editor discovery and persisted choice | No Material integration | Open |
 | GM-11 | Local Git-backed history for every owned record and setting | Packaged local preview history with search/action/date filters and append-only restore record; production Git-backed store remains open | Partial / open |

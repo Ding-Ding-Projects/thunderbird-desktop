@@ -50,6 +50,10 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, full app-wide
   feature wiring and manual visual sign-off are absent, and the upstream 3-pane remains
   behavior-compatible rather than fully replaced. See `ROADMAP.md` §"What is explicitly NOT done".
+- **Current source push:** `8a16241646b7ea9cc07bf6729e8d9645e0252fb1` adds the mounted local
+  color translator. Windows installer run [30640046453](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640046453)
+  is queued, so b72 remains the latest verified public release and new color-picker captures
+  are not yet runtime evidence.
 
 ## Runtime Material vertical slice
 
@@ -66,7 +70,8 @@ does not yet replace Thunderbird's existing 3-pane behavior.
 | History | Same page | Local append-only preview revisions, derived action filters, date/search filters, restore-as-new-revision, and export; production Git-backed record history remains open |
 | Notifications | Same page | Non-blocking reviewable stack with search, anchored regex builder, all/unread/dismissed filters, and retained local dismissal state; app-wide event wiring remains open |
 | Tools | Same page | Command/regex/editor entry points are represented; command palette and integrations remain open |
-| Search | Anchored `RegexBuilder` from `design/runtime/regex/` | Independent builders are packaged for Mail, Settings, Changelog, and History search fields; upstream mail-content search wiring remains open |
+| Search | Anchored `RegexBuilder` from `design/runtime/regex/` | Independent builders are packaged for Mail, Settings, Changelog, History, Notifications, and the appearance editor; upstream mail-content search wiring remains open |
+| Appearance color | `materialMailColor.mjs` plus `design/runtime/color/color-translator.mjs` | Continuous local HSL controls, direct multi-space entry, translated copy rows, gamut/clipping status, and contrast readout; full Word-depth coverage remains open |
 
 The surface follows the design folder's M3 tokens, density arms, rounded-card
 anatomy, browser-style tabs, bilingual labels, keyboard tab movement, visible
@@ -84,7 +89,7 @@ Feature articles are indexed in [`features/runtime/README.md`](features/runtime/
 
 The complete surface inventory is machine-readable in
 [`evidence/manifest.json`](evidence/manifest.json). It is anchored to the current
-main evidence commit `c8631c2b27f1defd75dd7e0d63ad689b0fbc6061` and covers
+main evidence source commit `8a16241646b7ea9cc07bf6729e8d9645e0252fb1` and covers
 both classes of surface from the audit:
 
 - **Runtime-reachable:** the 3-pane shell and layouts; folder pane and its context
@@ -134,9 +139,9 @@ in the manifest and committed below; none is a full visual sign-off.
 
 The current source wave adds Changelog/History filters and export, retained
 Notifications, catalog-backed dim-sum startup, an anchored appearance editor,
-and a serialized narrator. Their evidence is explicitly `capture-pending` in
+a mounted continuous color translator, and a serialized narrator. Their evidence is explicitly `capture-pending` in
 [`design/evidence/manifest.json`](evidence/manifest.json) until installer run
-[30639071767](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30639071767)
+[30640046453](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640046453)
 produces the real artifact. Source checks are not substituted for screenshots.
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
@@ -161,7 +166,7 @@ the following design-folder surfaces or their required behavior:
 | Notifications and notification history | Upstream notifications only | Add non-blocking toast stack plus a reviewable centre/history. |
 | Dim-sum startup delight | Packaged Classic har gow local image, first-run suppression, opt-out, and 1% non-blocking draw | Add the full catalog rotation, release-code-name display, and deterministic built-artifact capture. |
 | Anchored regex builder | Design component only | Implement the full local builder and bind an independent instance to every search field. |
-| Appearance editor and infinite color translator | Packaged anchored editor plus persisted typography foundation; tested local multi-space translator module | Mount the translator into the picker, add every-element coverage, Word-depth typography, clipping/contrast, presets, import/export, and reset depth. |
+| Appearance editor and infinite color translator | Packaged anchored editor plus persisted typography foundation and mounted local multi-space translator with clipping/contrast readout | Add every-element coverage, Word-depth typography, eyedropper, presets, import/export, and reset depth. |
 | Browser-style tabs | Existing Thunderbird tabs, no design parity | Add overflow, reorder, pinning, grouping, four tab searches, and safe bulk-close actions. |
 | External editor integration | Not present in the Material layer | Add editor discovery, selection, persistence, and graceful failure. |
 | Local Git-backed history | Not present in the Material layer | Snapshot every user-managed record and setting, with diff, restore-as-new-revision, retention, and export. |
