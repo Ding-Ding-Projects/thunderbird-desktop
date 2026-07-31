@@ -8,10 +8,17 @@
   "implementationBoundary": {
     "changedFiles": [
       "design/evidence/manifest.json",
-      "design/README.md"
+      "design/README.md",
+      "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md",
+      "design/screenshots/runtime/"
     ],
     "upstreamBehaviorOrMarkupChanged": false,
-    "runtimeEvidenceMode": "static inventory plus recorded CI facts; no local application launch"
+    "runtimeEvidenceMode": "static inventory plus recorded CI facts and labelled headless captures; no clean visual sign-off"
+  },
+  "globalMemoryGapAudit": {
+    "path": "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md",
+    "status": "open",
+    "note": "The refreshed shared requirements identify runtime pages and behaviors that the current CSS-layer release does not yet ship."
   },
   "verification": {
     "release": {
@@ -48,8 +55,8 @@
         "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368/artifacts/8791840623"
       },
       "screenshotCapture": {
-        "status": "run-level-only",
-        "note": "The workflow used screenshot-on-fail and uploaded the artifact, but no surface-specific screenshot has been mapped into this repository manifest."
+        "status": "mapped",
+        "note": "The workflow used screenshot-on-fail and uploaded the artifact. The repository also records the genuine local b54 onboarding capture and CI 3-pane captures below; they are evidence states, not complete visual sign-off."
       },
       "suites": {
         "3-pane": { "status": "failed", "unexpectedResults": null },
@@ -59,9 +66,9 @@
         "chrome": { "status": "passed", "unexpectedResults": 0 },
         "project-authored-m3": {
           "status": "failed",
-          "checks": 137,
-          "expectedResults": 132,
-          "unexpectedResults": 5,
+          "passed": 119,
+          "failed": 4,
+          "todo": 13,
           "failingTest": "testM3DensityTokensFollowLiveAttributes"
         }
       }
@@ -71,6 +78,48 @@
         "path": "design/screenshots/mail-check.png",
         "status": "reference-only",
         "note": "Existing design reference capture; not current-main runtime evidence and not reused as surface proof."
+      }
+    ],
+    "runtimeCaptures": [
+      {
+        "path": "design/screenshots/runtime/ci-m3-3pane-folder-list.png",
+        "surface": "3-pane shell, folder pane, thread list",
+        "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+        "runId": 30625878368,
+        "status": "captured-failure-context",
+        "note": "Genuine hosted browser screenshot; it shows the M3 shell and folder/thread chrome while the surrounding suite was failing. It is not a clean sign-off capture."
+      },
+      {
+        "path": "design/screenshots/runtime/ci-m3-3pane-message.png",
+        "surface": "3-pane shell, message pane",
+        "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+        "runId": 30625878368,
+        "status": "captured-failure-context",
+        "note": "Genuine hosted browser screenshot of the M3 folder/thread/message arrangement; the run remains red."
+      },
+      {
+        "path": "design/screenshots/runtime/ci-m3-shell-browser-chrome-overlay.png",
+        "surface": "M3 chrome and spaces rail",
+        "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+        "runId": 30625878368,
+        "status": "captured-failure-context",
+        "note": "Genuine hosted browser screenshot with the browser-test window over the M3 shell; only the visible shell regions are evidence."
+      },
+      {
+        "path": "design/screenshots/runtime/ci-widgets-pane-splitter-failure.png",
+        "surface": "Pane splitter test fixture",
+        "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+        "runId": 30625878368,
+        "status": "captured-failure-context",
+        "note": "Genuine hosted failure screenshot of the splitter fixture; it is diagnostic evidence, not a design match claim."
+      },
+      {
+        "path": "design/screenshots/runtime/b54-account-setup-upstream.png",
+        "surface": "Account setup/start page",
+        "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+        "release": "tb-155.0a1-b54-wu-gok",
+        "status": "captured-upstream-gap",
+        "note": "Genuine local headless capture of the b54 artifact. This upstream onboarding dialog is not restyled by the owned M3 sheets; no account data was entered."
       }
     ]
   },

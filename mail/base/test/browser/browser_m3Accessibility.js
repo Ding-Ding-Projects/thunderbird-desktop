@@ -328,8 +328,8 @@ add_task(async function testM3DensityTokensFollowLiveAttributes() {
       density: null,
       row: "16px 12px 16px 20px",
       inline: "20px 12px",
-      gap: "3px",
-      control: "52px",
+      gap: "4px",
+      control: "56px",
       avatar: "44px",
     },
     {
@@ -348,8 +348,8 @@ add_task(async function testM3DensityTokensFollowLiveAttributes() {
       density: "relaxed",
       row: "16px 12px 16px 20px",
       inline: "20px 12px",
-      gap: "3px",
-      control: "52px",
+      gap: "4px",
+      control: "56px",
       avatar: "44px",
     },
   ];

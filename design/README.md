@@ -5,7 +5,9 @@ Thunderbird's 3-pane, and the project documents that govern the work.
 
 Integration target: **`main`**. Scope: **Windows only**.
 
-> **This is a CSS-layer restyle of upstream's existing 3-pane, not a rewrite of it.**
+> **Current shipped scope is a CSS-layer restyle of upstream's existing 3-pane, not a rewrite of it.**
+> The requested full Material UI rewrite is tracked as the next implementation phase;
+> this evidence page deliberately does not pretend that design-only surfaces already run.
 > Windows CI has built and launched the packaged test application, but the 3-pane,
 > widgets, and folder suites remain red. Read `ROADMAP.md` before treating static
 > contract evidence as release sign-off.
@@ -53,7 +55,7 @@ Integration target: **`main`**. Scope: **Windows only**.
 
 The complete surface inventory is machine-readable in
 [`evidence/manifest.json`](evidence/manifest.json). It is anchored to the exact
-current `main` source commit `e4867411c3aa81de4527d843913b966d0ef89c1c` and covers
+shipped Material source commit `e4867411c3aa81de4527d843913b966d0ef89c1c` and covers
 both classes of surface from the audit:
 
 - **Runtime-reachable:** the 3-pane shell and layouts; folder pane and its context
@@ -83,13 +85,55 @@ folder-pane, and project-authored M3 gates failed. The M3 gate recorded 137 chec
 132 expected results, and 5 unexpected density-token results in
 `testM3DensityTokensFollowLiveAttributes`. Its
 [uploaded log artifact](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368/artifacts/8791840623)
-contains run-level logs and failure screenshots, but those screenshots have not
-been mapped to individual manifest surfaces, so the per-surface status remains
-**missing**.
+contains run-level logs and failure screenshots. Five genuine captures are now
+mapped in the manifest and committed below; they are diagnostic or gap evidence,
+not visual sign-off.
+
+| Capture | What it proves | Status |
+|---|---|---|
+| [`ci-m3-3pane-folder-list.png`](screenshots/runtime/ci-m3-3pane-folder-list.png) | Hosted 3-pane shell, folder pane, and thread list are present in the packaged app. | Failure-context only |
+| [`ci-m3-3pane-message.png`](screenshots/runtime/ci-m3-3pane-message.png) | Hosted message-pane arrangement and Material chrome are present. | Failure-context only |
+| [`ci-m3-shell-browser-chrome-overlay.png`](screenshots/runtime/ci-m3-shell-browser-chrome-overlay.png) | Spaces rail and application chrome are visible in the runtime fixture. | Failure-context only |
+| [`ci-widgets-pane-splitter-failure.png`](screenshots/runtime/ci-widgets-pane-splitter-failure.png) | Splitter fixture and its diagnostic state were captured by the real browser job. | Diagnostic only |
+| [`b54-account-setup-upstream.png`](screenshots/runtime/b54-account-setup-upstream.png) | The shipped artifact reaches upstream onboarding, which is not one of the owned M3 design surfaces. | Explicit gap |
+
+The corrected density expectations are now `4px` / `56px` for relaxed mode,
+matching `design/app-data.js`; the next browser dispatch must rerun the M3 gate
+before this evidence can become green. The previous b54 raw result was **119
+passed / 4 failed / 13 TODO**, with the four failures in
+`testM3DensityTokensFollowLiveAttributes`.
 
 This evidence update changes documentation only. It does not touch upstream
 behavior or markup, and it is not a visual sign-off or a claim that the design-only
 surfaces exist in the desktop runtime.
+
+## Global-memory feature gap audit
+
+The refreshed shared instructions require a complete Material Design 3 product,
+not only a skin over the existing 3-pane. The current branch does not yet ship
+the following design-folder surfaces or their required behavior:
+
+| Requirement family | Current state | Implementation needed |
+|---|---|---|
+| Material landing page and in-app documentation | Design-only snapshot | Add a real local landing/documentation surface that enumerates every feature and links to detailed articles. |
+| English / playful HK Cantonese / bilingual modes | Existing Thunderbird localization only | Add persisted mode selection and compact bilingual rendering for the new Material surfaces. |
+| Independent funny-level sliders | Missing | Add persisted English and Cantonese levels 1–5 and apply them to all user-facing copy without changing facts. |
+| Notifications and notification history | Upstream notifications only | Add non-blocking toast stack plus a reviewable centre/history. |
+| Dim-sum startup delight | Design glyphs only | Bundle approved local assets, add the one-percent non-blocking launch draw, setting, alt text, and release-code-name display. |
+| Anchored regex builder | Design component only | Implement the full local builder and bind an independent instance to every search field. |
+| Appearance editor and infinite color translator | Token CSS only | Add per-element anchored editing, Word-depth typography, color-space translation, persistence, presets, import/export, and reset. |
+| Browser-style tabs | Existing Thunderbird tabs, no design parity | Add overflow, reorder, pinning, grouping, four tab searches, and safe bulk-close actions. |
+| External editor integration | Not present in the Material layer | Add editor discovery, selection, persistence, and graceful failure. |
+| Local Git-backed history | Not present in the Material layer | Snapshot every user-managed record and setting, with diff, restore-as-new-revision, retention, and export. |
+| In-app changelog viewer | Design-only page | Add all-release entries, date/calendar filtering, regex search, copy, and export. |
+| TTS narrator | Not present | Optional off-by-default serialized English/Cantonese narrator with accessibility and quiet-hours rules. |
+
+This matrix is an implementation ledger, not a completion claim. The CSS-only
+release remains useful evidence for the existing 3-pane shell, while the rewrite
+phase must add the missing runtime markup and behavior and then recapture every
+dialog, feature, page, menu, state, and accessibility mode from the real artifact.
+See [`GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md`](GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md)
+for the verification-oriented checklist.
 
 ## Design-to-shipped verification
 
