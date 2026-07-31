@@ -68,7 +68,7 @@ both classes of surface from the audit:
 Every manifest entry records its source path, selector or component anchor,
 command family, major states, and screenshot status. Its `designSurfaceCoverage`
 array separately enumerates 37 surfaces from `Material Mail.dc.html`: one default
-3-pane entry has partial runtime evidence, and the other 36 entries are explicitly
+3-pane entry links to unmapped run-level runtime evidence, and the other 36 entries are explicitly
 `design_only_not_captured`. Each of those entries carries the exact
 `sourceCommit`, `runId`, and `captureMethod` fields. The existing
 `design/screenshots/mail-check.png` is retained as a `reference-only` asset and is
