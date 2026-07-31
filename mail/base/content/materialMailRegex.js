@@ -1,18 +1,28 @@
 import { RegexBuilder } from "chrome://messenger/content/materialRegexBuilder.mjs";
 
-document.addEventListener("DOMContentLoaded", () => {
-  const input = document.getElementById("mm-mail-search");
-  const anchor = document.getElementById("mm-regex-open");
-  const panel = document.getElementById("mm-regex-panel");
+function mountRegex({ inputId, anchorId, panelId, key, scope }) {
+  const input = document.getElementById(inputId);
+  const anchor = document.getElementById(anchorId);
+  const panel = document.getElementById(panelId);
+  if (!input || !anchor || !panel) return;
   new RegexBuilder({
     anchor,
     input,
     panel,
-    scope: "Applies to this mail search field · 套用到此郵件搜尋欄",
+    scope,
+    onApply: state => window.mmSetRegexState?.(key, state),
     onStatus: message => {
       const toast = document.getElementById("mm-toast");
+      if (!toast) return;
       toast.textContent = `${message.en} · ${message.zh}`;
       toast.hidden = false;
     },
   });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  mountRegex({ inputId: "mm-mail-search", anchorId: "mm-regex-open", panelId: "mm-regex-panel", key: "mail", scope: "Applies to this mail search field · 套用到此郵件搜尋欄" });
+  mountRegex({ inputId: "mm-settings-search", anchorId: "mm-settings-regex-open", panelId: "mm-settings-regex-panel", key: "settings", scope: "Applies to this settings search field · 套用到此設定搜尋欄" });
+  mountRegex({ inputId: "mm-changelog-search", anchorId: "mm-changelog-regex-open", panelId: "mm-changelog-regex-panel", key: "changelog", scope: "Applies to this changelog search field · 套用到此更新記錄搜尋欄" });
+  mountRegex({ inputId: "mm-history-search", anchorId: "mm-history-regex-open", panelId: "mm-history-regex-panel", key: "history", scope: "Applies to this history search field · 套用到此歷史搜尋欄" });
 });

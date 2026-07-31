@@ -50,8 +50,24 @@ for required in ("mm-theme", "mm-density", "mm-language", "mm-funny-en", "mm-fun
 for required in ("compact", "comfortable", "relaxed"):
     if f'value="{required}"' not in page:
         fail(f"missing density arm {required}")
+for required in (
+    "mm-settings-search",
+    "mm-changelog-search",
+    "mm-history-search",
+    "mm-changelog-from",
+    "mm-changelog-to",
+    "mm-history-from",
+    "mm-history-to",
+    "mm-changelog-export",
+    "mm-history-export",
+):
+    if f'id="{required}"' not in page:
+        fail(f"missing runtime feature control {required}")
 if "localStorage" not in script or "mail.material.preview.settings" not in script:
     fail("preferences are not persisted locally")
+for required in ("CHANGELOG", "renderChangelog", "renderHistory", "downloadText", "historyActionSelection"):
+    if required not in script:
+        fail(f"runtime feature implementation is incomplete: {required}")
 if "ArrowLeft" not in script or "ArrowRight" not in script:
     fail("keyboard tab movement is missing")
 if "prefers-reduced-motion" not in style:

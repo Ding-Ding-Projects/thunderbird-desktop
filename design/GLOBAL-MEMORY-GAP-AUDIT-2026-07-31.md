@@ -6,8 +6,8 @@ snapshot or CSS token is not counted as a shipped interaction.
 
 ## Baseline
 
-- Current shipped artifact: `tb-155.0a1-b59-lin-yung-bao`.
-- Current main source: `484c0b786f1a66624efbdcd618b55176597ae3ed`.
+- Current shipped artifact: `tb-155.0a1-b72-pai-gwat`.
+- Current main source: `4fe4f0135921459edc2be9f25e9dd8934433518d`.
 - The seven Material sheets are packaged byte-for-byte in that artifact.
 - Current implementation boundary: CSS plus stylesheet links; upstream behavior
   and the 3-pane markup are preserved.
@@ -28,8 +28,8 @@ snapshot or CSS token is not counted as a shipped interaction.
 | GM-08 | Continuous color picker and bidirectional color-space translator | No runtime picker | Open |
 | GM-09 | Browser tabs with overflow, pinning, grouping, four searches, and bulk-close preview | Existing Thunderbird tab behavior; no target design feature set | Open |
 | GM-10 | External editor discovery and persisted choice | No Material integration | Open |
-| GM-11 | Local Git-backed history for every owned record and setting | No Material history panel | Open |
-| GM-12 | All-release changelog viewer with date filter, regex search, copy, and export | `Changelog` design page only | Open |
+| GM-11 | Local Git-backed history for every owned record and setting | Packaged local preview history with search/action/date filters and append-only restore record; production Git-backed store remains open | Partial / open |
+| GM-12 | All-release changelog viewer with date filter, regex search, copy, and export | Packaged Changelog tab with local entries, anchored search builder, date filters, copy, and Markdown export | Foundation shipped; release-data wiring remains open |
 | GM-13 | Optional serialized English/Cantonese TTS narrator | Not present | Open |
 | GM-14 | Full screenshot and accessibility matrix from the built artifact | Five diagnostic/gap captures; no sign-off | Open |
 

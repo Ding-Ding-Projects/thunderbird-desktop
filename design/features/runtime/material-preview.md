@@ -7,7 +7,9 @@ Help → **Open Material Mail preview** opens a local `contentTab` at
 Settings, Changelog, History, Notifications, and Tools as browser-style tabs.
 Settings update theme, density, language mode, independent English/Cantonese
 funny levels, narrator opt-in, and dim-sum opt-in immediately and persist in the
-preview's local storage namespace.
+preview's local storage namespace. Changelog now has local search, date filters,
+copy, and Markdown export; History has local search, derived action filters,
+date filters, append-only restore records, and export.
 
 ## Configuration
 
@@ -21,8 +23,9 @@ is local-only and does not fetch fonts, images, analytics, or network content.
   reports that persistence was unavailable.
 - If a tab target is unavailable, the current page remains visible; tab state does
   not alter the upstream mail tab.
-- History intentionally shows an empty state until the Git-backed record-history
-  implementation exists; it does not invent revisions.
+- History uses clearly labelled fixture/local preview revisions until the full
+  Git-backed record-history implementation exists; it does not claim production
+  record coverage.
 - Runtime browser or packaging failure keeps the surface a preview and cannot be
   promoted to visual sign-off by static checks alone.
 

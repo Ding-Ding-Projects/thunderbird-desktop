@@ -37,6 +37,19 @@ add_task(async function testMaterialMailPreviewSurface() {
   ]) {
     Assert.ok(page.getElementById(id), `${id} is present in Settings`);
   }
+  for (const id of [
+    "mm-settings-search",
+    "mm-changelog-search",
+    "mm-history-search",
+    "mm-changelog-from",
+    "mm-changelog-to",
+    "mm-history-from",
+    "mm-history-to",
+    "mm-changelog-export",
+    "mm-history-export",
+  ]) {
+    Assert.ok(page.getElementById(id), `${id} is present in the runtime feature surface`);
+  }
 
   page.getElementById("mm-tab-settings").click();
   Assert.ok(
@@ -50,5 +63,29 @@ add_task(async function testMaterialMailPreviewSurface() {
     page.documentElement.dataset.density,
     "relaxed",
     "density changes apply immediately"
+  );
+
+  page.getElementById("mm-tab-changelog").click();
+  Assert.ok(
+    page.getElementById("mm-changelog-list").querySelectorAll("article").length >= 3,
+    "Changelog renders all recorded release entries"
+  );
+  const changelogSearch = page.getElementById("mm-changelog-search");
+  changelogSearch.value = "Regex";
+  changelogSearch.dispatchEvent(new page.defaultView.Event("input", { bubbles: true }));
+  Assert.equal(
+    page.getElementById("mm-changelog-list").querySelectorAll("article").length,
+    1,
+    "Changelog search composes with the local release data"
+  );
+
+  page.getElementById("mm-tab-history").click();
+  Assert.ok(
+    page.getElementById("mm-history-actions").querySelectorAll("input[type=checkbox]").length >= 3,
+    "History derives action filters from recorded revisions"
+  );
+  Assert.ok(
+    page.getElementById("mm-history-list").querySelectorAll("article").length >= 3,
+    "History renders append-only revisions"
   );
 });
