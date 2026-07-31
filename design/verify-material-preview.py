@@ -49,6 +49,7 @@ script = SCRIPT.read_text(encoding="utf-8")
 tabs_script = TABS_SCRIPT.read_text(encoding="utf-8")
 tab_model = TAB_MODEL.read_text(encoding="utf-8")
 color_script = COLOR_SCRIPT.read_text(encoding="utf-8")
+regex_launcher = REGEX_LAUNCHER.read_text(encoding="utf-8")
 style = STYLE.read_text(encoding="utf-8")
 ftl = FTL.read_text(encoding="utf-8")
 jar = JAR.read_text(encoding="utf-8")
@@ -217,8 +218,24 @@ if not re.search(
     page,
 ):
     fail("regex launcher is not loaded from its packaged module URL")
-if "mm-tab-search" not in REGEX_LAUNCHER.read_text(encoding="utf-8"):
+if "mm-tab-search" not in regex_launcher:
     fail("all-tabs search is not wired to its independent regex builder")
+for source_name, source, initializer in (
+    ("materialMailRegex.mjs", regex_launcher, "initMaterialMailRegex"),
+    ("materialMailColor.mjs", color_script, "initMaterialMailColor"),
+):
+    if "document.readyState" not in source or initializer not in source:
+        fail(f"{source_name} can miss late module initialization")
+if (
+    regex_launcher.count('inputId: "mm-') != 8
+    or "mmMaterialMailRegex" not in regex_launcher
+):
+    fail("regex launcher does not expose all eight mounted field builders")
+if (
+    "mmMaterialMailColor" not in color_script
+    or "spaces: SPACES.length" not in color_script
+):
+    fail("color launcher does not expose its mounted color-space inventory")
 if ".innerHTML" in script or ".innerHTML" in color_script:
     fail("packaged Material data surfaces must use DOM construction, not HTML-string rendering")
 if any(

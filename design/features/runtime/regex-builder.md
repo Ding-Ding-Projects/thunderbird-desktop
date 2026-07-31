@@ -11,6 +11,9 @@ export.
 The packaged launcher is `mail/base/content/materialMailRegex.mjs`, loaded as a
 module from its matching chrome URL. The preview verifier checks the file, jar
 entry, and module script URL together so an extension/type mismatch cannot pass.
+Its idempotent initializer either waits for `DOMContentLoaded` or runs immediately
+when the imported module resolves later, then exposes the count of all eight mounted
+field builders for browser verification.
 
 ## Configuration and limits
 
@@ -29,7 +32,10 @@ stay local and are not transmitted or persisted by the module.
 ## Accessibility and verification
 
 The panel returns focus to its originating search field, exposes labelled controls,
-supports keyboard close, and keeps each builder's state local to its field. Run:
+supports keyboard close, and keeps each builder's state local to its field. The
+browser contract first proves the launcher has dialog semantics, then opens it and
+waits for the rendered panel; a pre-open panel class is not a valid readiness signal.
+Run:
 
 ```powershell
 node --test design\runtime\regex\regex-builder.test.mjs

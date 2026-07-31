@@ -70,6 +70,24 @@ renames the regex launcher to its real `.mjs` type, and fixes the assertion API.
 Thunderbird's exact local stylelint/ESLint inventory and browser-test ESLint are
 green; a new hosted run and installed artifact remain required.
 
+Evidence-only source `d69f5ba1f8f0b3fe6b68f0c017c386eb34b080f7` proved the
+hardened release contract through installer run
+[`30672866600`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30672866600):
+non-draft release [`tb-155.0a1-b104`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b104)
+contains exactly its real installer and verified `Vegetable Spring Rolls · 素菜春卷`
+catalog PNG. The paired browser run
+[`30672895090`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30672895090)
+then finished at **206 passed / 2 failed / 16 TODO, zero crashes**. Its first
+timeout was a false pre-open readiness assertion; its second was a same-URL
+single-page tab reuse followed by a wait for a load that could not recur. The
+UI-identical `535374af5ff7d389b2a4ef857a189a65ea04e397` run
+[`30672182192`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30672182192)
+recorded the same counts. The containing source
+adds explicit eight-builder and 14-color-space initialization
+signals, ready-state-safe module startup, fresh duplicate test tabs, and a correct
+mount-then-open assertion order. Exact-source hosted and installed-artifact proof
+remain required rather than borrowing b103's partial browser passes.
+
 ---
 
 ## What is done

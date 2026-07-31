@@ -27,7 +27,7 @@ Integration target: **`main`**. Scope: **Windows only**.
 ## Current state, in brief
 
 - **`design/` is the authoritative source, not a generated approximation.** The current
-  tree contains **162 files / 1,966,328 bytes**. Its primary snapshot,
+  tree contains **162 files / 1,978,528 bytes**. Its primary snapshot,
   `Material Mail.dc.html`, is **140,780 bytes** with SHA-256
   `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
   There is no project design ZIP because the complete tracked folder is kept directly in
@@ -43,17 +43,15 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **The parity contract is at 33 / 38**, with five boxes deliberately open.
   A tick certifies that the named upstream behaviour still *functions* against named
   selectors and specificity. It is **not** a visual sign-off.
-- **The verified pre-wave GitHub baseline is exact-source, but not release-contract
-  complete.** `77fe409183e580db6dd59ef2e65d093864a4f241` has green lint
-  [30644045867](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045867)
-  and installer
-  [30644045825](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045825).
-  Release [`tb-155.0a1-b98-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b98-char-siu-bao)
-  points exactly to that source and carries an 87,755,233-byte installer with SHA-256
-  `e57e8abce22183fb4a345398be52e20ae95835a3fee63c4bee98c4b6232d7a81`, but it has no
-  catalog photo and repeats an earlier code name. This source wave hardens the release
-  gate to select an unused verified catalog record and attach its exact PNG; the immutable
-  post-push verdict belongs in rolling Discussion #1 rather than being predicted here.
+- **The hardened release contract has exact intermediate proof.** Installer run
+  [30672866600](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30672866600)
+  published [`tb-155.0a1-b104`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b104)
+  from `d69f5ba1f8f0b3fe6b68f0c017c386eb34b080f7`. The non-draft release carries exactly
+  the 87,766,726-byte installer (`b1a08125c6899d6842b35780f5e253b05cafa8d11ba47bdfa470886ba6e35f97`)
+  and the verified 2,342,669-byte `Vegetable Spring Rolls · 素菜春卷` catalog PNG
+  (`06a1e19ee2417e1556cccc90cdef87ebd2a1476c0708ea4cbdea7759e0827959`).
+  That proves the two-asset release path, not final UI behavior; the matching browser
+  run below still found test/runtime-start boundaries that the containing source repairs.
 - **Local authored verification for this wave is green:** preview/alignment verifiers,
   `12 / 12` preview smoke checks, `9 / 9` regex tests, `5 / 5` color tests,
   `6 / 6` language-model tests, and `4 / 4` tab-model tests. The packaged browser test
@@ -67,17 +65,28 @@ Integration target: **`main`**. Scope: **Windows only**.
   those controls static, uses the supported helper, and moves all privileged
   preview persistence to Thunderbird profile preferences. A new exact-source run
   is required; the failed run is not recycled as proof of the repair.
-- **The latest exact-source gates are also red and diagnostic.** Source
+- **Later exact-source gates stayed red and diagnostic until the current correction.** Source
   `e7a65d87622dbe85563fabde4b156b384b22de46` removed the Services crash, then
   release run [30670125511](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670125511)
   stopped on 74 CSS and 169 JavaScript lint errors before Windows packaging.
   Browser run [30670142906](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30670142906)
   completed without a crash at **252 passed / 17 failed / 16 TODO** and exposed
   unsafe HTML-string history rendering plus an unsupported assertion method.
-  This containing correction uses safe DOM construction, literal text, a
+  The next source used safe DOM construction, literal text, a
   whitelisted notification class, a true `.mjs` regex launcher, and supported
-  assertions. The exact local lint inventory is green; hosted proof remains
-  pending and is not inferred from local results.
+  assertions. Its browser run
+  [30672182192](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30672182192)
+  reached **206 passed / 2 failed / 16 TODO with zero crashes**. The first timeout
+  waited for a panel class that is created only after the launcher opens; the second
+  reused an existing single-page tab and then awaited a load that could not recur.
+  Evidence-only source `d69f5ba1f8f0b3fe6b68f0c017c386eb34b080f7` reproduced the
+  same counts in run
+  [30672895090](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30672895090),
+  as expected because it changed documentation but no UI bytes.
+  This containing source exposes an explicit eight-builder initialization signal,
+  initializes late modules against `document.readyState`, opens both fixtures as
+  fresh duplicate tabs, and adds equivalent 14-space color-module coverage. A new
+  hosted run remains required; neither failed run is recycled as proof.
 - **Broad browser verification is still mixed.** Run
   [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
   failed legacy suites while the authored Material/static groups passed. It is not

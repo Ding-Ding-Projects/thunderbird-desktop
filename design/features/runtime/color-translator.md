@@ -16,7 +16,9 @@ The adapter is `mail/base/content/materialMailColor.mjs`; the DOM-free converter
 is `design/runtime/color/color-translator.mjs` and is packaged as
 `materialColorTranslator.mjs`. Values are applied through the appearance
 editor's existing per-element CSS custom-property store. The editor search field
-has its own anchored regex builder and defaults to plain text.
+has its own anchored regex builder and defaults to plain text. The adapter's
+idempotent initializer is safe whether it runs before or after `DOMContentLoaded`
+and exposes the mounted 14-space inventory to the browser contract.
 
 ## Failure modes
 

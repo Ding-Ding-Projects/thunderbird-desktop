@@ -303,4 +303,19 @@ function bind() {
   render();
 }
 
-document.addEventListener("DOMContentLoaded", bind, { once: true });
+export function initMaterialMailColor() {
+  if (window.mmMaterialMailColor) {
+    return window.mmMaterialMailColor;
+  }
+  bind();
+  window.mmMaterialMailColor = Object.freeze({ spaces: SPACES.length });
+  return window.mmMaterialMailColor;
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initMaterialMailColor, {
+    once: true,
+  });
+} else {
+  initMaterialMailColor();
+}

@@ -10,6 +10,12 @@ const MATERIAL_MAIL_PREFS = [
   MATERIAL_MAIL_TAB_PREF,
 ];
 
+function waitForPaint(win) {
+  return new Promise(resolve => {
+    win.requestAnimationFrame(() => win.requestAnimationFrame(resolve));
+  });
+}
+
 add_task(async function testMaterialMailPreviewSurface() {
   const previousPrefs = new Map();
   for (const name of MATERIAL_MAIL_PREFS) {
@@ -38,6 +44,7 @@ add_task(async function testMaterialMailPreviewSurface() {
   const tab = tabmail.openTab("contentTab", {
     url: MATERIAL_MAIL_URL,
     linkHandler: "single-page",
+    duplicate: true,
   });
   await BrowserTestUtils.browserLoaded(tab.browser, false, MATERIAL_MAIL_URL);
   registerCleanupFunction(() => tabmail.closeTab(tab));
@@ -123,6 +130,19 @@ add_task(async function testMaterialMailPreviewSurface() {
     () => page.defaultView.mmMaterialMailTabs,
     "the packaged Material tab controller initializes"
   );
+  await TestUtils.waitForCondition(
+    () => page.defaultView.mmMaterialMailRegex?.mounted === 8,
+    "all eight packaged regex builders initialize"
+  );
+  await TestUtils.waitForCondition(
+    () => page.defaultView.mmMaterialMailColor?.spaces === 14,
+    "the packaged color translator initializes"
+  );
+  Assert.equal(
+    page.querySelectorAll("#mm-color-space option").length,
+    14,
+    "all supported color spaces are mounted"
+  );
   const tabController = page.defaultView.mmMaterialMailTabs;
   let tabSnapshot = tabController.snapshot();
   Assert.equal(
@@ -153,6 +173,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     !page.getElementById("mm-tab-context-menu").hidden,
     "right-click opens tab actions"
   );
+  await waitForPaint(page.defaultView);
   page.getElementById("mm-tab-menu-pin").click();
   tabSnapshot = tabController.snapshot();
   Assert.equal(
@@ -175,6 +196,7 @@ add_task(async function testMaterialMailPreviewSurface() {
       clientY: 96,
     })
   );
+  await waitForPaint(page.defaultView);
   page.getElementById("mm-tab-menu-pin").click();
   Assert.equal(
     tabController.snapshot().state.pinned.includes("settings"),
@@ -231,7 +253,7 @@ add_task(async function testMaterialMailPreviewSurface() {
 
   const overflowButton = page.getElementById("mm-tab-overflow");
   overflowButton.click();
-  await new Promise(resolve => page.defaultView.requestAnimationFrame(resolve));
+  await waitForPaint(page.defaultView);
   Assert.ok(
     !page.getElementById("mm-tab-popover").hidden,
     "all-tabs search opens at its anchor"
@@ -389,6 +411,7 @@ add_task(async function testMaterialMailPreviewSurface() {
   guideSearch.dispatchEvent(
     new page.defaultView.Event("input", { bubbles: true })
   );
+  await waitForPaint(page.defaultView);
   const guideButton = page.querySelector("#mm-guide-list .mm-guide-read");
   guideButton.click();
   Assert.ok(
@@ -402,11 +425,19 @@ add_task(async function testMaterialMailPreviewSurface() {
   );
   page.getElementById("mm-feature-details-close").click();
   const guideRegexPanel = page.getElementById("mm-tools-regex-panel");
-  await TestUtils.waitForCondition(
-    () => guideRegexPanel.classList.contains("regex-builder-panel"),
+  const guideRegexLauncher = page.getElementById("mm-tools-regex-open");
+  Assert.equal(
+    guideRegexLauncher.getAttribute("aria-haspopup"),
+    "dialog",
     "the packaged regex launcher module mounts the Tools builder"
   );
-  page.getElementById("mm-tools-regex-open").click();
+  guideRegexLauncher.click();
+  await TestUtils.waitForCondition(
+    () =>
+      guideRegexPanel.classList.contains("regex-builder-panel") &&
+      guideRegexPanel.querySelector("[data-regex-pattern]"),
+    "the Tools builder renders after its mounted launcher opens it"
+  );
   Assert.ok(
     !guideRegexPanel.hidden,
     "The Tools regex builder opens at its field"
@@ -580,6 +611,7 @@ add_task(async function testPersistedMarkupLikeValuesStayLiteral() {
   const tab = tabmail.openTab("contentTab", {
     url: MATERIAL_MAIL_URL,
     linkHandler: "single-page",
+    duplicate: true,
   });
   await BrowserTestUtils.browserLoaded(tab.browser, false, MATERIAL_MAIL_URL);
   registerCleanupFunction(() => tabmail.closeTab(tab));

@@ -23,7 +23,7 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Tab-core integration status — 2026-07-31.** `design/` is the complete tracked
-> authority: **162 files / 1,966,328 bytes**, with no project design ZIP.
+> authority: **162 files / 1,978,528 bytes**, with no project design ZIP.
 > `Material Mail.dc.html` remains 140,780 bytes with SHA-256
 > `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
 > The local source matrix is green: both Python verifiers, **12 / 12** preview
@@ -69,22 +69,28 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > and the 36-check model/smoke matrix remains green. A new hosted run is still
 > required; local green is not installed-artifact proof.
 >
-> The verified pre-wave source is
-> `77fe409183e580db6dd59ef2e65d093864a4f241`, **120 ahead / 0 behind** upstream
-> at task start, with Gecko pinned at
-> `fdd583cd5a10d051053acda8b760c3bd5d800034`. Lint
-> [30644045867](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045867)
-> and installer
-> [30644045825](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30644045825)
-> are green. Release
-> [`tb-155.0a1-b98-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b98-char-siu-bao)
-> points exactly to that source and carries the real 87,755,233-byte installer
-> (`e57e8abce22183fb4a345398be52e20ae95835a3fee63c4bee98c4b6232d7a81`),
-> but has no catalog PNG and reuses a code name. The hardened release path now
-> resolves an unused dish and exact PNG from the source-pinned verified catalog,
-> publishes exactly the installer plus photo, and verifies tag/source/assets.
-> Consult rolling Discussion #1 for the immutable post-push run, release, and
-> capture verdict; this handoff deliberately does not predict CI success.
+> Evidence-only source `d69f5ba1f8f0b3fe6b68f0c017c386eb34b080f7` passed the
+> complete hosted release path. Installer run
+> [30672866600](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30672866600)
+> published non-draft release
+> [`tb-155.0a1-b104`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b104)
+> with exactly the 87,766,726-byte installer
+> (`b1a08125c6899d6842b35780f5e253b05cafa8d11ba47bdfa470886ba6e35f97`)
+> and 2,342,669-byte `Vegetable Spring Rolls · 素菜春卷` PNG
+> (`06a1e19ee2417e1556cccc90cdef87ebd2a1476c0708ea4cbdea7759e0827959`).
+> Its focused browser run
+> [30672895090](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30672895090)
+> ended at **206 passed / 2 failed / 16 TODO, zero crashes**. The test incorrectly
+> waited for a post-open panel class before activating the mounted builder; after
+> that timeout, the hostile-data fixture reused the still-open single-page tab and
+> awaited a load event that could not recur. This containing source exposes an
+> eight-builder ready signal, checks it before interaction, opens fresh duplicate
+> fixture tabs, adds the matching 14-space color signal, and hardens both late module
+> initializers with `document.readyState`. The same counts also occurred on UI-identical
+> source `535374af5ff7d389b2a4ef857a189a65ea04e397` in
+> [30672182192](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30672182192).
+> Consult rolling Discussion #1 for
+> the next immutable run, release, and capture verdict; this handoff does not predict it.
 >
 > Browser run [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
 > remains the previous broad checkpoint: authored Material/static groups passed,
@@ -101,9 +107,9 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `17 resolved / 14 finished` gate, widgets failed with **2** unexpected results,
 > and folder failed with **12**. The artifact records the same stored-pane-width,
 > folder-tree/mode, pane-splitter, and folder-header failure families already
-> seen in earlier runs. This is current runtime evidence, not a green parity
-> sign-off. The current release proof is b54 above, and the browser result is
-> recorded in the current integration block with artifact `8790660197`.
+> seen in earlier runs. This is historical runtime evidence, not a green parity
+> sign-off. The current release proof is b104 above; this earlier browser result
+> remains recorded with artifact `8790660197`.
 
 ---
 
