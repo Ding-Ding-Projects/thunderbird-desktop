@@ -34,8 +34,10 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `8795330528` contains the exact logs. These results do not promote parity, accessibility,
 > layout, or visual sign-off.
 >
-> The public latest release remains [`tb-155.0a1-b72-pai-gwat`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b72-pai-gwat),
-> tagged to `4fe4f0135921`; the newer runtime waves through `c618a3643d02` are waiting on
+> The public latest release is [`tb-155.0a1-b75-lin-yung-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b75-lin-yung-bao),
+> a real 85,319,245-byte installer. Inspection of its embedded `omni.ja` found no
+> `materialMailColor.mjs`, so it is not current-source proof; the newer runtime waves through
+> `c618a3643d02` are waiting on
 > installer run [30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
 > before built-artifact captures can be taken. The queued state is not a CI success claim.
 

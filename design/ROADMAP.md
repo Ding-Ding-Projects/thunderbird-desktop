@@ -85,8 +85,9 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   the upstream check is **110 ahead / 0 behind**. Lint
   [30640642457](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642457)
   is pending and installer [30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
-  is queued; b72 remains the latest verified public release until a newer installer
-  actually publishes.
+  is queued. b75 is the latest real public release, but its embedded preview was inspected
+  and does not contain the current color/funny-level source wave; current-source capture waits
+  for the queued installer to publish.
 - It published non-draft release
   [`tb-155.0a1-b54-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok)
   with a real Windows installer built from the exact source SHA. The b54 package

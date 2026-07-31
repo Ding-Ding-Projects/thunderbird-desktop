@@ -7,8 +7,8 @@ Integration target: **`main`**. Scope: **Windows only**.
 
 > **Current shipped scope is a CSS-layer restyle plus a packaged Material Mail runtime preview.**
 > The preview is the first rewrite vertical slice; it does not yet replace the upstream
-> 3-pane or close the full global-memory feature contract. Windows CI has built and launched
-> the b66 installer and genuine headless captures are committed below, while the broad
+> 3-pane or close the full global-memory feature contract. Windows CI has published b75,
+> while the committed genuine headless captures below are from b66 and the broad
 > browser suites remain red. Read `ROADMAP.md` before treating any evidence as release sign-off.
 
 ---
@@ -53,8 +53,9 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **Current source push:** `c618a3643d02a7499fa949f2a6ab52e80a094800` wires both funny levels into
   fact-preserving runtime copy. Windows installer run [30640642470](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642470)
   is queued and lint [30640642457](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30640642457)
-  is pending, so b72 remains the latest verified public release and new captures are not yet
-  runtime evidence.
+  is pending. b75 is the latest real public release, but its embedded preview was inspected
+  and does not contain the current color/funny-level source wave; new captures remain pending
+  against the current-source artifact.
 
 ## Runtime Material vertical slice
 

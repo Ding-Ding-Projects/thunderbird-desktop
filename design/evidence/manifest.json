@@ -44,6 +44,19 @@
         }
       ]
     },
+    "latestPublicRelease": {
+      "status": "verified",
+      "build": 75,
+      "tag": "tb-155.0a1-b75-lin-yung-bao",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b75-lin-yung-bao",
+      "sourceCommit": null,
+      "asset": {
+        "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
+        "sizeBytes": 85319245,
+        "sha256": "0fdde7dbea243e3b3ec3b64d54e8e148ad182326978d679dadb987cdb4fb150e"
+      },
+      "packageInspection": "The downloaded asset was extracted and launched headlessly; its embedded omni.ja contained no materialMailColor.mjs, so it is not evidence for the current c618 source wave."
+    },
     "browserRun": {
       "status": "failed",
       "runId": 30634411220,
