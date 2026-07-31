@@ -453,6 +453,13 @@ packaging commit.
 
 ---
 
+> [!NOTE]
+> **Historical ratification snapshot — 2026-07-29.** The feature-survival audit
+> and its “no boxes ticked”/“nothing built” language below record an earlier
+> static-only tree. The current source, CI verdict, and runtime boundary are the
+> `2026-07-31 integration audit` near the end of this file; do not read the old
+> snapshot as a current claim.
+
 **Feature-survival audit of the M3 restyle — 30 boxes ticked, 1 refused**
 
 The Material Mail work restyles the *existing* 3-pane DOM. `about3Pane.js`,
@@ -1036,6 +1043,10 @@ and this contract is not even green.
 
 ### 2026-07-29 — independent audit mega-wave, then adversarial refutation. **38 / 38 → 32 / 38.**
 
+> The dated sections beginning here are historical ratification records. Their
+> runtime caveats and measured counts are preserved as audit history; current
+> runtime evidence is recorded in the 2026-07-31 integration audit below.
+
 Eleven audit agents re-derived every box from primary sources with a standing instruction to
 treat a previous agent's tick as a claim to be tested, not a fact to inherit. One adversarial
 refuter then attacked both the upheld ticks and the challenges, verifying against the tree, the
@@ -1279,6 +1290,12 @@ This audit corrected the current-state claims without changing historical entrie
   is verified green and published non-draft release
   [`tb-155.0a1-b41-ham-sui-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b41-ham-sui-gok)
   with the Windows installer attached.
+- Full browser dispatch [30608322422](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30608322422)
+  on `ce9b30d1aa6` passed `static`, `chrome`, and `m3`; it left `3pane` at 92
+  unexpected results with a truncated 17/14 gate, `widgets` at 2 from the
+  pane-splitter timeout, and `folder` at 12. These are current runtime evidence,
+  not a license to tick the remaining boxes or to attribute inherited failures
+  to the M3 CSS without an isolating run.
 
 ## Verification
 

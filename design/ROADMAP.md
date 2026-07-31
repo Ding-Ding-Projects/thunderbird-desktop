@@ -102,12 +102,18 @@ zero `style=` attributes.
 ### 6. Runtime evidence exists, and it is not green
 
 The Windows browser workflow built and executed the packaged application. The
-latest scheduled run [30538853820](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30538853820)
-passed setup, configure, build, the static packaged-CSS gate, chrome, and the
-project-authored M3 suite. It failed the 3-pane, widgets, and folder suites.
-The extracted artifact records concrete failures in folder-mode/account-central
-tests, pane-splitter accessibility handling, stored pane-width restoration, and
-folder-pane mode/count tests; preference-leak records are separate harness noise.
+current full dispatch on merged `main` [`30608322422`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30608322422)
+(`ce9b30d1aa6`) passed the static packaged-CSS, chrome, and project-authored M3
+groups. Its actual failure gates were: 3-pane `92` unexpected results with a
+truncated `17 resolved / 14 finished` run, widgets `2` unexpected results from
+the pane-splitter timeout, and folder `12` unexpected results. The extracted
+artifact records folder-mode/account-central state mismatches, pane-splitter
+accessibility handling, stored pane-width restoration, and folder-pane
+mode/count tests; preference-leak records are separate harness noise.
+The older run [30538853820](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30538853820)
+showed the same failure families. This repetition makes them real runtime gaps,
+but does not by itself attribute them to the M3 CSS; no unexpected result was
+reported by the current static, chrome, or M3 groups.
 The no-M3 experiment [30499955896](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30499955896)
 also failed, so it did not exonerate or isolate the restyle. No box is promoted
 from static evidence based on these failures.
@@ -227,7 +233,7 @@ Ordered by dependency. Phase 1 gates everything after it.
 ### Phase 1 — Make the automated run green, then run it manually. (Blocks all other phases.)
 
 The artifact has now been launched by CI, but the application suites still fail.
-First reproduce and fix the 3-pane/widgets/folder failures on a fresh run; then
+First reproduce and isolate the 3-pane/widgets/folder failures on a fresh run; then
 install the verified artifact on a real Windows machine and open the 3-pane.
 
 Minimum first sitting:

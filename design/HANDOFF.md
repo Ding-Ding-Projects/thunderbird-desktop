@@ -25,6 +25,13 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > is verified green and published non-draft release
 > [`tb-155.0a1-b41-ham-sui-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b41-ham-sui-gok)
 > with the Windows installer attached.
+> Full browser dispatch [30608322422](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30608322422)
+> on `ce9b30d1aa6` then rebuilt and exercised the merged tree: static, chrome, and
+> authored M3 groups passed; 3-pane ended with `92` unexpected results and a
+> truncated `17 resolved / 14 finished` gate, widgets ended with `2` unexpected
+> results from `browser_paneSplitter.js`, and folder ended with `12`. The same
+> failure families were present in the older run, so the handoff records them as
+> runtime/infrastructure gaps rather than silently blaming the design CSS.
 
 ---
 
