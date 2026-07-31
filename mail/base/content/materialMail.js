@@ -180,6 +180,11 @@ function filterSettings() {
   const query = searchState.settings?.query || "";
   document.querySelectorAll("[data-settings-surface]").forEach(surface => { surface.hidden = Boolean(query) && !searchMatches("settings", `${surface.dataset.settingsSurface} ${surface.textContent}`); });
 }
+function filterAppearance() {
+  const query = searchState.appearance?.query || "";
+  const editor = document.getElementById("mm-appearance-editor");
+  editor?.querySelectorAll("label, .mm-color-picker").forEach(surface => { surface.hidden = Boolean(query) && !searchMatches("appearance", surface.textContent); });
+}
 function dateInRange(date, from, to) { return (!from || date >= from) && (!to || date <= to); }
 function changelogRows() {
   const from = document.getElementById("mm-changelog-from").value;
@@ -229,7 +234,7 @@ function renderHistory() {
 function downloadText(filename, content, type = "text/plain") { const url = URL.createObjectURL(new Blob([content], { type })); const link = document.createElement("a"); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url); }
 async function copyText(content, message) { try { await navigator.clipboard.writeText(content); showToast(message); } catch (error) { showToast("Clipboard permission unavailable · 剪貼簿權限不可用"); } }
 function bindDataSurfaces() {
-  for (const [id, key, render] of [["mm-settings-search", "settings", filterSettings], ["mm-changelog-search", "changelog", renderChangelog], ["mm-history-search", "history", renderHistory], ["mm-notifications-search", "notifications", renderNotifications]]) { const input = document.getElementById(id); setSearch(key, { mode: "plain", query: "" }); input.addEventListener("input", () => { setSearch(key, { mode: "plain", query: input.value }); render(); }); }
+  for (const [id, key, render] of [["mm-settings-search", "settings", filterSettings], ["mm-changelog-search", "changelog", renderChangelog], ["mm-history-search", "history", renderHistory], ["mm-notifications-search", "notifications", renderNotifications], ["mm-appearance-search", "appearance", filterAppearance]]) { const input = document.getElementById(id); setSearch(key, { mode: "plain", query: "" }); input.addEventListener("input", () => { setSearch(key, { mode: "plain", query: input.value }); render(); }); }
   for (const id of ["mm-changelog-from", "mm-changelog-to", "mm-history-from", "mm-history-to"]) document.getElementById(id).addEventListener("change", () => id.startsWith("mm-changelog") ? renderChangelog() : renderHistory());
   document.getElementById("mm-changelog-preset").addEventListener("change", event => { const latest = CHANGELOG[0].date; const now = new Date(); const today = now.toISOString().slice(0, 10); const month = `${today.slice(0, 7)}-01`; const from = document.getElementById("mm-changelog-from"); const to = document.getElementById("mm-changelog-to"); if (event.target.value === "all") { from.value = ""; to.value = ""; } else if (event.target.value === "latest") { from.value = latest; to.value = latest; } else { from.value = month; to.value = today; } renderChangelog(); });
   document.getElementById("mm-changelog-copy").addEventListener("click", () => copyText(changelogText(), "Changelog copied · 更新記錄已複製"));
@@ -271,24 +276,25 @@ function openAppearance(target, x = 24, y = 24) {
   document.getElementById("mm-appearance-weight").value = value["--mm-custom-weight"] || 400;
   document.getElementById("mm-appearance-radius-value").textContent = `${document.getElementById("mm-appearance-radius").value}px`;
   document.getElementById("mm-appearance-font-size-value").textContent = `${document.getElementById("mm-appearance-font-size").value}px`;
-  const editor = document.getElementById("mm-appearance-editor"); editor.hidden = false; editor.style.left = `${Math.max(12, Math.min(x, innerWidth - 360))}px`; editor.style.top = `${Math.max(12, Math.min(y, innerHeight - 520))}px`;
+  const editor = document.getElementById("mm-appearance-editor"); editor.hidden = false; editor.style.left = `${Math.max(12, Math.min(x, innerWidth - 360))}px`; editor.style.top = `${Math.max(12, Math.min(y, innerHeight - 520))}px`; window.mmAppearanceTarget = target; document.dispatchEvent(new CustomEvent("mm-appearance-opened", { detail: { target } }));
   document.getElementById("mm-appearance-surface").focus();
 }
 function updateAppearance(name, value, textId = null) { if (!appearanceTarget) return; const key = appearanceKey(appearanceTarget); appearanceOverrides[key] = { ...(appearanceOverrides[key] || {}), [name]: value }; appearanceTarget.style.setProperty(name, value); saveAppearance(); if (textId) document.getElementById(textId).value = value; }
+window.mmUpdateAppearanceColor = (role, value) => updateAppearance(role === "text" ? "--mm-custom-fg" : "--mm-custom-bg", value);
 function bindAppearance() {
   const editor = document.getElementById("mm-appearance-editor");
   document.addEventListener("contextmenu", event => { const target = event.target.closest(".mm-card, .mm-tab, .mm-appbar, .mm-search-field"); if (!target || editor.contains(target)) return; event.preventDefault(); openAppearance(target, event.clientX, event.clientY); });
   document.addEventListener("keydown", event => { if (event.key !== "F10" || !event.shiftKey) return; const target = event.target.closest?.(".mm-card, .mm-tab, .mm-appbar, .mm-search-field"); if (!target) return; event.preventDefault(); const rect = target.getBoundingClientRect(); openAppearance(target, rect.left, rect.bottom + 8); });
-  document.getElementById("mm-appearance-close").addEventListener("click", () => { editor.hidden = true; appearanceTarget?.focus?.(); });
+  document.getElementById("mm-appearance-close").addEventListener("click", () => { editor.hidden = true; appearanceTarget?.focus?.(); window.mmAppearanceTarget = null; });
   for (const [id, name, textId] of [["mm-appearance-surface", "--mm-custom-bg", "mm-appearance-surface-text"], ["mm-appearance-text", "--mm-custom-fg", "mm-appearance-text-text"]]) document.getElementById(id).addEventListener("input", event => { updateAppearance(name, event.target.value); document.getElementById(textId).value = event.target.value; });
   for (const [id, name, output] of [["mm-appearance-radius", "--mm-custom-radius", "mm-appearance-radius-value"], ["mm-appearance-font-size", "--mm-custom-size", "mm-appearance-font-size-value"]]) document.getElementById(id).addEventListener("input", event => { updateAppearance(name, `${event.target.value}px`); document.getElementById(output).textContent = `${event.target.value}px`; });
   document.getElementById("mm-appearance-weight").addEventListener("change", event => updateAppearance("--mm-custom-weight", event.target.value));
-  for (const [id, colorId, name] of [["mm-appearance-surface-text", "mm-appearance-surface", "--mm-custom-bg"], ["mm-appearance-text-text", "mm-appearance-text", "--mm-custom-fg"]]) document.getElementById(id).addEventListener("change", event => { if (!/^#[0-9a-f]{6}$/i.test(event.target.value)) return; document.getElementById(colorId).value = event.target.value; updateAppearance(name, event.target.value); });
+  for (const [id, colorId, name] of [["mm-appearance-surface-text", "mm-appearance-surface", "--mm-custom-bg"], ["mm-appearance-text-text", "mm-appearance-text", "--mm-custom-fg"]]) document.getElementById(id).addEventListener("change", event => { if (!/^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(event.target.value)) return; document.getElementById(colorId).value = event.target.value.slice(0, 7); updateAppearance(name, event.target.value); });
   document.getElementById("mm-appearance-reset").addEventListener("click", () => { if (!appearanceTarget) return; const key = appearanceKey(appearanceTarget); delete appearanceOverrides[key]; for (const name of ["--mm-custom-bg", "--mm-custom-fg", "--mm-custom-radius", "--mm-custom-size", "--mm-custom-weight"]) appearanceTarget.style.removeProperty(name); saveAppearance(); openAppearance(appearanceTarget); showToast("Element appearance reset · 元素外觀已重設"); });
   document.getElementById("mm-appearance-reset-all").addEventListener("click", () => { appearanceOverrides = {}; document.querySelectorAll(".mm-card, .mm-tab, .mm-appbar, .mm-search-field").forEach(target => { for (const name of ["--mm-custom-bg", "--mm-custom-fg", "--mm-custom-radius", "--mm-custom-size", "--mm-custom-weight"]) target.style.removeProperty(name); }); saveAppearance(); editor.hidden = true; showToast("All appearance overrides reset · 所有外觀覆寫已重設"); });
   applyAllAppearance();
 }
-window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); if (key === "notifications") renderNotifications(); };
+window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "appearance") filterAppearance(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); if (key === "notifications") renderNotifications(); };
 window.mmSearchState = searchState;
 
 document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); ensureSettingsCustomization(); bindTabs(); bindSettings(); bindDataSurfaces(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });

@@ -15,6 +15,14 @@ test("translator exposes every required representation", () => {
   const color = translateColor({ space: "hex", value: "#ff8800" });
   for (const key of ["hex", "rgb", "hsl", "hsv", "hwb", "lab", "lch", "oklab", "oklch", "cmyk"]) assert.ok(color[key] !== undefined, key);
   assert.equal(color.gamut, "sRGB");
+  assert.equal(color.named, null);
+});
+
+test("translator reports clipping before clamping and names exact colours", () => {
+  const wide = translateColor({ space: "oklab", value: [0.7, 0.5, 0.5] });
+  assert.equal(wide.gamut, "out-of-sRGB");
+  assert.equal(wide.clipped, true);
+  assert.equal(translateColor({ space: "named", value: "red" }).named, "red");
 });
 
 test("CMYK round-trip stays close to the source", () => {

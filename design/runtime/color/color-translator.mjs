@@ -50,7 +50,7 @@ export function rgbToHwb(rgb) { const hsv = rgbToHsv(rgb); return { h: hsv.h, w:
 export function hwbToRgb({ h, w, b }) { const white = clamp(w); const black = clamp(b); if (white + black >= 1) return [white / (white + black), white / (white + black), white / (white + black)]; const base = hsvToRgb({ h, s: 1, v: 1 }); const factor = 1 - white - black; return base.map(value => round(value * factor + white)); }
 
 function linear(value) { return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4; }
-function gam(value) { return value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055; }
+function gam(value) { const sign = Math.sign(value) || 1; const magnitude = Math.abs(value); return sign * (magnitude <= 0.0031308 ? magnitude * 12.92 : 1.055 * magnitude ** (1 / 2.4) - 0.055); }
 function rgbToXyz(rgb) { const [r, g, b] = rgb.map(linear); return [0.4123908 * r + 0.3575843 * g + 0.1804808 * b, 0.212639 * r + 0.7151687 * g + 0.0721923 * b, 0.0193308 * r + 0.1191948 * g + 0.9505322 * b]; }
 function xyzToRgb([x, y, z]) { return [3.2409699 * x - 1.5373832 * y - 0.4986108 * z, -0.9692436 * x + 1.8759675 * y + 0.0415551 * z, 0.0556301 * x - 0.203977 * y + 1.0569715 * z].map(value => round(gam(value))); }
 const D65 = [0.95047, 1, 1.08883];
@@ -85,6 +85,7 @@ function parseValue(space, value) {
 }
 
 export function translateColor({ space = "hex", value = "#000000", alpha } = {}) {
-  const parsed = parseValue(space.toLowerCase(), value); const a = clamp(alpha ?? parsed.alpha); const rgb = parsed.rgb.map(value => clamp(value)); const hsl = rgbToHsl(rgb); const hsv = rgbToHsv(rgb); const hwb = rgbToHwb(rgb); const lab = rgbToLab(rgb); const lch = labToLch(lab); const oklab = rgbToOklab(rgb); const oklch = oklabToOklch(oklab); const cmyk = rgbToCmyk(rgb);
-  return { alpha: round(a), gamut: rgb.every(value => value >= 0 && value <= 1) ? "sRGB" : "out-of-sRGB", rgb: rgb.map(value => round(value)), hex: rgbToHex(rgb, a), hsl, hsv, hwb, lab, lch, oklab, oklch, cmyk };
+  const parsed = parseValue(space.toLowerCase(), value); const a = clamp(alpha ?? parsed.alpha); const sourceRgb = parsed.rgb.map(Number); const gamut = sourceRgb.every(value => value >= 0 && value <= 1) ? "sRGB" : "out-of-sRGB"; const rgb = sourceRgb.map(value => clamp(value)); const hsl = rgbToHsl(rgb); const hsv = rgbToHsv(rgb); const hwb = rgbToHwb(rgb); const lab = rgbToLab(rgb); const lch = labToLch(lab); const oklab = rgbToOklab(rgb); const oklch = oklabToOklch(oklab); const cmyk = rgbToCmyk(rgb);
+  const named = Object.entries(NAMED_COLORS).find(([name, candidate]) => candidate.every((value, index) => Math.abs(value - rgb[index]) < 0.0001) && (name === "transparent" ? a === 0 : a === 1));
+  return { alpha: round(a), gamut, clipped: gamut !== "sRGB", named: named?.[0] || null, rgb: rgb.map(value => round(value)), hex: rgbToHex(rgb, a), hsl, hsv, hwb, lab, lch, oklab, oklch, cmyk };
 }

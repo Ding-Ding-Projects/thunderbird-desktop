@@ -60,6 +60,14 @@ add_task(async function testMaterialMailPreviewSurface() {
     "mm-font-family",
     "mm-font-scale",
     "mm-font-weight",
+    "mm-appearance-search",
+    "mm-color-picker",
+    "mm-color-hue",
+    "mm-color-saturation",
+    "mm-color-lightness",
+    "mm-color-space",
+    "mm-color-space-entry",
+    "mm-color-representations",
   ]) {
     Assert.ok(page.getElementById(id), `${id} is present in the runtime feature surface`);
   }
@@ -120,5 +128,16 @@ add_task(async function testMaterialMailPreviewSurface() {
   Assert.ok(
     !page.getElementById("mm-appearance-editor").hidden,
     "Context menu opens the anchored appearance editor"
+  );
+  Assert.ok(
+    page.getElementById("mm-color-space").options.length >= 14,
+    "Appearance editor exposes all required color spaces"
+  );
+  page.getElementById("mm-color-hue").value = "120";
+  page.getElementById("mm-color-hue").dispatchEvent(new page.defaultView.Event("input", { bubbles: true }));
+  Assert.match(
+    page.getElementById("mm-appearance-surface-text").value,
+    /^#/,
+    "Continuous color control writes a local hex value"
   );
 });

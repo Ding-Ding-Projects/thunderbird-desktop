@@ -8,6 +8,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / "mail/base/content/materialMail.xhtml"
 SCRIPT = ROOT / "mail/base/content/materialMail.js"
+COLOR_SCRIPT = ROOT / "mail/base/content/materialMailColor.mjs"
+COLOR_TRANSLATOR = ROOT / "design/runtime/color/color-translator.mjs"
 LAUNCHER = ROOT / "mail/base/content/materialMailLauncher.js"
 REGEX_LAUNCHER = ROOT / "mail/base/content/materialMailRegex.js"
 STYLE = ROOT / "mail/themes/shared/mail/material-mail.css"
@@ -22,7 +24,7 @@ def fail(message):
     raise SystemExit(1)
 
 
-for path in (PAGE, SCRIPT, LAUNCHER, REGEX_LAUNCHER, STYLE, FTL, DIMSUM):
+for path in (PAGE, SCRIPT, COLOR_SCRIPT, COLOR_TRANSLATOR, LAUNCHER, REGEX_LAUNCHER, STYLE, FTL, DIMSUM):
     if not path.is_file():
         fail(f"missing {path.relative_to(ROOT)}")
 
@@ -70,6 +72,11 @@ for required in (
     "mm-appearance-font-size",
     "mm-appearance-weight",
     "mm-narrator-language",
+    "mm-appearance-search",
+    "mm-color-picker",
+    "mm-color-space",
+    "mm-color-space-entry",
+    "mm-color-representations",
 ):
     if f'id="{required}"' not in page:
         fail(f"missing runtime feature control {required}")
@@ -90,7 +97,9 @@ page_ids = set(re.findall(r'data-l10n-id="([^"]+)"', page))
 missing = sorted(page_ids - ftl_ids)
 if missing:
     fail(f"page localization ids missing from en-US FTL: {missing}")
-if "materialMail.xhtml" not in jar or "materialMail.js" not in jar or "materialMailRegex.js" not in jar or "materialRegexBuilder.mjs" not in jar or "material-mail.css" not in skin_jar or "material-mail-regex.css" not in skin_jar or "material-dimsum-har-gow.png" not in skin_jar:
+if "materialMail.xhtml" not in jar or "materialMail.js" not in jar or "materialMailColor.mjs" not in jar or "materialColorTranslator.mjs" not in jar or "materialMailRegex.js" not in jar or "materialRegexBuilder.mjs" not in jar or "material-mail.css" not in skin_jar or "material-mail-regex.css" not in skin_jar or "material-dimsum-har-gow.png" not in skin_jar:
     fail("jar packaging entries are incomplete")
+if "import { hslToRgb, translateColor }" not in COLOR_SCRIPT.read_text(encoding="utf-8") or "mm-color-picker" not in page or "mm-appearance-search" not in page:
+    fail("continuous colour picker surface is incomplete")
 
 print(f"Material preview OK: {len(tab_ids)} tabs, {len(panel_ids)} panels, {len(page_ids)} localized ids, local persistence, keyboard navigation, reduced motion, and packaging.")
