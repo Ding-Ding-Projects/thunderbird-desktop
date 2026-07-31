@@ -20,7 +20,7 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > [!IMPORTANT]
 > **Current integration status — 2026-07-31.** The current pushed source is
 > `dfcb6a4b548484b29b0ccce16f96c598c99d17c3` on `main`; upstream check is
-> **89 ahead / 0 behind** and the Gecko gitlink remains
+> **90 ahead / 0 behind** and the Gecko gitlink remains
 > `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b66 release
 > [`tb-155.0a1-b66-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao)
 > contains the real Windows installer from exact source `84d3f6d2364`.
