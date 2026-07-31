@@ -7,39 +7,30 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 `A11Y-L10N-AUDIT.md` (what must not break), `README.md` (the design snapshot).
 
 > [!IMPORTANT]
-> **Current integration status — 2026-07-31.** `main` is pushed to `origin`; it pulled
-> `origin` first, and the final upstream check is `61 ahead / 0 behind`. The Gecko
-> gitlink is `fdd583cd5a10d051053acda8b760c3bd5d800034`. The task-owned worktree and
-> branches were removed after ancestry proof. Current HEAD is
-> `067445d0f697ff83add1e1864b0a762f2401d2ee`, carrying the verified Gecko-pin repair,
-> design alignment gate, and current handoff documentation; the Material source
-> footprint is unchanged by the final documentation tip.
-> Lint [30621742858](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742858)
-> and installer [30621742853](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742853)
+> **Current integration status — 2026-07-31.** The source/runtime baseline for this
+> handoff update is `e4867411c3aa81de4527d843913b966d0ef89c1c` on `main`, pushed
+> to `origin`; the upstream check is **63 ahead / 0 behind**. The Gecko gitlink is
+> `fdd583cd5a10d051053acda8b760c3bd5d800034`. The documentation commit that records
+> this baseline follows it, so `e486741…` is the exact source SHA under discussion.
+> Lint [30625833503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833503)
+> and installer [30625833498](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833498)
 > are verified green. Release
-> [`tb-155.0a1-b52-dan-tat`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b52-dan-tat)
-> is non-draft/non-prerelease, contains a real Windows installer, and its extracted
-> seven Material sheets match source byte-for-byte.
+> [`tb-155.0a1-b54-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok)
+> is non-draft/non-prerelease, contains the real Windows installer
+> `thunderbird-155.0a1.en-US.win64.installer.exe`, and was built from that exact SHA.
 >
-> Historical runtime and infrastructure evidence remains in the detailed sections
-> below. The current exact-SHA browser result is the completed dispatch recorded
-> here; earlier b41/b48/b51 releases and failed Gecko-pin runs are provenance, not
-> current release claims.
-> Browser dispatch [30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
-> completed against this exact HEAD. Setup/build, static packaged CSS, chrome,
-> and the authored M3 group passed (`98 passed / 0 failed / 13 TODO`); its gates
-> recorded 3-pane `resolved=17 / ended=14 / unexpected=92`, widgets
-> `resolved=9 / ended=6 / unexpected=2`, and folder
-> `resolved=23 / ended=23 / unexpected=12`. Artifact `8790660197` contains the
-> raw logs and runtime screenshots. These remain runtime/infrastructure gaps, not
-> evidence that the M3 CSS caused them; the no-M3 experiment also failed.
->
-> The working-tree follow-up adds `browser_m3Accessibility.js` coverage for the
-> resolved M3 density tokens across default, compact, and relaxed values through
-> both `uidensity` and `data-m3-density`. It is not runtime evidence until a
-> hosted browser run executes the new test; the separate
-> `about3Pane.js#densityChange` row budget and manual density/layout sign-off
-> remain open.
+> The current b54 runtime observation is bounded: the onboarding/start page remains
+> upstream Thunderbird UI, while the same b54 package contains the seven Material
+> 3-pane stylesheet/token files. This is a packaging/surface-boundary finding, not
+> evidence that the start page is supposed to be Material, and not evidence that any
+> other non-3-pane surface is covered. The current exact-SHA browser dispatch
+> [30625878368](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368)
+> completed **failed** after setup/build. Its packaged-CSS static suite passed `1/1`
+> with zero unexpected results and chrome passed with zero unexpected results; the
+> 3-pane, widgets, folder, and authored M3 gates remained open with respectively
+> `92`, `2`, `12`, and `5` unexpected results. The authored M3 suite recorded
+> `119 passed / 4 failed / 13 TODO`; artifact `8791840623` contains the raw logs.
+> These results do not promote a parity, accessibility, layout, or visual sign-off.
 
 > [!NOTE]
 > **Prior current-source browser checkpoint — 2026-07-31.** Dispatch
@@ -52,7 +43,7 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > and folder failed with **12**. The artifact records the same stored-pane-width,
 > folder-tree/mode, pane-splitter, and folder-header failure families already
 > seen in earlier runs. This is current runtime evidence, not a green parity
-> sign-off. The current release proof is b52 above, and the browser result is
+> sign-off. The current release proof is b54 above, and the browser result is
 > recorded in the current integration block with artifact `8790660197`.
 
 ---
@@ -790,11 +781,14 @@ Recorded honestly, because a successor will otherwise treat them as checked:
 
 - **CI run colour.** The installer and lint workflows are reported green. That is a
   GitHub Actions fact; check the Actions tab.
-- **Release count and artifact sizes.** Six releases are reported, the latest
-  `tb-155.0a1-b23-fung-zaau` at 85,220,811 bytes. Note that `REWRITE-CONTRACT.md`
-  records 85,207,651 bytes for an earlier one — the figures are per-build and drift.
-  Check the Releases page.
+- **Release and artifact state.** The current verified release is
+  `tb-155.0a1-b54-wu-gok`, built from `e4867411c3aa81de4527d843913b966d0ef89c1c`
+  by installer run `30625833498`. Check the Releases page for the live asset and
+  digest; per-build sizes remain intentionally external state.
 - **Self-hosted runner health**, addresses (`super` answers on `.232` and sometimes
   `.233`) and the Minecraft pause guard's current behaviour. Host-side facts; see
   `INFRA.md` and re-check reachability before assuming either address.
-- **Whether the built installer runs at all.** Nobody has installed one. See caveat 1.
+- **Manual installer coverage.** The b54 runtime observation reached the upstream
+  onboarding/start page while the packaged Material 3-pane sheets were present. This
+  does not close manual installation, 3-pane interaction, accessibility, localization,
+  or visual sign-off; all those unknowns remain open.

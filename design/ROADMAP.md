@@ -66,14 +66,15 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   installer attached, tagged monotonically off `run_number` and code-named from a
   16-dish dim sum rotation.
 - Every release states that it is an unofficial fork build.
-- The current verified push is `067445d0f697ff83add1e1864b0a762f2401d2ee`:
-  lint [30621742858](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742858)
-  and installer [30621742853](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30621742853)
+- The current source/runtime baseline is `e4867411c3aa81de4527d843913b966d0ef89c1c`:
+  the upstream check is **63 ahead / 0 behind**; lint
+  [30625833503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833503)
+  and installer [30625833498](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625833498)
   both passed.
 - It published non-draft release
-  [`tb-155.0a1-b52-dan-tat`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b52-dan-tat)
-  with a real Windows installer. The downloaded b52 package matches all seven
-  Material sheets byte-for-byte.
+  [`tb-155.0a1-b54-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b54-wu-gok)
+  with a real Windows installer built from the exact source SHA. The b54 package
+  contains all seven Material sheets byte-for-byte.
 - Earlier post-integration runs failed at `vendored-rust-check`: [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503)
   and [30619490478](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30619490478).
   Its log identified comm/Gecko Rust-manifest skew before compilation; the gitlink
@@ -154,7 +155,7 @@ and zero unexpected results. The 3-pane gate recorded **92 unexpected** with
 recorded **12 unexpected**. The uploaded raw logs show the same stored-pane-width,
 folder-tree/mode, pane-splitter, and folder-header families, so the current SHA
 confirms the runtime gap without attributing it to the M3 CSS. The current release
-proof is b52 above. Browser dispatch
+proof is b54 above. Browser dispatch
 [30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
 against exact SHA `067445d0f69` completed with static, chrome, and authored M3
 groups passing (`98 passed / 0 failed / 13 TODO`). Its independent gates recorded
@@ -165,6 +166,22 @@ raw logs and runtime screenshots. The 3-pane truncation and pane-splitter
 failures remain runtime/harness evidence, while the M3 accessibility failures
 remain explicitly attributed to upstream `aria-hidden="hidden"` markup that this
 skin branch is not authorized to rewrite.
+
+The current b54 baseline is now separately recorded. Browser dispatch
+[30625878368](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368)
+against `e4867411c3aa81de4527d843913b966d0ef89c1c` completed **failed** after setup
+and build. The packaged-CSS static suite passed `1/1` with zero unexpected results;
+chrome also had zero unexpected results. The 3-pane, widgets, folder, and authored
+M3 gates recorded `92`, `2`, `12`, and `5` unexpected results respectively. The M3
+suite recorded `119 passed / 4 failed / 13 TODO`, and artifact `8791840623` contains
+the raw logs.
+
+The genuine runtime finding from b54 is narrower than a feature verdict: the
+onboarding/start page remains upstream Thunderbird UI while the b54 package carries
+the seven Material 3-pane stylesheet/token files. The Material layer is therefore
+present in the package even though that start-page surface is upstream. This does not
+establish that the start page should be restyled, that the 3-pane is fully covered, or
+that any parity, accessibility, localization, layout, or visual unknown is closed.
 
 ---
 
