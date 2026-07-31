@@ -1275,7 +1275,10 @@ This audit corrected the current-state claims without changing historical entrie
 - Installer run [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503)
   reached the build and failed its vendored-Rust consistency check because
   `vendor/gecko` was still `ca6e9493686`; the corrective pin is
-  `079065d33b0b` and no release asset exists for the failed run.
+  `079065d33b0b`. Corrective run [30606626311](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30606626311)
+  is verified green and published non-draft release
+  [`tb-155.0a1-b41-ham-sui-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b41-ham-sui-gok)
+  with the Windows installer attached.
 
 ## Verification
 

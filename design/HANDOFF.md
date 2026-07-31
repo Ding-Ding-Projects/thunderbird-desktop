@@ -7,8 +7,8 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 `A11Y-L10N-AUDIT.md` (what must not break), `README.md` (the design snapshot).
 
 > [!IMPORTANT]
-> **Current integration status — 2026-07-31.** `main` is pushed at
-> `6a507323779`; it pulled `origin` first, is level with `upstream/main` at
+> **Current integration status — 2026-07-31.** `main` is pushed to `origin`; it pulled
+> `origin` first, is level with `upstream/main` at
 > `49 ahead / 0 behind`, and records Gecko gitlink
 > `079065d33b0b788f93395938d10660927761dceb`. The task-owned worktree and
 > branches were removed after ancestry proof.
@@ -20,8 +20,11 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > also failed. Lint run [30605874495](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874495)
 > is verified green. Installer run [30605874503](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30605874503)
 > failed at `vendored-rust-check` because the old `ca6e9493686` Gecko pin was out
-> of sync with comm's Rust manifests; no release was published from that run.
-> The corrective Gecko pin is now in the working tree and needs a fresh run.
+> of sync with comm's Rust manifests; no release was published from that run. The
+> corrective run [30606626311](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30606626311)
+> is verified green and published non-draft release
+> [`tb-155.0a1-b41-ham-sui-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b41-ham-sui-gok)
+> with the Windows installer attached.
 
 ---
 

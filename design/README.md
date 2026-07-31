@@ -34,9 +34,10 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **The parity contract is at 33 / 38**, with five boxes deliberately open.
   A tick certifies that the named upstream behaviour still *functions* against named
   selectors and specificity. It is **not** a visual sign-off.
-- **CI is mixed:** the installer passed on `fd3ce8c8f83`, the M3 lint run failed on
-  formatting, and the latest browser run failed the 3-pane/widgets/folder suites
-  while the static, chrome, and project-authored M3 suites passed.
+- **CI is mixed:** lint is green on `5ac44d5b58f`, and the installer is green on
+  `30606626311`, which published a non-draft Windows installer release. The latest
+  browser run still failed the 3-pane/widgets/folder suites while the static, chrome,
+  and project-authored M3 suites passed.
 - **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, manual
   visual sign-off is absent, and the markup rewrite itself has not started. See
   `ROADMAP.md` §"What is explicitly NOT done".

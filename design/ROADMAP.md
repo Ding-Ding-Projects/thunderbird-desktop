@@ -70,6 +70,9 @@ be cleared before the first green run — they are enumerated in `HANDOFF.md`.
   Its log identified comm/Gecko Rust-manifest skew before compilation; the gitlink
   has since advanced from `ca6e9493686` to `079065d33b0b` and awaits the next
   installer run. No release was published by the failed run.
+- The corrective run on `5ac44d5b58f` is verified green: [30606626311](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30606626311).
+  It published non-draft release [`tb-155.0a1-b41-ham-sui-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b41-ham-sui-gok)
+  with `thunderbird-155.0a1.en-US.win64.installer.exe` attached.
 
 ### 4. Lint wiring is live; the latest main run is red
 
