@@ -33,6 +33,13 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > `resolved=23 / ended=23 / unexpected=12`. Artifact `8790660197` contains the
 > raw logs and runtime screenshots. These remain runtime/infrastructure gaps, not
 > evidence that the M3 CSS caused them; the no-M3 experiment also failed.
+>
+> The working-tree follow-up adds `browser_m3Accessibility.js` coverage for the
+> resolved M3 density tokens across default, compact, and relaxed values through
+> both `uidensity` and `data-m3-density`. It is not runtime evidence until a
+> hosted browser run executes the new test; the separate
+> `about3Pane.js#densityChange` row budget and manual density/layout sign-off
+> remain open.
 
 > [!NOTE]
 > **Prior current-source browser checkpoint — 2026-07-31.** Dispatch

@@ -291,6 +291,114 @@ add_task(async function testM3SheetsAreActuallyLoaded() {
 });
 
 /**
+ * The design density axis must survive the translation to Thunderbird's live
+ * `uidensity` attribute. The design snapshot also names the same arms with
+ * `data-m3-density`; keeping both projections working makes the source gate
+ * and the runtime gate test the same contract instead of two similar-looking
+ * values that can drift independently.
+ */
+add_task(async function testM3DensityTokensFollowLiveAttributes() {
+  const root = about3Pane.document.documentElement;
+  const originalUidensity = root.getAttribute("uidensity");
+  const originalDensity = root.getAttribute("data-m3-density");
+  const arms = [
+    {
+      name: "default",
+      uidensity: null,
+      density: null,
+      row: "12px 8px 12px 16px",
+      inline: "16px 8px",
+      gap: "2px",
+      control: "48px",
+      avatar: "40px",
+    },
+    {
+      name: "compact via uidensity",
+      uidensity: "compact",
+      density: null,
+      row: "8px 8px 8px 12px",
+      inline: "12px 8px",
+      gap: "1px",
+      control: "40px",
+      avatar: "32px",
+    },
+    {
+      name: "touch via uidensity",
+      uidensity: "touch",
+      density: null,
+      row: "16px 12px 16px 20px",
+      inline: "20px 12px",
+      gap: "3px",
+      control: "52px",
+      avatar: "44px",
+    },
+    {
+      name: "compact via design vocabulary",
+      uidensity: null,
+      density: "compact",
+      row: "8px 8px 8px 12px",
+      inline: "12px 8px",
+      gap: "1px",
+      control: "40px",
+      avatar: "32px",
+    },
+    {
+      name: "relaxed via design vocabulary",
+      uidensity: null,
+      density: "relaxed",
+      row: "16px 12px 16px 20px",
+      inline: "20px 12px",
+      gap: "3px",
+      control: "52px",
+      avatar: "44px",
+    },
+  ];
+
+  try {
+    for (const arm of arms) {
+      if (arm.uidensity === null) {
+        root.removeAttribute("uidensity");
+      } else {
+        root.setAttribute("uidensity", arm.uidensity);
+      }
+      if (arm.density === null) {
+        root.removeAttribute("data-m3-density");
+      } else {
+        root.setAttribute("data-m3-density", arm.density);
+      }
+
+      await new Promise(resolve => about3Pane.requestAnimationFrame(resolve));
+      const style = about3Pane.getComputedStyle(root);
+      for (const [token, expected] of Object.entries({
+        "--m3-row-padding": arm.row,
+        "--m3-row-padding-inline": arm.inline,
+        "--m3-gap": arm.gap,
+        "--m3-control-size": arm.control,
+        "--m3-avatar-size": arm.avatar,
+      })) {
+        Assert.equal(
+          style.getPropertyValue(token).trim(),
+          expected,
+          `${token} should resolve to ${expected} in ${arm.name}`
+        );
+      }
+    }
+  } finally {
+    if (originalUidensity === null) {
+      root.removeAttribute("uidensity");
+    } else {
+      root.setAttribute("uidensity", originalUidensity);
+    }
+    if (originalDensity === null) {
+      root.removeAttribute("data-m3-density");
+    } else {
+      root.setAttribute("data-m3-density", originalDensity);
+    }
+    await new Promise(resolve => about3Pane.requestAnimationFrame(resolve));
+  }
+});
+
+/**
  * The folder tree's ARIA container contract.
  *
  * `role="tree"` is not decoration here: tree-listbox-mixin.mjs:125-134

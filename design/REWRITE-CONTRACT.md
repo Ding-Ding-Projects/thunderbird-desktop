@@ -414,12 +414,14 @@ the near-misses so nobody re-litigates them:
    build, static packaged CSS, chrome, and the authored M3 suite, but failed the
    3-pane, widgets, and folder suites. Treat untested combinations as open until
    a passing run and manual coverage exist for layouts, themes, seeds, and density.
-2. **The density scale is wired statically but not runtime-approved.**
+2. **The density scale is wired statically and now has a pending runtime test.**
    `material-tokens.css` maps both `data-m3-density` and Thunderbird's live
    `uidensity` attribute, and the owned row inset uses a logical inline token.
-   Runtime coverage across all three density values is still unverified, while
-   `about3Pane.js#densityChange` keeps separate row-height constants. Do not tick
-   the related parity box until a passing Windows run measures the actual rows.
+   `browser_m3Accessibility.js` now checks the resolved token values for the
+   default, compact, and relaxed arms. That test still needs a passing Windows
+   browser run, and it does not replace measuring actual rendered rows while
+   `about3Pane.js#densityChange` keeps separate row-height constants. Do not
+   tick the related parity box until both pieces have evidence.
 3. **`about3Pane.js#densityChange` still hardcodes its row-height constants**
    rather than deriving them from `--m3-row-padding` / `--m3-gap`. The M3 density
    axis and the uidensity axis can now drift.

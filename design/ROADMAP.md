@@ -110,7 +110,10 @@ The lint workflow also runs `design/verify-material-alignment.py`. That gate
 checks the design palette, all three density modes, the four local-first font
 stacks, both document load orders, the seven packaging entries, balanced CSS,
 and the lightweight-theme boundary. It is a source-drift gate, not browser
-rendering evidence; the runtime and F6 gaps below remain open.
+rendering evidence. `browser_m3Accessibility.js` now also exercises the live
+default, compact, and relaxed token arms; that new runtime test still needs a
+hosted browser run, and the layout/row-budget, manual visual, and F6 gaps below
+remain open.
 
 ### 5. The behaviour layer is provably untouched
 
@@ -289,8 +292,10 @@ Minimum first sitting:
 1. All three layouts (`cmd_viewClassicMailLayout` / `Vertical` / `Wide`).
 2. Light and dark.
 3. All four accent seeds, all three densities — the density axis was only recently
-   wired to `[uidensity]`, which is what Thunderbird actually writes, and has never
-   been observed working.
+   wired to `[uidensity]`, which is what Thunderbird actually writes. A browser
+   test now checks the live token values for the default, compact, and relaxed
+   arms; actual rendered rows and the separate behavior-layer row budget still
+   need observation.
 4. Install a third-party lightweight theme and confirm the 3-pane content stands
    down. This is the entire point of the 119-ish guard occurrences and it has never
    been seen.
