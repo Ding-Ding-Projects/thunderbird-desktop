@@ -3,7 +3,7 @@
   "generatedAt": "2026-07-31",
   "repository": "Ding-Ding-Projects/thunderbird-desktop",
   "branch": "main",
-  "sourceCommit": "e4867411c3aa81de4527d843913b966d0ef89c1c",
+  "sourceCommit": "c8631c2b27f1defd75dd7e0d63ad689b0fbc6061",
   "scope": "Material Mail 3-pane source and design evidence",
   "implementationBoundary": {
     "changedFiles": [
@@ -13,60 +13,62 @@
       "design/screenshots/runtime/"
     ],
     "upstreamBehaviorOrMarkupChanged": false,
-    "runtimeEvidenceMode": "static inventory plus recorded CI facts and labelled headless captures; no clean visual sign-off"
+    "runtimeEvidenceMode": "static inventory plus recorded CI facts and b66 headless captures; no clean visual sign-off"
   },
   "globalMemoryGapAudit": {
     "path": "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md",
     "status": "open",
-    "note": "The refreshed shared requirements identify runtime pages and behaviors that the current CSS-layer release does not yet ship."
+    "note": "The refreshed shared requirements identify runtime pages and behaviors that the packaged preview only partially covers; the full landing, editor, tab, history, and app-wide wiring remain open."
   },
   "verification": {
     "release": {
       "status": "verified",
-      "build": 59,
-      "tag": "tb-155.0a1-b59-lin-yung-bao",
-      "name": "🥮 Lin Yung Bao · 蓮蓉包 — Thunderbird 155.0a1 (build 59)",
-      "publishedAt": "2026-07-31T12:06:08Z",
-      "sourceCommit": "484c0b786f1a66624efbdcd618b55176597ae3ed",
+      "build": 66,
+      "tag": "tb-155.0a1-b66-char-siu-bao",
+      "name": "🍖 Char Siu Bao · 叉燒包 — Thunderbird 155.0a1 (build 66)",
+      "publishedAt": "2026-07-31T13:05:51Z",
+      "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
       "buildRun": {
-        "runId": 30628482764,
+        "runId": 30632181488,
         "status": "passed",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628482764"
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181488"
       },
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b59-lin-yung-bao",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao",
       "assets": [
         {
           "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-          "sizeBytes": 85317666,
-          "sha256": "0bee4ddf010bc99e78acbd9da429585ad195c5311044706aa52594dcdc129114"
+          "sizeBytes": 85315700,
+          "sha256": "f6feeac75bde8cbe76d5ca3f81f359ef09cd2858fb8104aa0f80ada03650ab17"
         }
       ]
     },
     "browserRun": {
-      "status": "running",
-      "runId": 30628513547,
+      "status": "failed",
+      "runId": 30632185941,
       "event": "workflow_dispatch",
-      "sourceCommit": "484c0b786f1a66624efbdcd618b55176597ae3ed",
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628513547",
+      "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941",
       "artifact": {
-        "status": "pending",
-        "note": "The final run has not completed, so no final log artifact is claimed yet."
+        "status": "uploaded",
+        "artifactId": 8794407747,
+        "note": "The hosted job completed with suite-level failures; the authored Material test failed only because privileged chrome content cannot expose localStorage directly."
       },
       "screenshotCapture": {
         "status": "mapped",
-        "note": "The workflow used screenshot-on-fail and uploaded the artifact. The repository also records the genuine local b54 onboarding capture and CI 3-pane captures below; they are evidence states, not complete visual sign-off."
+        "note": "The workflow used screenshot-on-fail and uploaded the artifact. The repository also records genuine b66 headless captures below; they are runtime evidence, not complete visual sign-off."
       },
       "suites": {
-        "3-pane": { "status": "running", "unexpectedResults": null },
-        "widgets": { "status": "running", "unexpectedResults": null },
-        "static-packaged-css": { "status": "pending", "unexpectedResults": null },
-        "folder-pane": { "status": "running", "unexpectedResults": null },
-        "chrome": { "status": "pending", "unexpectedResults": null },
+        "3-pane": { "status": "failed", "unexpectedResults": null },
+        "widgets": { "status": "failed", "unexpectedResults": null },
+        "static-packaged-css": { "status": "passed", "unexpectedResults": 0 },
+        "folder-pane": { "status": "failed", "unexpectedResults": null },
+        "chrome": { "status": "failed", "unexpectedResults": null },
         "project-authored-m3": {
-          "status": "pending",
-          "passed": null,
-          "failed": null,
-          "todo": null
+          "status": "failed",
+          "passed": 186,
+          "failed": 1,
+          "todo": 13,
+          "failingTest": "testMaterialMailPreviewSurface: privileged chrome localStorage unavailable"
         }
       },
       "historicalB54": {
@@ -123,6 +125,62 @@
         "release": "tb-155.0a1-b54-wu-gok",
         "status": "captured-upstream-gap",
         "note": "Genuine local headless capture of the b54 artifact. This upstream onboarding dialog is not restyled by the owned M3 sheets; no account data was entered."
+      },
+      {
+        "path": "design/screenshots/runtime/b66-material-mail.png",
+        "surface": "Material Mail runtime preview — Mail tab",
+        "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
+        "release": "tb-155.0a1-b66-char-siu-bao",
+        "status": "captured-headless-runtime",
+        "note": "Genuine Lowlevel MCP headless capture from the downloaded b66 installer; no account data was entered."
+      },
+      {
+        "path": "design/screenshots/runtime/b66-material-settings.png",
+        "surface": "Material Mail runtime preview — Settings tab",
+        "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
+        "release": "tb-155.0a1-b66-char-siu-bao",
+        "status": "captured-headless-runtime",
+        "note": "Genuine Lowlevel MCP headless capture of theme, density, language, independent funny levels, narrator, dim-sum, and reset controls."
+      },
+      {
+        "path": "design/screenshots/runtime/b66-material-changelog.png",
+        "surface": "Material Mail runtime preview — Changelog tab",
+        "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
+        "release": "tb-155.0a1-b66-char-siu-bao",
+        "status": "captured-headless-runtime",
+        "note": "Genuine Lowlevel MCP headless capture of the current factual preview entries."
+      },
+      {
+        "path": "design/screenshots/runtime/b66-material-history.png",
+        "surface": "Material Mail runtime preview — History tab",
+        "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
+        "release": "tb-155.0a1-b66-char-siu-bao",
+        "status": "captured-headless-runtime",
+        "note": "Genuine Lowlevel MCP headless capture of the honest empty-state boundary for Git-backed history."
+      },
+      {
+        "path": "design/screenshots/runtime/b66-material-notifications.png",
+        "surface": "Material Mail runtime preview — Notifications tab",
+        "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
+        "release": "tb-155.0a1-b66-char-siu-bao",
+        "status": "captured-headless-runtime",
+        "note": "Genuine Lowlevel MCP headless capture of the reviewable notification stack from b66; the later c863 copy correction is documented separately."
+      },
+      {
+        "path": "design/screenshots/runtime/b66-material-tools.png",
+        "surface": "Material Mail runtime preview — Tools tab",
+        "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
+        "release": "tb-155.0a1-b66-char-siu-bao",
+        "status": "captured-headless-runtime",
+        "note": "Genuine Lowlevel MCP headless capture of command palette, anchored regex, and external-editor entry points."
+      },
+      {
+        "path": "design/screenshots/runtime/b66-material-regex-builder.png",
+        "surface": "Material Mail runtime preview — anchored regex builder",
+        "sourceCommit": "84d3f6d236445625c3d9472c725e3a8bc5fdc8d6",
+        "release": "tb-155.0a1-b66-char-siu-bao",
+        "status": "captured-headless-runtime",
+        "note": "Genuine Lowlevel MCP headless capture of the builder anchored to the Mail search field, including bilingual labels, validation, sample text, matches, copy, export, and use-in-search controls."
       }
     ]
   },

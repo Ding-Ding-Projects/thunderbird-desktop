@@ -5,12 +5,11 @@ Thunderbird's 3-pane, and the project documents that govern the work.
 
 Integration target: **`main`**. Scope: **Windows only**.
 
-> **Current shipped scope is a CSS-layer restyle of upstream's existing 3-pane, not a rewrite of it.**
-> The requested full Material UI rewrite is tracked as the next implementation phase;
-> this evidence page deliberately does not pretend that design-only surfaces already run.
-> Windows CI has built and launched the packaged test application, but the 3-pane,
-> widgets, and folder suites remain red. Read `ROADMAP.md` before treating static
-> contract evidence as release sign-off.
+> **Current shipped scope is a CSS-layer restyle plus a packaged Material Mail runtime preview.**
+> The preview is the first rewrite vertical slice; it does not yet replace the upstream
+> 3-pane or close the full global-memory feature contract. Windows CI has built and launched
+> the b66 installer and genuine headless captures are committed below, while the broad
+> browser suites remain red. Read `ROADMAP.md` before treating any evidence as release sign-off.
 
 ---
 
@@ -36,18 +35,21 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **The parity contract is at 33 / 38**, with five boxes deliberately open.
   A tick certifies that the named upstream behaviour still *functions* against named
   selectors and specificity. It is **not** a visual sign-off.
-- **CI is mixed:** final-main lint run
-  [30628482667](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628482667)
+- **CI is mixed:** lint run
+  [30632181490](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181490)
   is green, and installer run
-  [30628482764](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628482764)
+  [30632181488](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181488)
   published the non-draft release
-  [`tb-155.0a1-b59-lin-yung-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b59-lin-yung-bao)
-  from `484c0b786f1`. It carries a real 85,317,666-byte installer. The final
-  browser dispatch [30628513547](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628513547)
-  is still running; earlier b54 browser evidence remains recorded below.
-- **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, manual
-  visual sign-off is absent, and the markup rewrite itself has not started. See
-  `ROADMAP.md` §"What is explicitly NOT done".
+  [`tb-155.0a1-b66-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao)
+  from `84d3f6d2364`. It carries a real 85,315,700-byte installer. Browser run
+  [30632185941](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941)
+  completed red: the authored Material test hit the privileged-chrome localStorage boundary,
+  and the surrounding legacy suites also remain red. The corrected test is queued in
+  [30634140002](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634140002)
+  for `c8631c2b27f`.
+- **Not done:** all eight `A11Y-L10N-AUDIT.md` F6 gates remain unchecked, full app-wide
+  feature wiring and manual visual sign-off are absent, and the upstream 3-pane remains
+  behavior-compatible rather than fully replaced. See `ROADMAP.md` §"What is explicitly NOT done".
 
 ## Runtime Material vertical slice
 
@@ -81,8 +83,8 @@ Feature articles are indexed in [`features/runtime/README.md`](features/runtime/
 ## Evidence coverage
 
 The complete surface inventory is machine-readable in
-[`evidence/manifest.json`](evidence/manifest.json). It is anchored to the exact
-shipped Material source commit `e4867411c3aa81de4527d843913b966d0ef89c1c` and covers
+[`evidence/manifest.json`](evidence/manifest.json). It is anchored to the current
+main evidence commit `c8631c2b27f1defd75dd7e0d63ad689b0fbc6061` and covers
 both classes of surface from the audit:
 
 - **Runtime-reachable:** the 3-pane shell and layouts; folder pane and its context
@@ -90,9 +92,10 @@ both classes of surface from the audit:
   and menus; message-pane shell and findbars; application chrome, tabs, all-tabs,
   tab-context, global-search and autocomplete popups; spaces/notifications; and
   existing upstream dialogs/windows reached from the 3-pane.
-- **Design-only:** the Material Mail mail, settings, changelog, history, and
-  notification pages; command palette; searchable tab overlay; tab context menu;
-  compose dialog; anchored search/regex builder; and toast/dim-sum surfaces.
+- **Packaged preview:** the Material Mail mail, settings, changelog, history, and
+  notification pages; command/regex/editor entry points; and the anchored search/regex builder.
+- **Still design-only or open:** the full landing/documentation site, searchable tab overlay,
+  tab context menu, compose dialog, toast/dim-sum runtime behavior, and app-wide feature wiring.
 
 Every manifest entry records its source path, selector or component anchor,
 command family, major states, and screenshot status. `screenshot: "missing"`
@@ -102,19 +105,16 @@ not evidence for current runtime coverage.
 
 ### Current CI evidence
 
-Build 59 is the current non-draft release
-[`tb-155.0a1-b59-lin-yung-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b59-lin-yung-bao),
-published by the successful [Windows installer run 30628482764](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30628482764)
-with the installer from exact main SHA `484c0b786f1`. The matching
-[browser run 30625878368](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368)
-is historical b54 evidence: it completed with the packaged-CSS and chrome suites passing; the 3-pane, widgets,
-folder-pane, and project-authored M3 gates failed. The M3 gate recorded 137 checks,
-132 expected results, and 5 unexpected density-token results in
-`testM3DensityTokensFollowLiveAttributes`. Its
-[uploaded log artifact](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368/artifacts/8791840623)
-contains run-level logs and failure screenshots. Five genuine captures are now
-mapped in the manifest and committed below; they are diagnostic or gap evidence,
-not visual sign-off.
+Build 66 is the current non-draft release
+[`tb-155.0a1-b66-char-siu-bao`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b66-char-siu-bao),
+published by the successful [Windows installer run 30632181488](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181488)
+with the installer from exact main SHA `84d3f6d2364`. Lint [30632181490](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632181490)
+is green. Browser run [30632185941](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941)
+completed red: the authored Material test hit the privileged-chrome localStorage boundary and
+the surrounding legacy suites also remain red. Its [uploaded log artifact](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30632185941/artifacts/8794407747)
+contains the exact failure evidence. The corrected test is queued in [30634140002](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634140002)
+for `c8631c2b27f`. Five diagnostic captures plus seven genuine b66 headless captures are mapped
+in the manifest and committed below; none is a full visual sign-off.
 
 | Capture | What it proves | Status |
 |---|---|---|
@@ -123,12 +123,18 @@ not visual sign-off.
 | [`ci-m3-shell-browser-chrome-overlay.png`](screenshots/runtime/ci-m3-shell-browser-chrome-overlay.png) | Spaces rail and application chrome are visible in the runtime fixture. | Failure-context only |
 | [`ci-widgets-pane-splitter-failure.png`](screenshots/runtime/ci-widgets-pane-splitter-failure.png) | Splitter fixture and its diagnostic state were captured by the real browser job. | Diagnostic only |
 | [`b54-account-setup-upstream.png`](screenshots/runtime/b54-account-setup-upstream.png) | The shipped artifact reaches upstream onboarding, which is not one of the owned M3 design surfaces. | Explicit gap |
+| [`b66-material-mail.png`](screenshots/runtime/b66-material-mail.png) | Real b66 Material Mail Mail tab with three-column workspace, search, and browser-style tabs. | Headless runtime capture |
+| [`b66-material-settings.png`](screenshots/runtime/b66-material-settings.png) | Real b66 Settings tab with theme, density, language, funny levels, narrator, dim-sum, and reset controls. | Headless runtime capture |
+| [`b66-material-changelog.png`](screenshots/runtime/b66-material-changelog.png) | Real b66 factual changelog tab. | Headless runtime capture |
+| [`b66-material-history.png`](screenshots/runtime/b66-material-history.png) | Real b66 honest local-history boundary state. | Headless runtime capture |
+| [`b66-material-notifications.png`](screenshots/runtime/b66-material-notifications.png) | Real b66 notification centre sample stack; the later c863 copy correction is noted in the manifest. | Headless runtime capture |
+| [`b66-material-tools.png`](screenshots/runtime/b66-material-tools.png) | Real b66 Tools tab with command palette, regex, and external-editor entry points. | Headless runtime capture |
+| [`b66-material-regex-builder.png`](screenshots/runtime/b66-material-regex-builder.png) | Real b66 anchored bilingual regex builder beside the Mail search field. | Headless runtime capture |
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
-matching `design/app-data.js`; the next browser dispatch must rerun the M3 gate
-before this evidence can become green. The previous b54 raw result was **119
-passed / 4 failed / 13 TODO**, with the four failures in
-`testM3DensityTokensFollowLiveAttributes`.
+matching `design/app-data.js`. The b66 authored suite result was **186 passed / 1 failed /
+13 TODO**; the one failure was the invalid privileged-chrome localStorage assertion, now
+removed in `5850b01c74a`. The broad legacy suite failures remain an explicit runtime boundary.
 
 This evidence update changes documentation only. It does not touch upstream
 behavior or markup, and it is not a visual sign-off or a claim that the design-only
