@@ -105,7 +105,7 @@ not evidence for current runtime coverage.
 
 ### Current CI evidence
 
-Build 70 is the current non-draft release
+Build 70 is the latest release with a fully recorded installer digest in this manifest
 [`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok),
 published by installer run [30635599917](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30635599917)
 from exact main SHA `5a4f35f3ba36`. The real asset is 85,328,686 bytes with SHA-256

@@ -19,8 +19,8 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Current integration status — 2026-07-31.** The current pushed source is
-> `5a4f35f3ba36e8e56592005409d3d97c067318b0` on `main`; upstream check is
-> **90 ahead / 0 behind** and the Gecko gitlink remains
+> `b04941a11678e87b84b4893edf55f44484180240` on `main`; upstream check is
+> **93 ahead / 0 behind** and the Gecko gitlink remains
 > `fdd583cd5a10d051053acda8b760c3bd5d800034`. Verified b70 release
 > [`tb-155.0a1-b70-wu-gok`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b70-wu-gok)
 > contains the real 85,328,686-byte Windows installer from exact source `5a4f35f3ba36`.
