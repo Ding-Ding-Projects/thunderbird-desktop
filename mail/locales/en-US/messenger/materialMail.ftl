@@ -116,3 +116,6 @@ material-mail-color-entry = Direct value
 material-mail-guide-heading = Feature guide
 material-mail-guide-note = Design-folder index with honest runtime boundaries.
 material-mail-search-guide-placeholder = Search the feature guide
+material-mail-guide-article = Feature article
+material-mail-guide-status = Status
+material-mail-guide-source = Source

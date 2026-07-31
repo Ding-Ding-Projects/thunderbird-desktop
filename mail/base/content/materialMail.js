@@ -24,6 +24,106 @@ const FEATURE_GUIDE = Object.freeze([
   { title: ["Accessibility and localization", "無障礙同本地化"], status: ["Open sign-off", "等簽核"], summary: ["Focus, roles, contrast, reduced motion, CJK fallback, and narrow bilingual evidence still need full artifact sign-off.", "焦點、角色、對比度、減少動畫、CJK fallback 同窄身雙語證據仍要完整 artifact 簽核。"], article: "design/A11Y-L10N-AUDIT.md" },
   { title: ["Release and evidence discipline", "Release 同證據紀律"], status: ["Active", "進行中"], summary: ["Every source wave records exact SHA, tests, release state, and screenshot boundaries without promoting queued CI.", "每個 source wave 都記錄 exact SHA、測試、release 狀態同 screenshot 界線，唔會將排隊 CI 扮成功。"], article: "design/evidence/manifest.json" },
 ]);
+const FEATURE_ARTICLES = Object.freeze({
+  "design/features/runtime/README.md": {
+    behavior: ["This category groups the packaged Material runtime slice and its foundational modules.", "呢個分類收集已打包嘅 Material runtime 部分同基礎模組。"],
+    configuration: ["Each entry points at a bundled design article and keeps its status separate from the source path.", "每個項目都指向打包嘅 design 文章，狀態同來源路徑分開保留。"],
+    failure: ["Static documentation, preview wiring, and built-artifact evidence are different boundaries; one cannot silently stand in for another.", "靜態文件、預覽接線同 built-artifact 證據係唔同界線，唔可以偷換概念。"],
+    security: ["The guide reads bundled local data only; it does not fetch articles, account data, fonts, or analytics.", "指南只讀取打包本機資料；唔會抓文章、帳戶資料、字型或者 analytics。"],
+    verification: ["Run the Material preview verifier and the focused module tests named by each article; runtime sign-off still needs the built artifact.", "要跑 Material 預覽驗證器同每篇文章列出嘅 focused module tests；runtime 簽核仍要 built artifact。"],
+  },
+  "design/features/runtime/language-tone.md": {
+    behavior: ["English, playful Hong Kong Cantonese, and bilingual modes share the same facts while independent funny levels style the voice.", "英文、玩味香港廣東話同雙語模式保留同一套事實，獨立幽默等級只改語氣。"],
+    configuration: ["Language and English/Cantonese levels are persisted in the local preview settings namespace.", "語言同英文／廣東話等級保存喺本機預覽設定 namespace。"],
+    failure: ["Malformed storage or unknown values fall back to safe defaults instead of erasing a valid preference.", "儲存資料壞咗或者值唔識時會退返安全預設值，唔會抹走有效設定。"],
+    security: ["Copy remains local and bilingual labels keep the factual Cantonese text available to assistive technology.", "文字留喺本機，雙語標籤亦保留事實清楚嘅廣東話畀輔助科技。"],
+    verification: ["The DOM-free language model has its own tests; the preview verifier checks the mounted controls and disclosure.", "無 DOM 語言模型有自己嘅 tests；預覽驗證器檢查已掛載控制同披露文字。"],
+  },
+  "design/features/runtime/notification-centre.md": {
+    behavior: ["Notifications stay non-blocking, stack in a reviewable list, and retain dismissed records.", "通知保持非阻塞、喺可重看清單疊放，並保留已收起記錄。"],
+    configuration: ["The preview stores fixture notification state locally and offers all, unread, and dismissed filters.", "預覽將 fixture 通知狀態保存在本機，提供全部、未讀同已收起篩選。"],
+    failure: ["Storage failure leaves the seeded stack visible; invalid search patterns produce no matches without blocking the page.", "儲存失敗會保留 seeded 清單；無效搜尋模式只顯示冇匹配，唔會阻塞頁面。"],
+    security: ["Fixture copy and bounded local search never read accounts, messages, credentials, or network content.", "Fixture 文字同有界本機搜尋唔會讀取帳戶、郵件、憑證或者網絡內容。"],
+    verification: ["Live counts, labelled filters, keyboard dismiss actions, and the adjacent regex builder are covered by the preview contract.", "即時數量、標籤篩選、鍵盤收起操作同旁邊嘅 regex builder 由預覽 contract 覆蓋。"],
+  },
+  "design/features/runtime/dim-sum-surprise.md": {
+    behavior: ["An eligible launch gets a fresh 1% chance of one non-blocking local Classic har gow card, never on first launch.", "合資格啟動有新抽籤嘅 1% 機會顯示一次非阻塞本機經典蝦餃卡，首次啟動唔會出。"],
+    configuration: ["The Settings opt-out is persisted, and the factual dish name stays unchanged by funny level.", "設定入面嘅停用選項會保存，真實點心名稱唔受幽默等級影響。"],
+    failure: ["Missing storage suppresses the surprise rather than making startup depend on it; one launch cannot show it twice.", "儲存唔得時會收起驚喜，唔會令啟動依賴儲存；同一啟動唔會出兩次。"],
+    security: ["The image is a bundled local catalog asset with no CDN, tracking, or network fallback.", "圖片係打包本機 catalog asset，冇 CDN、tracking 或網絡 fallback。"],
+    verification: ["Static checks prove the local asset and launch boundary; deterministic built-artifact capture is still separate evidence.", "靜態檢查證明本機 asset 同啟動界線；deterministic built-artifact capture 仍係另一種證據。"],
+  },
+  "design/features/runtime/regex-builder.md": {
+    behavior: ["Plain text stays the default; the adjacent builder offers guided tokens, raw patterns, flags, samples, matches, captures, copy, and export.", "純文字保持預設；旁邊嘅建立器提供引導符號、原始模式、旗標、範例、匹配、捕獲組、複製同匯出。"],
+    configuration: ["The engine is ECMAScript RegExp with local bounds: 512-character patterns, 100,000-character samples, 64 captures, and 200 matches.", "引擎係 ECMAScript RegExp，有本機界線：模式 512 字、範例 100,000 字、64 個捕獲組、200 個匹配。"],
+    failure: ["Invalid syntax or flags, oversized input, unsupported backreferences, nested quantifiers, no matches, and zero-width matches are reported safely.", "無效語法或旗標、過大輸入、不支援嘅 backreference、巢狀量詞、冇匹配同零寬匹配都會安全報告。"],
+    security: ["Patterns and samples stay in the local document and are bounded before evaluation; exports are versioned JSON, never executable code.", "模式同範例留喺本機文件，評估前有界；匯出係有版本 JSON，唔係可執行程式碼。"],
+    verification: ["The builder returns focus to its originating field, keeps each field's state separate, and is covered by the regex module tests.", "建立器會將焦點還返原本欄位，每個欄位狀態分開保存，並由 regex module tests 覆蓋。"],
+  },
+  "design/features/runtime/appearance-editor.md": {
+    behavior: ["Context menu or Shift+F10 opens a non-blocking editor beside the selected card, tab, app bar, or search field.", "右鍵選單或者 Shift+F10 會喺選中嘅卡、分頁、app bar 或搜尋欄旁邊開非阻塞編輯器。"],
+    configuration: ["Local stable target keys persist surface/text colours, radius, size, weight, accent seed, font, scale, and reset actions.", "本機 stable target key 保存表面／文字色、圓角、大小、字重、accent seed、字型、比例同重設操作。"],
+    failure: ["Invalid colour text leaves the last valid value; viewport placement clamps inside the window and storage failure does not block live edits.", "無效顏色文字會保留上一次有效值；視窗邊緣會限制位置，儲存失敗都唔會阻塞即時編輯。"],
+    security: ["Only local CSS overrides are persisted; the editor reads no remote fonts, images, analytics, account data, or network content.", "只保存本機 CSS 覆寫；編輯器唔會讀取遠端字型、圖片、analytics、帳戶資料或者網絡內容。"],
+    verification: ["The labelled dialog, local search, anchored regex builder, reset controls, translator tests, and preview contract cover the mounted foundation.", "有標籤對話框、本機搜尋、貼住嘅 regex builder、重設控制、translator tests 同預覽 contract 覆蓋已掛載基礎。"],
+  },
+  "design/features/runtime/color-translator.md": {
+    behavior: ["The appearance editor translates named colours, HEX/HEX8, RGB/A, HSL/A, HSV, HWB, CIELAB/LCH, OKLab/OKLCH, and CMYK locally.", "外觀編輯器本機轉換 named colour、HEX/HEX8、RGB/A、HSL/A、HSV、HWB、CIELAB/LCH、OKLab/OKLCH 同 CMYK。"],
+    configuration: ["A continuous HSL control and direct entry drive the selected surface or text custom property; alpha and source space remain visible.", "連續 HSL 控制同直接輸入驅動選中嘅表面或文字 custom property；alpha 同來源色彩空間保持可見。"],
+    failure: ["Invalid input keeps the last valid colour; out-of-sRGB values are labelled as clipped, not silently called in-gamut.", "無效輸入會保留上一次有效色；超出 sRGB 會標明 clipped，唔會靜靜叫佢 in-gamut。"],
+    security: ["Conversion is bounded numeric work with no network, remote assets, analytics, or untrusted code evaluation.", "轉換係有界數值運算，冇網絡、遠端資產、analytics 或不受信任程式碼評估。"],
+    verification: ["Run the color translator tests and Material preview verifier; the built-artifact picker capture remains a separate sign-off boundary.", "要跑 color translator tests 同 Material 預覽驗證器；built-artifact picker capture 仍係另一個簽核界線。"],
+  },
+  "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md#gm-09": {
+    behavior: ["The current preview exposes ordinary pages as browser-style tabs, but full overflow, pinning, grouping, and four-search behavior remain an open gap.", "目前預覽用瀏覽器式分頁展示普通頁面，但完整溢出、釘選、分組同四種搜尋仍係未完成缺口。"],
+    configuration: ["The guide records the gap against the dated audit article instead of claiming the roadmap work is shipped.", "指南將缺口記錄喺有日期嘅 audit 文章，唔會扮路線圖工作已出貨。"],
+    failure: ["A narrow strip or hidden group must not silently clip or lose tabs; those states still need implementation and evidence.", "窄分頁列或者收埋嘅 group 唔可以靜靜裁走或遺失分頁；呢啲狀態仍要實作同取證。"],
+    security: ["This entry is local roadmap content and does not inspect tabs, page contents, or account data.", "呢個項目係本機路線圖內容，唔會檢查分頁、頁面內容或者帳戶資料。"],
+    verification: ["Treat the status as an open gap until the full keyboard, accessibility, persistence, and narrow-layout contract has real artifact evidence.", "未有完整鍵盤、無障礙、保存同窄版 layout 嘅真實 artifact 證據前，狀態保持未完成。"],
+  },
+  "design/GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md#gm-10": {
+    behavior: ["Installed-editor discovery, selection, persistence, and opening a folder or file remain an open integration gap.", "已安裝編輯器探索、選擇、保存同開啟資料夾或檔案仍係未完成整合缺口。"],
+    configuration: ["The dated audit article is the local source of truth for the missing external-editor surface.", "有日期嘅 audit 文章係缺少外部編輯器介面嘅本機真相來源。"],
+    failure: ["No editor found must degrade with a clear local message; silently dropping the chosen file or folder is not acceptable.", "搵唔到編輯器要清楚本機提示；靜靜丟低揀咗嘅檔案或資料夾係唔可以接受。"],
+    security: ["The guide does not launch processes, inspect installed applications, or read project files.", "指南唔會啟動程序、檢查已安裝程式或者讀取 project files。"],
+    verification: ["Keep this as an open gap until editor detection, persisted choice, keyboard access, and graceful failure are verified on the built app.", "要等 built app 驗證編輯器偵測、保存選擇、鍵盤操作同優雅失敗後，先可以移除未完成狀態。"],
+  },
+  "design/features/runtime/local-history.md": {
+    behavior: ["History renders append-only local revisions, composes action/date/search filters, and records restore as a new revision.", "歷史顯示只加不改本機版本，組合 action／日期／搜尋篩選，還原亦會新增版本。"],
+    configuration: ["Settings and history use separate local-storage namespaces, bounded to the newest 100 preview rows.", "設定同歷史用分開嘅 local-storage namespace，預覽歷史最多保留最新 100 行。"],
+    failure: ["Unavailable storage keeps fixture rows usable, and a failed history write never fails the setting or restore operation.", "儲存唔得時 fixture 行仍可用，歷史寫入失敗亦唔會令設定或還原操作失敗。"],
+    security: ["Preview rows are fixture descriptions only; production history must preserve encryption and stable authenticated-data binding.", "預覽行只係 fixture 描述；production history 必須保留加密同穩定 authenticated-data binding。"],
+    verification: ["The browser contract covers seeded rows, derived filters, restore labeling, and export while the real Git-backed store remains open.", "browser contract 覆蓋 seeded rows、衍生篩選、還原標籤同匯出，真正 Git-backed store 仍未完成。"],
+  },
+  "design/features/runtime/changelog-viewer.md": {
+    behavior: ["Changelog renders factual version/date/category entries with local search, date filters, copy, and Markdown export.", "更新記錄顯示事實版本／日期／類別項目，支援本機搜尋、日期篩選、複製同 Markdown 匯出。"],
+    configuration: ["Entries are local data until release metadata is connected; export reflects the active search and date range.", "release metadata 未接駁前，項目係本機資料；匯出會跟足目前搜尋同日期範圍。"],
+    failure: ["Invalid regex, empty filters, clipboard denial, and download failure remain honest non-blocking states.", "無效 regex、空結果篩選、剪貼簿拒絕同下載失敗都會保持誠實嘅非阻塞狀態。"],
+    security: ["The viewer reads bundled release data only and exports the currently visible selection.", "檢視器只讀取打包 release data，匯出亦只包含目前可見選擇。"],
+    verification: ["Search, live counts, labelled dates, and export are covered by the preview checks; final visual sign-off needs the packaged artifact.", "搜尋、即時數量、有標籤日期同匯出由預覽檢查覆蓋；最終視覺簽核要 packaged artifact。"],
+  },
+  "design/features/runtime/narrator.md": {
+    behavior: ["The optional narrator is off by default, serializes English/Cantonese speech, replaces pending lines, and uses a cooldown.", "可選旁白預設關閉，串行播放英文／廣東話，替換排緊隊文字，並有 cooldown。"],
+    configuration: ["Narrator opt-in and language are persisted locally; platform speech synthesis receives only locally rendered event text.", "旁白開關同語言保存喺本機；平台 speech synthesis 只收到本機顯示嘅事件文字。"],
+    failure: ["Unavailable speech leaves visual notifications usable, and speech errors never block settings or notifications.", "語音不可用時視覺通知仍然可用，語音錯誤亦唔會阻塞設定或通知。"],
+    security: ["No remote speech service or audio persistence is used by the preview foundation.", "預覽基礎唔會用遠端語音服務或者保存音訊。"],
+    verification: ["Static checks cover queue and configuration boundaries; screen-reader ducking, quiet hours, and real voice selection remain open.", "靜態檢查覆蓋 queue 同設定界線；screen-reader ducking、quiet hours 同真實聲音選擇仍未完成。"],
+  },
+  "design/A11Y-L10N-AUDIT.md": {
+    behavior: ["The audit tracks focus, roles, contrast, reduced motion, CJK fallback, and bilingual narrow-layout evidence for the preview.", "audit 追蹤預覽嘅焦點、角色、對比度、減少動畫、CJK fallback 同窄版雙語證據。"],
+    configuration: ["English, Hong Kong Cantonese, and bilingual labels are selected through the persisted preview language mode.", "英文、香港廣東話同雙語標籤由保存嘅預覽語言模式選擇。"],
+    failure: ["Static presence of a label or role does not prove usable focus order, contrast, or built-artifact rendering.", "靜態存在標籤或角色唔代表焦點順序、對比度或者 built-artifact rendering 一定好用。"],
+    security: ["The audit is local evidence and does not transmit user content or collect telemetry.", "audit 係本機證據，唔會傳送用戶內容或者收集 telemetry。"],
+    verification: ["Use the focused static checks plus keyboard and built-artifact captures before calling accessibility sign-off complete.", "完成無障礙簽核前，要用 focused static checks 加鍵盤同 built-artifact captures。"],
+  },
+  "design/evidence/manifest.json": {
+    behavior: ["The evidence manifest records source SHA, tests, release state, screenshots, and explicit boundaries for each wave.", "evidence manifest 記錄每個 wave 嘅 source SHA、tests、release 狀態、截圖同清楚界線。"],
+    configuration: ["The guide shows this manifest as a local source path; it does not convert queued or stale CI into a green result.", "指南將 manifest 當本機來源路徑；唔會將排緊隊或者過期 CI 變成綠燈結果。"],
+    failure: ["A mismatched tag, source SHA, installer, or capture keeps the evidence boundary open until corrected.", "tag、source SHA、installer 或 capture 對唔上時，證據界線會保持未完成直到修正。"],
+    security: ["The manifest contains verification metadata, not account content, credentials, or private runtime data.", "manifest 只含驗證 metadata，唔含帳戶內容、憑證或者私有 runtime data。"],
+    verification: ["Read exact SHA and artifact state together; static contracts and queued workflows are not installer or runtime proof.", "要一齊睇 exact SHA 同 artifact 狀態；static contract 同排緊隊 workflow 唔係 installer 或 runtime 證據。"],
+  },
+});
 const CHANGELOG = Object.freeze([
   { version: "155.0a1", date: "2026-07-31", tag: "Added", title: ["Evidence-first Material workspace", "以證據先行嘅 Material 工作區"], items: [["Packaged Material Mail preview with six browser-style pages.", "打包 Material Mail 預覽，提供六個瀏覽器式頁面。"], ["Persisted language, tone, appearance, narrator, and dim-sum controls.", "保存語言、語氣、外觀、旁白同點心控制。"]] },
   { version: "155.0a1", date: "2026-07-29", tag: "Verified", title: ["M3 evidence capture", "M3 證據擷取"], items: [["Recorded genuine hosted and headless captures with explicit boundaries.", "記錄真實 hosted 同 headless 擷取，清楚寫明驗證邊界。"]] },
@@ -233,11 +333,66 @@ function filterAppearance() {
   const editor = document.getElementById("mm-appearance-editor");
   editor?.querySelectorAll("label, .mm-color-picker").forEach(surface => { surface.hidden = Boolean(query) && !searchMatches("appearance", surface.textContent); });
 }
+let guideDetailsAnchor = null;
+function positionGuideDetails() {
+  const surface = document.getElementById("mm-feature-details");
+  if (!surface || surface.hidden || !guideDetailsAnchor?.isConnected) return;
+  const anchor = guideDetailsAnchor.getBoundingClientRect();
+  const margin = 12;
+  const gap = 8;
+  const width = surface.getBoundingClientRect().width;
+  const height = surface.getBoundingClientRect().height;
+  const left = Math.max(margin, Math.min(anchor.left, innerWidth - width - margin));
+  const below = anchor.bottom + gap;
+  const top = below + height <= innerHeight - margin ? below : Math.max(margin, anchor.top - height - gap);
+  surface.style.left = `${left}px`;
+  surface.style.top = `${top}px`;
+}
+function closeGuideDetails(returnFocus = true) {
+  const surface = document.getElementById("mm-feature-details");
+  if (!surface || surface.hidden) return;
+  const target = guideDetailsAnchor;
+  surface.hidden = true;
+  guideDetailsAnchor = null;
+  if (returnFocus && target?.isConnected) target.focus();
+}
+function openGuideDetails(index, anchor) {
+  const feature = FEATURE_GUIDE[Number(index)];
+  const article = feature && FEATURE_ARTICLES[feature.article];
+  const surface = document.getElementById("mm-feature-details");
+  if (!feature || !article || !surface) return;
+  guideDetailsAnchor = anchor;
+  document.getElementById("mm-feature-details-title").textContent = tone(feature.title);
+  document.getElementById("mm-feature-details-status").textContent = pick(feature.status);
+  document.getElementById("mm-feature-details-path").textContent = feature.article;
+  document.getElementById("mm-feature-details-body").innerHTML = Object.entries(article).map(([key, body]) => {
+    const heading = { behavior: ["Behavior", "行為"], configuration: ["Configuration", "設定"], failure: ["Failure modes", "失效情況"], security: ["Security and privacy", "安全同私隱"], verification: ["Verification", "驗證"] }[key];
+    return `<section><h3>${escapeHtml(pick(heading))}</h3><p>${escapeHtml(tone(body))}</p></section>`;
+  }).join("");
+  surface.hidden = false;
+  surface.focus();
+  requestAnimationFrame(positionGuideDetails);
+}
+function bindGuideDetails() {
+  const surface = document.getElementById("mm-feature-details");
+  if (!surface) return;
+  document.getElementById("mm-feature-details-close").addEventListener("click", () => closeGuideDetails());
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !surface.hidden && surface.contains(event.target)) {
+      event.preventDefault();
+      closeGuideDetails();
+    }
+  });
+  window.addEventListener("resize", positionGuideDetails);
+  window.addEventListener("scroll", positionGuideDetails, true);
+}
 function renderGuide() {
   const list = document.getElementById("mm-guide-list");
   if (!list) return;
+  closeGuideDetails(false);
   const rows = FEATURE_GUIDE.filter(feature => searchMatches("tools", `${feature.title.join(" ")} ${feature.status.join(" ")} ${feature.summary.join(" ")} ${feature.article}`));
-  list.innerHTML = rows.length ? rows.map(feature => `<article class="mm-guide-entry"><header><h4>${escapeHtml(tone(feature.title))}</h4><span class="mm-filter-chip">${escapeHtml(pick(feature.status))}</span></header><p>${escapeHtml(tone(feature.summary))}</p><code>${escapeHtml(feature.article)}</code></article>`).join("") : `<div class="mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">⌕</span><p>${escapeHtml(tone(["No matching guide entries", "搵唔到相符指南項目"]))}</p></div>`;
+  list.innerHTML = rows.length ? rows.map(feature => { const index = FEATURE_GUIDE.indexOf(feature); return `<article class="mm-guide-entry"><header><h4>${escapeHtml(tone(feature.title))}</h4><span class="mm-filter-chip">${escapeHtml(pick(feature.status))}</span></header><p>${escapeHtml(tone(feature.summary))}</p><code>${escapeHtml(feature.article)}</code><button class="mm-text-button mm-guide-read" type="button" data-guide-article="${index}" aria-label="${escapeHtml(tone([`Read article: ${feature.title[0]}`, `閱讀文章：${feature.title[1]}`]))}">${escapeHtml(pick(["Read article", "閱讀文章"]))}</button></article>`; }).join("") : `<div class="mm-empty-state mm-no-results"><span class="mm-empty-icon" aria-hidden="true">⌕</span><p>${escapeHtml(tone(["No matching guide entries", "搵唔到相符指南項目"]))}</p></div>`;
+  list.querySelectorAll("[data-guide-article]").forEach(button => button.addEventListener("click", () => openGuideDetails(button.dataset.guideArticle, button)));
   const count = document.getElementById("mm-guide-count");
   if (count) count.textContent = `${rows.length} / ${FEATURE_GUIDE.length}`;
 }
@@ -355,4 +510,4 @@ function bindAppearance() {
 window.mmSetRegexState = (key, state) => { setSearch(key, state); if (key === "settings") filterSettings(); if (key === "appearance") filterAppearance(); if (key === "tools") filterTools(); if (key === "changelog") renderChangelog(); if (key === "history") renderHistory(); if (key === "notifications") renderNotifications(); };
 window.mmSearchState = searchState;
 
-document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); ensureSettingsCustomization(); ensureToolsGuide(); bindTabs(); bindSettings(); bindDataSurfaces(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });
+document.addEventListener("DOMContentLoaded", () => { readSettings(); readHistory(); readNotifications(); readAppearance(); ensureSettingsCustomization(); ensureToolsGuide(); bindTabs(); bindSettings(); bindDataSurfaces(); bindGuideDetails(); bindAppearance(); applySettings(); const firstLaunch = !settings.hasLaunched; settings.hasLaunched = true; if (firstLaunch) saveSettings(); else maybeShowDimsum(); });
