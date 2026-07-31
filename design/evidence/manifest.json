@@ -3,7 +3,7 @@
   "generatedAt": "2026-07-31",
   "repository": "Ding-Ding-Projects/thunderbird-desktop",
   "branch": "main",
-  "sourceCommit": "fb6c807863bae804af4d0c70c0644294b27de018",
+  "sourceCommit": "30941793305eaaf9ef88883f3195a40f01a3082f",
   "scope": "Material Mail 3-pane source and design evidence",
   "implementationBoundary": {
     "changedFiles": [
@@ -79,11 +79,11 @@
       }
     },
     "runtimeWaveEvidence": {
-      "sourceCommit": "fb6c807863bae804af4d0c70c0644294b27de018",
+      "sourceCommit": "30941793305eaaf9ef88883f3195a40f01a3082f",
       "buildRun": {
-        "runId": 30638425669,
+        "runId": 30639071767,
         "status": "queued",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30638425669"
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30639071767"
       },
       "status": "capture-pending",
       "note": "The latest source contains searchable/date-filtered Changelog and History, retained Notifications, catalog-backed dim-sum startup, anchored appearance editing, and serialized narrator foundations. Do not promote these surfaces to runtime sign-off until the real installer is built and captured.",

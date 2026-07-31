@@ -23,8 +23,10 @@ second is why a static contract is not a release gate.
 
 The new `materialMail.xhtml`/`materialMail.js` surface is a real content tab with
 Mail, Settings, Changelog, History, Notifications, and Tools pages. It uses the
-design token layer, persists preview appearance/language/funny-level controls,
-and packages the anchored regex builder. `verify-material-preview.py` and the
+design token layer, persists appearance/language/funny-level/narrator controls,
+provides searchable/date-filtered Changelog and History surfaces, retained
+Notifications, a catalog-backed dim-sum draw, anchored appearance editing, and
+packages independent anchored regex builders. `verify-material-preview.py` and the
 module test suites pass. This is an implementation milestone, not completion:
 the existing upstream 3-pane still owns mail behavior, and every remaining gap
 in `GLOBAL-MEMORY-GAP-AUDIT-2026-07-31.md` stays open until wired to real data and

@@ -136,7 +136,7 @@ The current source wave adds Changelog/History filters and export, retained
 Notifications, catalog-backed dim-sum startup, an anchored appearance editor,
 and a serialized narrator. Their evidence is explicitly `capture-pending` in
 [`design/evidence/manifest.json`](evidence/manifest.json) until installer run
-[30638425669](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30638425669)
+[30639071767](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30639071767)
 produces the real artifact. Source checks are not substituted for screenshots.
 
 The corrected density expectations are now `4px` / `56px` for relaxed mode,
