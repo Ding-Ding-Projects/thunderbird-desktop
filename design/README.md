@@ -27,7 +27,7 @@ Integration target: **`main`**. Scope: **Windows only**.
 ## Current state, in brief
 
 - **`design/` is the authoritative source, not a generated approximation.** The current
-  tree contains **162 files / 1,984,264 bytes**. Its primary snapshot,
+  tree contains **162 files / 1,995,790 bytes**. Its primary snapshot,
   `Material Mail.dc.html`, is **140,780 bytes** with SHA-256
   `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
   There is no project design ZIP because the complete tracked folder is kept directly in
@@ -43,15 +43,32 @@ Integration target: **`main`**. Scope: **Windows only**.
 - **The parity contract is at 33 / 38**, with five boxes deliberately open.
   A tick certifies that the named upstream behaviour still *functions* against named
   selectors and specificity. It is **not** a visual sign-off.
-- **The hardened release contract has exact intermediate proof.** Installer run
+- **The hardened release contract is green while the paired browser gate is red.**
+  Installer run
+  [30677960250](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677960250)
+  succeeded for exact source `4b208822c1429b8fad1cac72b138753a399ad87f` and
+  published non-draft, non-prerelease release
+  [`tb-155.0a1-b108`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b108),
+  **Shrimp Glutinous Rice Dumplings · 鮮蝦鹹水角 — Thunderbird 155.0a1
+  (build 108)**, at `2026-08-01T01:48:01Z`. Release ID `363398113` carries
+  exactly the 87,749,901-byte installer
+  (asset `497409469`, node `RA_kwDOTmsgBs4dpd29`, SHA-256
+  `8c1906cd9022b792d6acdba8df9f064cf95a4ebf314693a976ee68bb2af0fccc`)
+  and the 2,395,713-byte, 1254×1254 catalog PNG
+  `hk-dish-0109-shrimp-glutinous-rice-dumplings.png`
+  (asset `497409468`, node `RA_kwDOTmsgBs4dpd28`, SHA-256
+  `e4acf15d63f1618f5347e14130d9d28ff9c713c2c1ae5dd629ca694d96b9d3f1`).
+  Both the release tag and
+  `refs/tags/dim-sum-code-names/shrimp-glutinous-rice-dumplings` resolve to
+  `4b208822`; the image comes from catalog commit `135dcef2be4da04dbe1682076c4a3db59defe5f0`.
+  b108 remains intermediate because browser run 30677978579 failed. Prior
+  [`tb-155.0a1-b107`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107)
+  from installer run
   [30676608171](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676608171)
-  published [`tb-155.0a1-b107`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107)
-  from `67b142169d5c5f111bf447e8f27eaaab66c66209`. The non-draft release carries exactly
-  the 87,762,882-byte installer (`a6fbe35728b698876002f600aae149b4540b6c1d8236fa89181c74b5b6745c82`)
-  and the verified 2,396,451-byte `Taro Duck Dumplings · 香芋鴨角` catalog PNG
-  (`6faf396918d1e1fe484952f165dc512e35570adddd325a70f960de238086b4b2`).
-  That proves the two-asset release path, not final UI behavior; the matching browser
-  run below still found test/runtime-start boundaries that the containing source repairs.
+  remains exact historical two-asset evidence for `67b1421`: its 87,762,882-byte
+  installer and 2,396,451-byte **Taro Duck Dumplings · 香芋鴨角** PNG retain
+  SHA-256 `a6fbe35728b698876002f600aae149b4540b6c1d8236fa89181c74b5b6745c82`
+  and `6faf396918d1e1fe484952f165dc512e35570adddd325a70f960de238086b4b2`.
 - **Local authored verification for this wave is green:** preview/alignment verifiers,
   `12 / 12` preview smoke checks, `9 / 9` regex tests, `5 / 5` color tests,
   `6 / 6` language-model tests, and `4 / 4` tab-model tests. The packaged browser test
@@ -97,20 +114,33 @@ Integration target: **`main`**. Scope: **Windows only**.
   those paint waits. Run
   [30675469469](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675469469)
   confirmed the paint repair—neither hidden-node warning recurred—but finished at
-  **279 passed / 3 failed / 13 TODO with zero crashes** because the test still had not
-  focused the owning content browser before sending keys. Exact source
-  `67b142169d5c5f111bf447e8f27eaaab66c66209` added
-  `SimpleTest.promiseFocus(tab.browser)` plus awaited
+  **279 passed / 3 failed / 13 TODO with zero crashes** because parent-side
+  `EventUtils` injection through the page window did not reliably target the intended
+  inner controls. Exact source `67b142169d5c5f111bf447e8f27eaaab66c66209`
+  ensured browser focus with `SimpleTest.promiseFocus(tab.browser)` and awaited
   `BrowserTestUtils.synthesizeKey(..., tab.browser)`, but run
   [30676627493](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676627493)
-  repeated the same counts and assertions: the focus promise did not itself activate
-  the outer content `<browser>` for synthesized keys. This containing source now calls
-  `tab.browser.focus()` before each focused inner control and key, matching passing
-  Thunderbird content-tab tests. A genuine build-106 rehearsal also found that the
-  Help launcher was packaged but rendered as a blank row because its Fluent message
-  used a value instead of the XUL menu item's `.label`; the containing source supplies
-  `.label`, a collision-free `P` access key, and a browser assertion for the visible
-  label. A new hosted run remains required; no failed run is recycled as proof.
+  repeated the same counts and assertions: the intended controls still were not
+  focused inside the content actor that synthesized the keys. Exact source
+  `4b208822c1429b8fad1cac72b138753a399ad87f` then called `tab.browser.focus()`
+  before each inner-control focus and key, and repaired the blank XUL launcher with
+  Fluent `.label`, a collision-free `P` access key, and rendered label/access-key
+  assertions. Browser run
+  [30677978579](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677978579)
+  proved the launcher assertions but disproved focus as the injection repair: all
+  three files resolved, started, and ended, yet the same reorder, Escape-dismissal,
+  and focus-return failures remained. The exact result was **301 checks / 297
+  expected / 4 unexpected; 282 passed / 3 failed / 13 TODO; 3 / 3 / 3 files
+  resolved/started/ended; 0 crashes / 0 malformed results**. Artifact `8811350118`
+  is 129,979 bytes with SHA-256
+  `95f93fee19f7fd8d2ac67b7c48f6d81e8d0be6ae91ec18d8712e664273096bd1`.
+  The containing test fix now moves `tab.browser.focus()` before
+  `SimpleTest.promiseFocus()`, enters the content actor through
+  `SpecialPowers.spawn`, finds and focuses the actual control, asserts
+  `content.document.activeElement`, and calls
+  `EventUtils.synthesizeKey(..., content)`, matching existing passing
+  `contentTab` tests. Hosted verification remains pending; no failed run is
+  recycled as proof.
 - **Broad browser verification is still mixed.** Run
   [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
   failed legacy suites while the authored Material/static groups passed. It is not

@@ -7,6 +7,13 @@
   "sourceCommitResolution": "Resolve the commit containing this manifest; the exact pushed SHA and immutable CI/release verdict are recorded in rolling Discussion #1 after push.",
   "baseCommit": "77fe409183e580db6dd59ef2e65d093864a4f241",
   "scope": "Material Mail 3-pane source and design evidence",
+  "designInventory": {
+    "trackedFiles": 162,
+    "totalBytes": 1995790,
+    "primaryArtifact": "design/Material Mail.dc.html",
+    "primaryArtifactBytes": 140780,
+    "primaryArtifactSha256": "a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1"
+  },
   "implementationBoundary": {
     "changedFiles": [
       ".github/workflows/lint-m3.yml",
@@ -59,104 +66,185 @@
   },
   "verification": {
     "release": {
-      "status": "verified-source-installer-and-catalog-photo",
-      "build": 107,
-      "tag": "tb-155.0a1-b107",
-      "name": "Taro Duck Dumplings · 香芋鴨角 — Thunderbird 155.0a1 (build 107)",
-      "publishedAt": "2026-08-01T01:16:07Z",
-      "sourceCommit": "67b142169d5c5f111bf447e8f27eaaab66c66209",
+      "status": "verified-source-installer-and-catalog-photo-browser-red",
+      "build": 108,
+      "releaseId": 363398113,
+      "tag": "tb-155.0a1-b108",
+      "name": "Shrimp Glutinous Rice Dumplings · 鮮蝦鹹水角 — Thunderbird 155.0a1 (build 108)",
+      "publishedAt": "2026-08-01T01:48:01Z",
+      "isDraft": false,
+      "isPrerelease": false,
+      "sourceCommit": "4b208822c1429b8fad1cac72b138753a399ad87f",
       "buildRun": {
-        "runId": 30676608171,
+        "runId": 30677960250,
+        "conclusion": "success",
         "status": "published",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676608171"
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677960250"
       },
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107",
+      "sourceRefs": {
+        "releaseTag": "refs/tags/tb-155.0a1-b108",
+        "codeNameReservation": "refs/tags/dim-sum-code-names/shrimp-glutinous-rice-dumplings",
+        "releaseTagCommit": "4b208822c1429b8fad1cac72b138753a399ad87f",
+        "reservationCommit": "4b208822c1429b8fad1cac72b138753a399ad87f"
+      },
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b108",
       "assets": [
         {
-          "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-          "assetId": 497386966,
-          "sizeBytes": 87762882,
-          "sha256": "a6fbe35728b698876002f600aae149b4540b6c1d8236fa89181c74b5b6745c82"
+          "name": "hk-dish-0109-shrimp-glutinous-rice-dumplings.png",
+          "assetId": 497409468,
+          "nodeId": "RA_kwDOTmsgBs4dpd28",
+          "sizeBytes": 2395713,
+          "sha256": "e4acf15d63f1618f5347e14130d9d28ff9c713c2c1ae5dd629ca694d96b9d3f1"
         },
         {
-          "name": "hk-dish-0107-taro-duck-dumplings.png",
-          "assetId": 497386965,
-          "sizeBytes": 2396451,
-          "sha256": "6faf396918d1e1fe484952f165dc512e35570adddd325a70f960de238086b4b2"
+          "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
+          "assetId": 497409469,
+          "nodeId": "RA_kwDOTmsgBs4dpd29",
+          "sizeBytes": 87749901,
+          "sha256": "8c1906cd9022b792d6acdba8df9f064cf95a4ebf314693a976ee68bb2af0fccc"
         }
       ],
       "requiredPhoto": {
         "status": "verified",
-        "dish": "Taro Duck Dumplings · 香芋鴨角",
+        "dish": "Shrimp Glutinous Rice Dumplings · 鮮蝦鹹水角",
         "catalogCommit": "135dcef2be4da04dbe1682076c4a3db59defe5f0",
-        "reservation": "refs/tags/dim-sum-code-names/taro-duck-dumplings",
-        "note": "b107 proves the exact two-asset release contract for 67b1421. Its paired browser run still failed and the genuine installed launcher label was blank, so this release is not final UI sign-off."
+        "catalogPath": "vendor/agent-global-memory/dim-sum/images/hk-dish-0109-shrimp-glutinous-rice-dumplings.png",
+        "width": 1254,
+        "height": 1254,
+        "sizeBytes": 2395713,
+        "reservation": "refs/tags/dim-sum-code-names/shrimp-glutinous-rice-dumplings",
+        "note": "b108 proves the exact two-asset release contract for 4b208822. Its paired browser run failed, so this release remains intermediate and is not final UI sign-off."
       }
     },
     "latestPublicRelease": {
-      "status": "verified-source-installer-and-catalog-photo",
-      "build": 107,
-      "tag": "tb-155.0a1-b107",
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107",
-      "sourceCommit": "67b142169d5c5f111bf447e8f27eaaab66c66209",
-      "tagCommit": "67b142169d5c5f111bf447e8f27eaaab66c66209",
+      "status": "verified-source-installer-and-catalog-photo-browser-red",
+      "build": 108,
+      "releaseId": 363398113,
+      "tag": "tb-155.0a1-b108",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b108",
+      "sourceCommit": "4b208822c1429b8fad1cac72b138753a399ad87f",
+      "tagCommit": "4b208822c1429b8fad1cac72b138753a399ad87f",
+      "reservationCommit": "4b208822c1429b8fad1cac72b138753a399ad87f",
       "buildRun": {
-        "runId": 30676608171,
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676608171"
+        "runId": 30677960250,
+        "conclusion": "success",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677960250"
       },
       "asset": {
         "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
+        "assetId": 497409469,
+        "nodeId": "RA_kwDOTmsgBs4dpd29",
+        "sizeBytes": 87749901,
+        "sha256": "8c1906cd9022b792d6acdba8df9f064cf95a4ebf314693a976ee68bb2af0fccc"
+      },
+      "requiredPhoto": {
+        "name": "hk-dish-0109-shrimp-glutinous-rice-dumplings.png",
+        "assetId": 497409468,
+        "nodeId": "RA_kwDOTmsgBs4dpd28",
+        "dish": "Shrimp Glutinous Rice Dumplings · 鮮蝦鹹水角",
+        "width": 1254,
+        "height": 1254,
+        "sizeBytes": 2395713,
+        "sha256": "e4acf15d63f1618f5347e14130d9d28ff9c713c2c1ae5dd629ca694d96b9d3f1"
+      },
+      "packageInspection": "The release tag, code-name reservation, installer, and 1254x1254 catalog PNG are exact-source and satisfy the two-asset contract. Browser run 30677978579 is red, so b108 remains intermediate rather than UI sign-off."
+    },
+    "priorIntermediateRelease": {
+      "status": "verified-source-installer-and-catalog-photo-browser-red",
+      "build": 107,
+      "tag": "tb-155.0a1-b107",
+      "name": "Taro Duck Dumplings · 香芋鴨角 — Thunderbird 155.0a1 (build 107)",
+      "publishedAt": "2026-08-01T01:16:07Z",
+      "isDraft": false,
+      "isPrerelease": false,
+      "sourceCommit": "67b142169d5c5f111bf447e8f27eaaab66c66209",
+      "releaseTagCommit": "67b142169d5c5f111bf447e8f27eaaab66c66209",
+      "reservationCommit": "67b142169d5c5f111bf447e8f27eaaab66c66209",
+      "buildRunId": 30676608171,
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107",
+      "installer": {
+        "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
+        "assetId": 497386966,
         "sizeBytes": 87762882,
         "sha256": "a6fbe35728b698876002f600aae149b4540b6c1d8236fa89181c74b5b6745c82"
       },
       "requiredPhoto": {
         "name": "hk-dish-0107-taro-duck-dumplings.png",
+        "assetId": 497386965,
         "dish": "Taro Duck Dumplings · 香芋鴨角",
+        "catalogCommit": "135dcef2be4da04dbe1682076c4a3db59defe5f0",
+        "reservation": "refs/tags/dim-sum-code-names/taro-duck-dumplings",
         "sizeBytes": 2396451,
         "sha256": "6faf396918d1e1fe484952f165dc512e35570adddd325a70f960de238086b4b2"
       },
-      "packageInspection": "The tag, installer, and catalog PNG are exact-source and satisfy the two-asset contract. The paired browser run and blank installed launcher remain failed evidence rather than UI sign-off."
+      "note": "b107 remains exact historical two-asset evidence for 67b1421; its paired browser gate was red and its installed Help launcher label was blank."
+    },
+    "currentInstallerRun": {
+      "status": "success",
+      "runId": 30677960250,
+      "event": "push",
+      "sourceCommit": "4b208822c1429b8fad1cac72b138753a399ad87f",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677960250",
+      "conclusion": "success",
+      "release": "tb-155.0a1-b108",
+      "note": "The exact-source installer published verified two-asset release b108. The paired browser run is red, so release-contract success is not browser or UI sign-off."
     },
     "browserRun": {
       "status": "failed",
-      "runId": 30676627493,
+      "runId": 30677978579,
       "event": "workflow_dispatch",
-      "sourceCommit": "67b142169d5c5f111bf447e8f27eaaab66c66209",
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676627493",
+      "sourceCommit": "4b208822c1429b8fad1cac72b138753a399ad87f",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677978579",
       "artifact": {
         "status": "uploaded",
-        "artifactId": 8810899772,
-        "archiveSizeBytes": 129590,
-        "sha256": "cea62fa80c3898c3468ad8320ded6dadcfb05a902d9ee6750ec4dd4f02844120",
+        "artifactId": 8811350118,
+        "archiveSizeBytes": 129979,
+        "sha256": "95f93fee19f7fd8d2ac67b7c48f6d81e8d0be6ae91ec18d8712e664273096bd1",
         "note": "The exact raw JSON, modified preferences, manifests, self-test log, and genuine failure screenshots were uploaded as m3-browser-test-logs."
       },
       "screenshotCapture": {
         "status": "uploaded-diagnostic",
-        "note": "The genuine Material failure screenshot shows Settings still before Changelog after the attempted reorder. Later Escape/focus failures reused that screenshot, so the artifact does not claim a separate open-popover capture."
+        "note": "The genuine Material failure screenshot again shows Settings still before Changelog after the attempted reorder. The later Escape-dismissal and focus-return failures reused that screenshot, so the artifact does not claim a separate open-popover capture."
       },
       "suites": {
         "project-authored-m3": {
           "status": "failed",
-          "passed": 279,
+          "checks": 301,
+          "expectedResults": 297,
+          "unexpectedResults": 4,
+          "passed": 282,
           "failed": 3,
           "todo": 13,
-          "unexpectedResults": 4,
+          "testFiles": {
+            "resolved": 3,
+            "started": 3,
+            "ended": 3
+          },
           "crashes": 0,
           "malformedResults": 0
         }
       },
       "diagnosis": {
-        "firstFailure": "SimpleTest.promiseFocus(tab.browser) did not explicitly activate the outer content browser for BrowserTestUtils key synthesis, so Ctrl+Shift+ArrowRight never reached the focused tab and the ordinary pair remained unchanged.",
-        "secondFailure": "The same inactive outer browser left Escape undelivered through the all-tabs search field, keeping the popover open and preventing focus return.",
+        "firstFailure": "Ctrl+Shift+ArrowRight still never reached the focused tab, so the ordinary pair remained unchanged; the reverse-order assertion therefore had no state change to undo.",
+        "secondFailure": "Escape still did not reach the all-tabs search field, leaving the popover open and preventing focus return to its anchor.",
         "accessibilityWarnings": "The preceding History/Notification hidden-node warnings did not recur; the two-frame paint boundaries are verified by this raw log.",
-        "containingFix": "Call tab.browser.focus() before focusing each real inner control and awaiting BrowserTestUtils.synthesizeKey against tab.browser for reorder and Escape; retain the verified paint waits.",
-        "installedRehearsal": "A genuine b106 install proved the launcher was packaged but rendered as a blank Help-menu row because a Fluent value does not populate a XUL menu item's label. The containing source uses .label, a collision-free P access key, and a rendered-label assertion."
+        "disprovenFix": "Source 4b208822c1429b8fad1cac72b138753a399ad87f called tab.browser.focus() before each inner-control focus but still used BrowserTestUtils.synthesizeKey(..., tab.browser). Run 30677978579 repeated the same three key failures, proving that focusing the outer browser did not repair the event-injection target.",
+        "containingFix": "Move tab.browser.focus() before SimpleTest.promiseFocus(), then use SpecialPowers.spawn(browser, ...) to find and focus the real control inside the content actor, assert content.document.activeElement, and call EventUtils.synthesizeKey(..., content) for both reorder keys and Escape. This matches existing passing contentTab test patterns; hosted verification of the containing fix is pending.",
+        "installedRehearsal": "The verified b107-era installed rehearsal remains evidence that the prior Fluent value rendered a blank Help-menu row. Source 4b208822 supplies .label, a collision-free P access key, and rendered label/access-key assertions, but exact installed-artifact capture remains pending."
       },
       "priorKeyboardFailure": {
+        "runId": 30676627493,
+        "sourceCommit": "67b142169d5c5f111bf447e8f27eaaab66c66209",
+        "artifactId": 8810899772,
+        "archiveSizeBytes": 129590,
+        "sha256": "cea62fa80c3898c3468ad8320ded6dadcfb05a902d9ee6750ec4dd4f02844120",
+        "note": "This earlier run added SimpleTest.promiseFocus(tab.browser) and awaited BrowserTestUtils.synthesizeKey(..., tab.browser), but repeated the same key failures. It remains diagnosis, not verification."
+      },
+      "earlierEventUtilsFailure": {
         "runId": 30675469469,
         "sourceCommit": "e8ad89b2973cb3458e1ee894140594f86a0febd7",
         "artifactId": 8810490951,
-        "note": "This earlier run had the same counted result before the browser-focus promise was added. It remains diagnosis, not verification."
+        "note": "This earlier run removed the hidden-node warnings but still injected the three keys through the wrong target. It remains diagnosis, not verification."
       },
       "priorReadinessFailure": {
         "runId": 30672895090,
@@ -179,9 +267,15 @@
     "runtimeWaveEvidence": {
       "sourceCommit": null,
       "baseCommit": "77fe409183e580db6dd59ef2e65d093864a4f241",
-      "buildRun": null,
-      "status": "source-verified-capture-pending",
-      "note": "This manifest's containing source adds the persisted tab core and retains the searchable 14-entry guide, article details, Changelog/History filters, Notifications, dim-sum startup, appearance/color/funny-level, and narrator foundations. It replaces packaged Material HTML-string rendering with DOM construction and literal text, whitelists notification classes, packages the regex launcher as a real module, exposes explicit eight-builder and 14-color-space initialization signals, makes late module startup ready-state-safe, opens browser fixtures as fresh duplicate tabs, explicitly focuses their outer content browser before focusing controls and awaiting BrowserTestUtils key synthesis, waits for paint before clicking rebuilt controls, and gives the XUL Help launcher a visible localized label and collision-free access key. The exact local release-lint inventory and authored checks pass, but no containing-source run, release, or capture is predicted here. Resolve the exact pushed commit and immutable verdict through rolling Discussion #1 before promoting any surface to runtime sign-off.",
+      "buildRun": {
+        "runId": 30677960250,
+        "sourceCommit": "4b208822c1429b8fad1cac72b138753a399ad87f",
+        "status": "success",
+        "conclusion": "success",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677960250"
+      },
+      "status": "exact-source-browser-failed-containing-fix-pending",
+      "note": "This manifest's containing source retains the persisted tab core, searchable 14-entry guide, article details, Changelog/History filters, Notifications, dim-sum startup, appearance/color/funny-level, and narrator foundations. Exact source 4b208822c1429b8fad1cac72b138753a399ad87f proved the visible Help label/access-key assertions but disproved tab.browser.focus() as the key-injection repair: browser run 30677978579 repeated the three reorder/Escape/focus-return failures. The containing fix moves initial browser focus before promiseFocus, then enters the content actor with SpecialPowers.spawn, focuses and verifies the actual content control, and injects with EventUtils.synthesizeKey(..., content), matching passing contentTab tests. Installer run 30677960250 published exact two-asset b108, but hosted browser verification of the containing fix and exact-source captures remain pending; no failed result is promoted to sign-off.",
       "knownFailedRun": {
         "runId": 30666929947,
         "sourceCommit": "6a24a7cea8bc0d8be44e029e9b946ea8bc07742b",
@@ -224,6 +318,28 @@
         "note": "All three discovered tests ran. An invalid-string exception in HTML-string history rendering cascaded through later authored assertions, and Assert.match was unavailable in this harness. This containing source uses DOM construction and literal text, adds persisted markup-like payload coverage, and uses a supported assertion; the failed run is diagnosis, not verification."
       },
       "latestFailedRun": {
+        "runId": 30677978579,
+        "sourceCommit": "4b208822c1429b8fad1cac72b138753a399ad87f",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677978579",
+        "checks": 301,
+        "expectedResults": 297,
+        "unexpectedResults": 4,
+        "passed": 282,
+        "failed": 3,
+        "todo": 13,
+        "testFiles": {
+          "resolved": 3,
+          "started": 3,
+          "ended": 3
+        },
+        "crashes": 0,
+        "malformedResults": 0,
+        "artifactId": 8811350118,
+        "artifactArchiveSizeBytes": 129979,
+        "artifactSha256": "95f93fee19f7fd8d2ac67b7c48f6d81e8d0be6ae91ec18d8712e664273096bd1",
+        "note": "All three authored files resolved, started, and ended. The Help launcher label/access-key assertions passed and the hidden-node accessibility warnings stayed absent, but the same three key assertions repeated because tab.browser.focus() did not change the BrowserTestUtils injection target. The containing fix enters the content actor with SpecialPowers.spawn, verifies the focused control through content.document.activeElement, and injects with EventUtils.synthesizeKey(..., content); hosted verification remains pending."
+      },
+      "priorFocusTargetFailure": {
         "runId": 30676627493,
         "sourceCommit": "67b142169d5c5f111bf447e8f27eaaab66c66209",
         "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676627493",
@@ -233,7 +349,7 @@
         "crashes": 0,
         "malformedResults": 0,
         "artifactId": 8810899772,
-        "note": "All three authored files ran to completion. The preceding hidden-node accessibility warnings stayed absent, but the same three key assertions repeated because the focus promise did not explicitly activate the outer content browser. This containing source calls tab.browser.focus() before each inner-control focus and BrowserTestUtils key synthesis, and also repairs the blank installed Help-menu label; the failed run remains diagnosis, not verification."
+        "note": "This prior run awaited focus and BrowserTestUtils key synthesis against tab.browser but repeated the same three failures. It remains diagnosis, not verification."
       },
       "priorReadinessFailure": {
         "runId": 30672895090,

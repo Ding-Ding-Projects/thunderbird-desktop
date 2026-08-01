@@ -6,6 +6,9 @@ Read this with `REWRITE-CONTRACT.md` (the parity ledger), `INFRA.md` (build and 
 and `A11Y-L10N-AUDIT.md` (what must not break). This file is the summary; those
 three are the evidence.
 
+The tracked `design/` authority currently contains **162 files / 1,995,790 bytes**;
+there is no project design ZIP because the complete folder is tracked directly.
+
 ---
 
 ## The one-sentence version
@@ -99,24 +102,53 @@ Notification controls before paint. Exact source
 `EventUtils`; run
 [`30675469469`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675469469)
 confirmed the accessibility timing repair but repeated the three key failures at
-**279 passed / 3 failed / 13 TODO, zero crashes** because the content browser itself
-was not focused. Exact source `67b142169d5c5f111bf447e8f27eaaab66c66209`
-then awaited browser focus and `BrowserTestUtils.synthesizeKey`, but run
+**279 passed / 3 failed / 13 TODO, zero crashes** because parent-side `EventUtils`
+injection through the page window did not reliably target the intended inner controls.
+Exact source `67b142169d5c5f111bf447e8f27eaaab66c66209` then ensured browser focus and
+awaited `BrowserTestUtils.synthesizeKey`, but run
 [`30676627493`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676627493)
-repeated the same counts because the focus promise did not explicitly activate the
-outer content `<browser>`. The containing source now calls `tab.browser.focus()` before
-each inner-control focus and synthesized key, following passing Thunderbird content-tab
-tests. A genuine b106 install also exposed a blank Help-menu launcher: the packaged
-Fluent value did not populate a XUL menu item's visible `label`. The containing source
-uses `.label`, a collision-free `P` access key, and an assertion against the rendered
-launcher. A fresh hosted run and installed-artifact proof remain required.
+repeated the same counts because the intended controls still were not focused inside
+the content actor that synthesized the keys. Exact source
+`4b208822c1429b8fad1cac72b138753a399ad87f` then called
+`tab.browser.focus()` before each inner-control focus and synthesized key, while also
+repairing the blank Help launcher with Fluent `.label`, a collision-free `P` access
+key, and rendered label/access-key assertions. Browser run
+[`30677978579`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677978579)
+passed the launcher assertions but disproved focus as the key-injection repair. It
+ended at **301 checks / 297 expected / 4 unexpected; 282 passed / 3 failed / 13
+TODO; 3 / 3 / 3 authored files resolved/started/ended; 0 crashes / 0 malformed
+results**. The same reorder, Escape-dismissal, and focus-return assertions failed.
+Artifact `8811350118` is 129,979 bytes with SHA-256
+`95f93fee19f7fd8d2ac67b7c48f6d81e8d0be6ae91ec18d8712e664273096bd1`.
+The containing fix now moves initial browser focus before the focus promise, enters
+the content actor with `SpecialPowers.spawn`, focuses and verifies the real control
+through `content.document.activeElement`, then injects with
+`EventUtils.synthesizeKey(..., content)`, matching existing passing `contentTab`
+tests. Hosted verification remains pending.
 
-The same `67b1421` source independently passed Windows installer run
+The same `4b208822` source independently passed Windows installer run
+[`30677960250`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677960250)
+and published non-draft, non-prerelease release
+[`tb-155.0a1-b108`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b108),
+**Shrimp Glutinous Rice Dumplings · 鮮蝦鹹水角 — Thunderbird 155.0a1 (build
+108)**, at `2026-08-01T01:48:01Z`. Release ID `363398113` has exactly two assets:
+the 87,749,901-byte installer (asset `497409469`, node `RA_kwDOTmsgBs4dpd29`,
+SHA-256 `8c1906cd9022b792d6acdba8df9f064cf95a4ebf314693a976ee68bb2af0fccc`)
+and 2,395,713-byte, 1254×1254 `hk-dish-0109-shrimp-glutinous-rice-dumplings.png`
+(asset `497409468`, node `RA_kwDOTmsgBs4dpd28`, SHA-256
+`e4acf15d63f1618f5347e14130d9d28ff9c713c2c1ae5dd629ca694d96b9d3f1`)
+from catalog commit `135dcef2be4da04dbe1682076c4a3db59defe5f0`. Both the release tag and code-name
+reservation `refs/tags/dim-sum-code-names/shrimp-glutinous-rice-dumplings`
+resolve to `4b208822`. b108 remains intermediate because the paired
+browser gate is red. Prior
+[`tb-155.0a1-b107`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107)
+from installer run
 [`30676608171`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676608171)
-and published non-draft release [`tb-155.0a1-b107`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107)
-with exactly its real installer and verified `Taro Duck Dumplings · 香芋鴨角`
-catalog PNG. That release remains intermediate because its paired browser gate is red
-and the containing source repairs the installed blank launcher label.
+remains exact historical evidence for `67b1421`, its 87,762,882-byte installer
+(SHA-256 `a6fbe35728b698876002f600aae149b4540b6c1d8236fa89181c74b5b6745c82`),
+and 2,396,451-byte **Taro Duck Dumplings · 香芋鴨角** PNG (SHA-256
+`6faf396918d1e1fe484952f165dc512e35570adddd325a70f960de238086b4b2`);
+it is not reused as current-source browser proof.
 
 ---
 
@@ -264,7 +296,7 @@ and zero unexpected results. The 3-pane gate recorded **92 unexpected** with
 recorded **12 unexpected**. The uploaded raw logs show the same stored-pane-width,
 folder-tree/mode, pane-splitter, and folder-header families, so that historical SHA
 confirmed the runtime gap without attributing it to the M3 CSS. Its paired release
-proof was b54; the current verified release is b107 above. Browser dispatch
+proof was b54; the current verified release is b108 above. Browser dispatch
 [30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
 against exact SHA `067445d0f69` completed with static, chrome, and authored M3
 groups passing (`98 passed / 0 failed / 13 TODO`). Its independent gates recorded

@@ -16,6 +16,24 @@ function waitForPaint(win) {
   });
 }
 
+async function synthesizeContentKey(browser, targetId, key, modifiers = {}) {
+  await SpecialPowers.spawn(
+    browser,
+    [targetId, key, modifiers],
+    (id, synthesizedKey, synthesizedModifiers) => {
+      const target = content.document.getElementById(id);
+      Assert.ok(target, `${id} exists in content`);
+      target.focus();
+      Assert.equal(
+        content.document.activeElement,
+        target,
+        `${id} has content focus`
+      );
+      EventUtils.synthesizeKey(synthesizedKey, synthesizedModifiers, content);
+    }
+  );
+}
+
 add_task(async function testMaterialMailPreviewSurface() {
   const launcher = document.getElementById("menu_materialMailPreview");
   Assert.ok(launcher, "the Help menu exposes the packaged Material launcher");
@@ -59,8 +77,8 @@ add_task(async function testMaterialMailPreviewSurface() {
     duplicate: true,
   });
   await BrowserTestUtils.browserLoaded(tab.browser, false, MATERIAL_MAIL_URL);
-  await SimpleTest.promiseFocus(tab.browser);
   tab.browser.focus();
+  await SimpleTest.promiseFocus(tab.browser);
   registerCleanupFunction(() => tabmail.closeTab(tab));
 
   const page = tab.browser.contentDocument;
@@ -228,13 +246,10 @@ add_task(async function testMaterialMailPreviewSurface() {
     "ordinary tabs expose a reorder pair"
   );
   const movingTab = page.getElementById(`mm-tab-${regularBefore[0]}`);
-  tab.browser.focus();
-  movingTab.focus();
-  await BrowserTestUtils.synthesizeKey(
-    "KEY_ArrowRight",
-    { ctrlKey: true, shiftKey: true },
-    tab.browser
-  );
+  await synthesizeContentKey(tab.browser, movingTab.id, "KEY_ArrowRight", {
+    ctrlKey: true,
+    shiftKey: true,
+  });
   await waitForPaint(page.defaultView);
   let regularAfter = tabController
     .snapshot()
@@ -246,13 +261,10 @@ add_task(async function testMaterialMailPreviewSurface() {
     [regularBefore[1], regularBefore[0]],
     "Ctrl+Shift+ArrowRight reorders within the ordinary region"
   );
-  tab.browser.focus();
-  movingTab.focus();
-  await BrowserTestUtils.synthesizeKey(
-    "KEY_ArrowLeft",
-    { ctrlKey: true, shiftKey: true },
-    tab.browser
-  );
+  await synthesizeContentKey(tab.browser, movingTab.id, "KEY_ArrowLeft", {
+    ctrlKey: true,
+    shiftKey: true,
+  });
   await waitForPaint(page.defaultView);
   regularAfter = tabController
     .snapshot()
@@ -307,9 +319,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     0,
     "unsafe nested quantifiers are rejected before tab labels are evaluated"
   );
-  tab.browser.focus();
-  tabSearch.focus();
-  await BrowserTestUtils.synthesizeKey("KEY_Escape", {}, tab.browser);
+  await synthesizeContentKey(tab.browser, tabSearch.id, "KEY_Escape");
   await waitForPaint(page.defaultView);
   Assert.ok(
     page.getElementById("mm-tab-popover").hidden,
