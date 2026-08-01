@@ -27,7 +27,7 @@ Integration target: **`main`**. Scope: **Windows only**.
 ## Current state, in brief
 
 - **`design/` is the authoritative source, not a generated approximation.** The current
-  tree contains **162 files / 1,982,714 bytes**. Its primary snapshot,
+  tree contains **162 files / 1,984,115 bytes**. Its primary snapshot,
   `Material Mail.dc.html`, is **140,780 bytes** with SHA-256
   `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
   There is no project design ZIP because the complete tracked folder is kept directly in
@@ -44,12 +44,12 @@ Integration target: **`main`**. Scope: **Windows only**.
   A tick certifies that the named upstream behaviour still *functions* against named
   selectors and specificity. It is **not** a visual sign-off.
 - **The hardened release contract has exact intermediate proof.** Installer run
-  [30674321556](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30674321556)
-  published [`tb-155.0a1-b105`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b105)
-  from `431ed1a295abe19452a92a724fa5978418624a46`. The non-draft release carries exactly
-  the 87,756,269-byte installer (`52a2026fdab156e07f143348e0b576b34ea8d57b7d1632e0fa3bd2934f7c1bf9`)
-  and the verified 2,385,166-byte `Crispy Taro Dumplings · 蜂巢芋角` catalog PNG
-  (`482d1452ffdd12fd238ff0de78a507807e9ee072e2c3fdc74b9f37cc5662f130`).
+  [30675464772](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675464772)
+  published [`tb-155.0a1-b106`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b106)
+  from `e8ad89b2973cb3458e1ee894140594f86a0febd7`. The non-draft release carries exactly
+  the 87,766,724-byte installer (`dc25753a8cfdc27a096ca0d78107d8ca8ada046b1d5392f95505f38719b45b7c`)
+  and the verified 2,407,700-byte `Curry Taro Dumplings · 咖喱芋角` catalog PNG
+  (`5c65ea18855ce4eb54abe159cfcd3cb2e5b6040bde95507eb7b999c23dcfba08`).
   That proves the two-asset release path, not final UI behavior; the matching browser
   run below still found test/runtime-start boundaries that the containing source repairs.
 - **Local authored verification for this wave is green:** preview/alignment verifiers,
@@ -93,9 +93,15 @@ Integration target: **`main`**. Scope: **Windows only**.
   counted failures came from constructed keyboard events that did not exercise the
   focused Ctrl+Shift+Arrow or Escape paths; two additional accessibility warnings
   clicked rebuilt History/Notification controls before their painted bounds existed.
-  This containing source uses Thunderbird's native `EventUtils` keyboard helper with
-  real focus and waits through paint at those rebuilt-control boundaries. A new hosted
-  run remains required; no failed run is recycled as proof.
+  Exact source `e8ad89b2973cb3458e1ee894140594f86a0febd7` used `EventUtils` and added
+  those paint waits. Run
+  [30675469469](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675469469)
+  confirmed the paint repair—neither hidden-node warning recurred—but finished at
+  **279 passed / 3 failed / 13 TODO with zero crashes** because the test still had not
+  focused the owning content browser before sending keys. This containing source now
+  uses the repository's established `SimpleTest.promiseFocus(tab.browser)` plus awaited
+  `BrowserTestUtils.synthesizeKey(..., tab.browser)` path. A new hosted run remains
+  required; no failed run is recycled as proof.
 - **Broad browser verification is still mixed.** Run
   [30634411220](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30634411220)
   failed legacy suites while the authored Material/static groups passed. It is not

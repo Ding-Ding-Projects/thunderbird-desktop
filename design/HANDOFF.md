@@ -23,7 +23,7 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Tab-core integration status — 2026-07-31.** `design/` is the complete tracked
-> authority: **162 files / 1,982,714 bytes**, with no project design ZIP.
+> authority: **162 files / 1,984,115 bytes**, with no project design ZIP.
 > `Material Mail.dc.html` remains 140,780 bytes with SHA-256
 > `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
 > The local source matrix is green: both Python verifiers, **12 / 12** preview
@@ -96,17 +96,24 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > failures came from constructed keyboard events that did not traverse the focused
 > Ctrl+Shift+Arrow or Escape paths. Two additional non-counted accessibility warnings
 > clicked History restore and notification dismissal before rebuilt controls had
-> painted bounds. This containing source focuses the real controls, uses Thunderbird's
-> native `EventUtils` key synthesis, and waits two frames before those rebuilt-list
-> clicks. A new exact-source run is required; 30674327226 remains diagnosis only.
+> painted bounds. Exact source `e8ad89b2973cb3458e1ee894140594f86a0febd7`
+> focused the controls, used `EventUtils`, and waited two frames before those clicks.
+> Browser run
+> [30675469469](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675469469)
+> proved that the paint repair removed both hidden-node warnings, but it repeated the
+> three key assertions at **279 passed / 3 failed / 13 TODO, zero crashes** because the
+> owning content browser was not focused. This containing source uses
+> `SimpleTest.promiseFocus(tab.browser)` and awaited `BrowserTestUtils.synthesizeKey`
+> against that browser. A new exact-source run is required; both red runs remain
+> diagnosis only.
 > Installer run
-> [30674321556](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30674321556)
-> independently passed for the same `431ed1a` source and published non-draft release
-> [`tb-155.0a1-b105`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b105)
-> with exactly the 87,756,269-byte installer
-> (`52a2026fdab156e07f143348e0b576b34ea8d57b7d1632e0fa3bd2934f7c1bf9`)
-> and 2,385,166-byte `Crispy Taro Dumplings · 蜂巢芋角` PNG
-> (`482d1452ffdd12fd238ff0de78a507807e9ee072e2c3fdc74b9f37cc5662f130`).
+> [30675464772](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675464772)
+> independently passed for the same `e8ad89b` source and published non-draft release
+> [`tb-155.0a1-b106`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b106)
+> with exactly the 87,766,724-byte installer
+> (`dc25753a8cfdc27a096ca0d78107d8ca8ada046b1d5392f95505f38719b45b7c`)
+> and 2,407,700-byte `Curry Taro Dumplings · 咖喱芋角` PNG
+> (`5c65ea18855ce4eb54abe159cfcd3cb2e5b6040bde95507eb7b999c23dcfba08`).
 > That is exact release-contract evidence, not browser sign-off.
 > Consult rolling Discussion #1 for
 > the next immutable run, release, and capture verdict; this handoff does not predict it.
@@ -866,12 +873,12 @@ Recorded honestly, because a successor will otherwise treat them as checked:
 - **CI run colour.** The installer and lint workflows are reported green. That is a
   GitHub Actions fact; check the Actions tab.
 - **Release and artifact state.** The current verified release is
-  `tb-155.0a1-b54-wu-gok`, built from `e4867411c3aa81de4527d843913b966d0ef89c1c`
-  by installer run `30625833498`. Check the Releases page for the live asset and
-  digest; per-build sizes remain intentionally external state.
-- **Self-hosted runner health**, addresses (`super` answers on `.232` and sometimes
-  `.233`) and the Minecraft pause guard's current behaviour. Host-side facts; see
-  `INFRA.md` and re-check reachability before assuming either address.
+  `tb-155.0a1-b106`, built from `e8ad89b2973cb3458e1ee894140594f86a0febd7`
+  by installer run `30675464772`. Check the Releases page for the live asset and
+  digest; the exact two-asset sizes and digests are recorded above.
+- **Hosted worker health and measured capacity.** These are run-time facts rather than
+  repository facts. Re-check the selected GitHub-hosted worker and its reported disk
+  budget in the exact Actions run before relying on either.
 - **Manual installer coverage.** The b54 runtime observation reached the upstream
   onboarding/start page while the packaged Material 3-pane sheets were present. This
   does not close manual installation, 3-pane interaction, accessibility, localization,

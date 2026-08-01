@@ -47,6 +47,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     duplicate: true,
   });
   await BrowserTestUtils.browserLoaded(tab.browser, false, MATERIAL_MAIL_URL);
+  await SimpleTest.promiseFocus(tab.browser);
   registerCleanupFunction(() => tabmail.closeTab(tab));
 
   const page = tab.browser.contentDocument;
@@ -215,10 +216,10 @@ add_task(async function testMaterialMailPreviewSurface() {
   );
   const movingTab = page.getElementById(`mm-tab-${regularBefore[0]}`);
   movingTab.focus();
-  EventUtils.synthesizeKey(
+  await BrowserTestUtils.synthesizeKey(
     "KEY_ArrowRight",
     { ctrlKey: true, shiftKey: true },
-    page.defaultView
+    tab.browser
   );
   await waitForPaint(page.defaultView);
   let regularAfter = tabController
@@ -232,10 +233,10 @@ add_task(async function testMaterialMailPreviewSurface() {
     "Ctrl+Shift+ArrowRight reorders within the ordinary region"
   );
   movingTab.focus();
-  EventUtils.synthesizeKey(
+  await BrowserTestUtils.synthesizeKey(
     "KEY_ArrowLeft",
     { ctrlKey: true, shiftKey: true },
-    page.defaultView
+    tab.browser
   );
   await waitForPaint(page.defaultView);
   regularAfter = tabController
@@ -292,7 +293,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     "unsafe nested quantifiers are rejected before tab labels are evaluated"
   );
   tabSearch.focus();
-  EventUtils.synthesizeKey("KEY_Escape", {}, page.defaultView);
+  await BrowserTestUtils.synthesizeKey("KEY_Escape", {}, tab.browser);
   await waitForPaint(page.defaultView);
   Assert.ok(
     page.getElementById("mm-tab-popover").hidden,

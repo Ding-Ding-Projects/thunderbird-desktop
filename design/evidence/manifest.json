@@ -58,97 +58,99 @@
   "verification": {
     "release": {
       "status": "verified-source-installer-and-catalog-photo",
-      "build": 105,
-      "tag": "tb-155.0a1-b105",
-      "name": "Crispy Taro Dumplings · 蜂巢芋角 — Thunderbird 155.0a1 (build 105)",
-      "publishedAt": "2026-08-01T00:19:20Z",
-      "sourceCommit": "431ed1a295abe19452a92a724fa5978418624a46",
+      "build": 106,
+      "tag": "tb-155.0a1-b106",
+      "name": "Curry Taro Dumplings · 咖喱芋角 — Thunderbird 155.0a1 (build 106)",
+      "publishedAt": "2026-08-01T00:41:39Z",
+      "sourceCommit": "e8ad89b2973cb3458e1ee894140594f86a0febd7",
       "buildRun": {
-        "runId": 30674321556,
+        "runId": 30675464772,
         "status": "published",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30674321556"
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675464772"
       },
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b105",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b106",
       "assets": [
         {
           "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-          "sizeBytes": 87756269,
-          "sha256": "52a2026fdab156e07f143348e0b576b34ea8d57b7d1632e0fa3bd2934f7c1bf9"
+          "sizeBytes": 87766724,
+          "sha256": "dc25753a8cfdc27a096ca0d78107d8ca8ada046b1d5392f95505f38719b45b7c"
         },
         {
-          "name": "hk-dish-0105-crispy-taro-dumplings.png",
-          "sizeBytes": 2385166,
-          "sha256": "482d1452ffdd12fd238ff0de78a507807e9ee072e2c3fdc74b9f37cc5662f130"
+          "name": "hk-dish-0106-curry-taro-dumplings.png",
+          "sizeBytes": 2407700,
+          "sha256": "5c65ea18855ce4eb54abe159cfcd3cb2e5b6040bde95507eb7b999c23dcfba08"
         }
       ],
       "requiredPhoto": {
         "status": "verified",
-        "dish": "Crispy Taro Dumplings · 蜂巢芋角",
-        "reservation": "refs/tags/dim-sum-code-names/crispy-taro-dumplings",
-        "note": "b105 proves the exact two-asset release contract for 431ed1a. Its paired browser run still failed, so this release is not final UI sign-off."
+        "dish": "Curry Taro Dumplings · 咖喱芋角",
+        "reservation": "refs/tags/dim-sum-code-names/curry-taro-dumplings",
+        "note": "b106 proves the exact two-asset release contract for e8ad89b. Its paired browser run still failed, so this release is not final UI sign-off."
       }
     },
     "latestPublicRelease": {
       "status": "verified-source-installer-and-catalog-photo",
-      "build": 105,
-      "tag": "tb-155.0a1-b105",
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b105",
-      "sourceCommit": "431ed1a295abe19452a92a724fa5978418624a46",
-      "tagCommit": "431ed1a295abe19452a92a724fa5978418624a46",
+      "build": 106,
+      "tag": "tb-155.0a1-b106",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b106",
+      "sourceCommit": "e8ad89b2973cb3458e1ee894140594f86a0febd7",
+      "tagCommit": "e8ad89b2973cb3458e1ee894140594f86a0febd7",
       "buildRun": {
-        "runId": 30674321556,
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30674321556"
+        "runId": 30675464772,
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675464772"
       },
       "asset": {
         "name": "thunderbird-155.0a1.en-US.win64.installer.exe",
-        "sizeBytes": 87756269,
-        "sha256": "52a2026fdab156e07f143348e0b576b34ea8d57b7d1632e0fa3bd2934f7c1bf9"
+        "sizeBytes": 87766724,
+        "sha256": "dc25753a8cfdc27a096ca0d78107d8ca8ada046b1d5392f95505f38719b45b7c"
       },
       "requiredPhoto": {
-        "name": "hk-dish-0105-crispy-taro-dumplings.png",
-        "dish": "Crispy Taro Dumplings · 蜂巢芋角",
-        "sizeBytes": 2385166,
-        "sha256": "482d1452ffdd12fd238ff0de78a507807e9ee072e2c3fdc74b9f37cc5662f130"
+        "name": "hk-dish-0106-curry-taro-dumplings.png",
+        "dish": "Curry Taro Dumplings · 咖喱芋角",
+        "sizeBytes": 2407700,
+        "sha256": "5c65ea18855ce4eb54abe159cfcd3cb2e5b6040bde95507eb7b999c23dcfba08"
       },
       "packageInspection": "The tag, installer, and catalog PNG are exact-source and satisfy the two-asset contract. The paired browser run remains failed evidence rather than UI sign-off."
     },
     "browserRun": {
       "status": "failed",
-      "runId": 30674327226,
+      "runId": 30675469469,
       "event": "workflow_dispatch",
-      "sourceCommit": "431ed1a295abe19452a92a724fa5978418624a46",
-      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30674327226",
+      "sourceCommit": "e8ad89b2973cb3458e1ee894140594f86a0febd7",
+      "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675469469",
       "artifact": {
         "status": "uploaded",
-        "artifactId": 8810105110,
+        "artifactId": 8810490951,
+        "archiveSizeBytes": 129820,
+        "sha256": "ab367e3896fc8fff53c921ae34e1ad80c3f34d3beb9f62d2b28d39e2ab1b0a03",
         "note": "The exact raw JSON, modified preferences, manifests, self-test log, and genuine failure screenshots were uploaded as m3-browser-test-logs."
       },
       "screenshotCapture": {
         "status": "uploaded-diagnostic",
-        "note": "The workflow captured the genuine all-tabs discovery popover still open after the synthetic Escape event. It is diagnostic evidence, not a clean sign-off capture."
+        "note": "The genuine Material failure screenshot shows Settings still before Changelog after the attempted reorder. Later Escape/focus failures reused that screenshot, so the artifact does not claim a separate open-popover capture."
       },
       "suites": {
         "project-authored-m3": {
           "status": "failed",
           "passed": 279,
           "failed": 3,
-          "todo": 15,
+          "todo": 13,
           "unexpectedResults": 4,
           "crashes": 0,
           "malformedResults": 0
         }
       },
       "diagnosis": {
-        "firstFailure": "A constructed KeyboardEvent did not exercise the focused tab's native Ctrl+Shift+ArrowRight path, so the ordinary pair remained unchanged.",
-        "secondFailure": "The same constructed-event path did not deliver Escape through the focused all-tabs search field, leaving the popover open and preventing focus return.",
-        "accessibilityWarnings": "History restore and notification dismissal were clicked immediately after their list became visible or rebuilt, before cached accessibility bounds reflected the paint.",
-        "containingFix": "Focus the real controls, synthesize keys through Thunderbird's EventUtils helper, wait through paint after reordering and Escape, and add two-frame paint boundaries before both rebuilt-list clicks."
+        "firstFailure": "EventUtils targeted the page window without first focusing its owning content browser, so Ctrl+Shift+ArrowRight never reached the focused tab and the ordinary pair remained unchanged.",
+        "secondFailure": "The same missing content-browser focus left Escape undelivered through the all-tabs search field, keeping the popover open and preventing focus return.",
+        "accessibilityWarnings": "The preceding History/Notification hidden-node warnings did not recur; the two-frame paint boundaries are verified by this raw log.",
+        "containingFix": "Await SimpleTest.promiseFocus(tab.browser), focus the real control, and await BrowserTestUtils.synthesizeKey against tab.browser for reorder and Escape; retain the verified paint waits."
       },
       "priorReadinessFailure": {
         "runId": 30672895090,
         "sourceCommit": "d69f5ba1f8f0b3fe6b68f0c017c386eb34b080f7",
         "artifactId": 8809634246,
-        "note": "The earlier run ended at 206 passed / 2 failed / 16 TODO because it asserted a post-open panel before activation and reused a still-open single-page tab. Run 30674327226 clears both boundaries and reaches all three authored files."
+        "note": "The earlier run ended at 206 passed / 2 failed / 16 TODO because it asserted a post-open panel before activation and reused a still-open single-page tab. Runs 30674327226 and 30675469469 clear both boundaries and reach all three authored files."
       },
       "historicalB54": {
         "runId": 30625878368,
@@ -167,7 +169,7 @@
       "baseCommit": "77fe409183e580db6dd59ef2e65d093864a4f241",
       "buildRun": null,
       "status": "source-verified-capture-pending",
-      "note": "This manifest's containing source adds the persisted tab core and retains the searchable 14-entry guide, article details, Changelog/History filters, Notifications, dim-sum startup, appearance/color/funny-level, and narrator foundations. It replaces packaged Material HTML-string rendering with DOM construction and literal text, whitelists notification classes, packages the regex launcher as a real module, exposes explicit eight-builder and 14-color-space initialization signals, makes late module startup ready-state-safe, opens browser fixtures as fresh duplicate tabs, exercises keyboard behavior through focused native test events, and waits for paint before clicking rebuilt controls. The exact local release-lint inventory and authored checks pass, but no containing-source run, release, or capture is predicted here. Resolve the exact pushed commit and immutable verdict through rolling Discussion #1 before promoting any surface to runtime sign-off.",
+      "note": "This manifest's containing source adds the persisted tab core and retains the searchable 14-entry guide, article details, Changelog/History filters, Notifications, dim-sum startup, appearance/color/funny-level, and narrator foundations. It replaces packaged Material HTML-string rendering with DOM construction and literal text, whitelists notification classes, packages the regex launcher as a real module, exposes explicit eight-builder and 14-color-space initialization signals, makes late module startup ready-state-safe, opens browser fixtures as fresh duplicate tabs, focuses their owning content browser before awaiting BrowserTestUtils key synthesis, and waits for paint before clicking rebuilt controls. The exact local release-lint inventory and authored checks pass, but no containing-source run, release, or capture is predicted here. Resolve the exact pushed commit and immutable verdict through rolling Discussion #1 before promoting any surface to runtime sign-off.",
       "knownFailedRun": {
         "runId": 30666929947,
         "sourceCommit": "6a24a7cea8bc0d8be44e029e9b946ea8bc07742b",
@@ -210,16 +212,16 @@
         "note": "All three discovered tests ran. An invalid-string exception in HTML-string history rendering cascaded through later authored assertions, and Assert.match was unavailable in this harness. This containing source uses DOM construction and literal text, adds persisted markup-like payload coverage, and uses a supported assertion; the failed run is diagnosis, not verification."
       },
       "latestFailedRun": {
-        "runId": 30674327226,
-        "sourceCommit": "431ed1a295abe19452a92a724fa5978418624a46",
-        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30674327226",
+        "runId": 30675469469,
+        "sourceCommit": "e8ad89b2973cb3458e1ee894140594f86a0febd7",
+        "url": "https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675469469",
         "passed": 279,
         "failed": 3,
-        "todo": 15,
+        "todo": 13,
         "crashes": 0,
         "malformedResults": 0,
-        "artifactId": 8810105110,
-        "note": "All three authored files ran to completion and the previous readiness/tab-reuse failures disappeared. Three remaining assertions used constructed keyboard events instead of the native focused input path, while two non-counted accessibility warnings clicked rebuilt controls before paint. This containing source uses EventUtils with real focus and adds the missing two-frame paint boundaries; the failed run remains diagnosis, not verification."
+        "artifactId": 8810490951,
+        "note": "All three authored files ran to completion. The preceding hidden-node accessibility warnings disappeared, verifying the paint waits, but the three key assertions repeated because the owning content browser was not focused. This containing source awaits browser focus and BrowserTestUtils key synthesis; the failed run remains diagnosis, not verification."
       },
       "priorReadinessFailure": {
         "runId": 30672895090,

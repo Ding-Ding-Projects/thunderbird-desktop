@@ -94,14 +94,20 @@ earlier failures and exercised every authored file in browser run
 It finished at **279 passed / 3 failed / 15 TODO, zero crashes**. The three counted
 failures used constructed keyboard events that did not reach the focused reorder or
 Escape paths; two additional accessibility warnings clicked rebuilt History and
-Notification controls before paint. The containing source uses `EventUtils` against
-the focused controls and adds the missing two-frame paint boundaries. A fresh hosted
-run and installed-artifact proof remain required.
+Notification controls before paint. Exact source
+`e8ad89b2973cb3458e1ee894140594f86a0febd7` added the paint boundaries and used
+`EventUtils`; run
+[`30675469469`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675469469)
+confirmed the accessibility timing repair but repeated the three key failures at
+**279 passed / 3 failed / 13 TODO, zero crashes** because the content browser itself
+was not focused. The containing source now focuses `tab.browser` and awaits
+`BrowserTestUtils.synthesizeKey` against that browser. A fresh hosted run and
+installed-artifact proof remain required.
 
-The same `431ed1a` source independently passed Windows installer run
-[`30674321556`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30674321556)
-and published non-draft release [`tb-155.0a1-b105`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b105)
-with exactly its real installer and verified `Crispy Taro Dumplings · 蜂巢芋角`
+The same `e8ad89b` source independently passed Windows installer run
+[`30675464772`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675464772)
+and published non-draft release [`tb-155.0a1-b106`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b106)
+with exactly its real installer and verified `Curry Taro Dumplings · 咖喱芋角`
 catalog PNG. That release remains intermediate because its paired browser gate is red.
 
 ---
