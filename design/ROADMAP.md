@@ -6,7 +6,7 @@ Read this with `REWRITE-CONTRACT.md` (the parity ledger), `INFRA.md` (build and 
 and `A11Y-L10N-AUDIT.md` (what must not break). This file is the summary; those
 three are the evidence.
 
-The tracked `design/` authority currently contains **162 files / 1,995,790 bytes**;
+The tracked `design/` authority currently contains **162 files / 1,998,808 bytes**;
 there is no project design ZIP because the complete folder is tracked directly.
 
 ---
@@ -120,35 +120,39 @@ TODO; 3 / 3 / 3 authored files resolved/started/ended; 0 crashes / 0 malformed
 results**. The same reorder, Escape-dismissal, and focus-return assertions failed.
 Artifact `8811350118` is 129,979 bytes with SHA-256
 `95f93fee19f7fd8d2ac67b7c48f6d81e8d0be6ae91ec18d8712e664273096bd1`.
-The containing fix now moves initial browser focus before the focus promise, enters
-the content actor with `SpecialPowers.spawn`, focuses and verifies the real control
-through `content.document.activeElement`, then injects with
-`EventUtils.synthesizeKey(..., content)`, matching existing passing `contentTab`
-tests. Hosted verification remains pending.
+Exact source `9ea281a808891f92b09da944f6d9ffc504f39561` then moved the key
+path into the content actor, focused the real control, asserted
+`content.document.activeElement`, and called `EventUtils.synthesizeKey(...,
+content)`. Authoritative Material-only run
+[`30679948708`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30679948708)
+proved all six target/focus assertions and all three authored files, but repeated
+the same three behavior failures: **307 checks / 303 expected / 4 unexpected;
+288 passed / 3 failed / 13 TODO; 3 / 3 / 3 files resolved/started/ended; 0
+crashes / 0 malformed results**. Artifact `8811992073` is 129,914 bytes with
+SHA-256 `8bf9d754357a2663818539914e63df4b1916585656d4a4410d4c5f35a44320da`.
+Broad exact-source run
+[`30679351159`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30679351159)
+independently retained the same Material result inside its six-group matrix.
+The containing correction constructs and dispatches a bubbling, cancelable
+`KeyboardEvent` inside the same content actor that owns the focused node. Hosted
+verification remains pending.
 
-The same `4b208822` source independently passed Windows installer run
-[`30677960250`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30677960250)
+The same `9ea281a8` source independently passed Windows installer run
+[`30679344489`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30679344489)
 and published non-draft, non-prerelease release
-[`tb-155.0a1-b108`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b108),
-**Shrimp Glutinous Rice Dumplings · 鮮蝦鹹水角 — Thunderbird 155.0a1 (build
-108)**, at `2026-08-01T01:48:01Z`. Release ID `363398113` has exactly two assets:
-the 87,749,901-byte installer (asset `497409469`, node `RA_kwDOTmsgBs4dpd29`,
-SHA-256 `8c1906cd9022b792d6acdba8df9f064cf95a4ebf314693a976ee68bb2af0fccc`)
-and 2,395,713-byte, 1254×1254 `hk-dish-0109-shrimp-glutinous-rice-dumplings.png`
-(asset `497409468`, node `RA_kwDOTmsgBs4dpd28`, SHA-256
-`e4acf15d63f1618f5347e14130d9d28ff9c713c2c1ae5dd629ca694d96b9d3f1`)
+[`tb-155.0a1-b109`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b109),
+**Chicken Glutinous Rice Dumplings · 雞粒鹹水角 — Thunderbird 155.0a1 (build
+109)**, at `2026-08-01T02:25:55Z`. Release ID `363405305` has exactly two assets:
+the 87,753,711-byte installer (asset `497441799`, node `RA_kwDOTmsgBs4dplwH`,
+SHA-256 `91f69c2e83c913ff34856ecae5f465f2bcca68e2074f2ee95df03f49bf268a01`)
+and 2,628,867-byte, 1254×1254 `hk-dish-0110-chicken-glutinous-rice-dumplings.png`
+(asset `497441798`, node `RA_kwDOTmsgBs4dplwG`, SHA-256
+`01874751d9cbe3b6ad1331988cc8f1af17f3ac3d78d60ae0b84d4c9c9f1c5b37`)
 from catalog commit `135dcef2be4da04dbe1682076c4a3db59defe5f0`. Both the release tag and code-name
-reservation `refs/tags/dim-sum-code-names/shrimp-glutinous-rice-dumplings`
-resolve to `4b208822`. b108 remains intermediate because the paired
-browser gate is red. Prior
-[`tb-155.0a1-b107`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107)
-from installer run
-[`30676608171`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676608171)
-remains exact historical evidence for `67b1421`, its 87,762,882-byte installer
-(SHA-256 `a6fbe35728b698876002f600aae149b4540b6c1d8236fa89181c74b5b6745c82`),
-and 2,396,451-byte **Taro Duck Dumplings · 香芋鴨角** PNG (SHA-256
-`6faf396918d1e1fe484952f165dc512e35570adddd325a70f960de238086b4b2`);
-it is not reused as current-source browser proof.
+reservation `refs/tags/dim-sum-code-names/chicken-glutinous-rice-dumplings`
+resolve to `9ea281a8`. b109 remains intermediate because both paired browser runs
+are red. b108 and b107 remain preserved as earlier exact two-asset evidence;
+neither is reused as current-source browser proof.
 
 ---
 
@@ -296,7 +300,7 @@ and zero unexpected results. The 3-pane gate recorded **92 unexpected** with
 recorded **12 unexpected**. The uploaded raw logs show the same stored-pane-width,
 folder-tree/mode, pane-splitter, and folder-header families, so that historical SHA
 confirmed the runtime gap without attributing it to the M3 CSS. Its paired release
-proof was b54; the current verified release is b108 above. Browser dispatch
+proof was b54; the current verified release is b109 above. Browser dispatch
 [30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
 against exact SHA `067445d0f69` completed with static, chrome, and authored M3
 groups passing (`98 passed / 0 failed / 13 TODO`). Its independent gates recorded

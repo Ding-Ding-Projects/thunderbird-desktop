@@ -16,11 +16,11 @@ function waitForPaint(win) {
   });
 }
 
-async function synthesizeContentKey(browser, targetId, key, modifiers = {}) {
+async function dispatchContentKey(browser, targetId, key, modifiers = {}) {
   await SpecialPowers.spawn(
     browser,
     [targetId, key, modifiers],
-    (id, synthesizedKey, synthesizedModifiers) => {
+    (id, eventKey, eventModifiers) => {
       const target = content.document.getElementById(id);
       Assert.ok(target, `${id} exists in content`);
       target.focus();
@@ -29,7 +29,18 @@ async function synthesizeContentKey(browser, targetId, key, modifiers = {}) {
         target,
         `${id} has content focus`
       );
-      EventUtils.synthesizeKey(synthesizedKey, synthesizedModifiers, content);
+      const normalizedKey = eventKey.replace(/^KEY_/, "");
+      target.dispatchEvent(
+        new content.KeyboardEvent("keydown", {
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+          key: normalizedKey,
+          code: normalizedKey,
+          view: content,
+          ...eventModifiers,
+        })
+      );
     }
   );
 }
@@ -246,7 +257,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     "ordinary tabs expose a reorder pair"
   );
   const movingTab = page.getElementById(`mm-tab-${regularBefore[0]}`);
-  await synthesizeContentKey(tab.browser, movingTab.id, "KEY_ArrowRight", {
+  await dispatchContentKey(tab.browser, movingTab.id, "KEY_ArrowRight", {
     ctrlKey: true,
     shiftKey: true,
   });
@@ -261,7 +272,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     [regularBefore[1], regularBefore[0]],
     "Ctrl+Shift+ArrowRight reorders within the ordinary region"
   );
-  await synthesizeContentKey(tab.browser, movingTab.id, "KEY_ArrowLeft", {
+  await dispatchContentKey(tab.browser, movingTab.id, "KEY_ArrowLeft", {
     ctrlKey: true,
     shiftKey: true,
   });
@@ -319,7 +330,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     0,
     "unsafe nested quantifiers are rejected before tab labels are evaluated"
   );
-  await synthesizeContentKey(tab.browser, tabSearch.id, "KEY_Escape");
+  await dispatchContentKey(tab.browser, tabSearch.id, "KEY_Escape");
   await waitForPaint(page.defaultView);
   Assert.ok(
     page.getElementById("mm-tab-popover").hidden,
