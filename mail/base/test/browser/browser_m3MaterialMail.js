@@ -214,14 +214,13 @@ add_task(async function testMaterialMailPreviewSurface() {
     "ordinary tabs expose a reorder pair"
   );
   const movingTab = page.getElementById(`mm-tab-${regularBefore[0]}`);
-  movingTab.dispatchEvent(
-    new page.defaultView.KeyboardEvent("keydown", {
-      bubbles: true,
-      ctrlKey: true,
-      shiftKey: true,
-      key: "ArrowRight",
-    })
+  movingTab.focus();
+  EventUtils.synthesizeKey(
+    "KEY_ArrowRight",
+    { ctrlKey: true, shiftKey: true },
+    page.defaultView
   );
+  await waitForPaint(page.defaultView);
   let regularAfter = tabController
     .snapshot()
     .state.order.filter(
@@ -232,14 +231,13 @@ add_task(async function testMaterialMailPreviewSurface() {
     [regularBefore[1], regularBefore[0]],
     "Ctrl+Shift+ArrowRight reorders within the ordinary region"
   );
-  movingTab.dispatchEvent(
-    new page.defaultView.KeyboardEvent("keydown", {
-      bubbles: true,
-      ctrlKey: true,
-      shiftKey: true,
-      key: "ArrowLeft",
-    })
+  movingTab.focus();
+  EventUtils.synthesizeKey(
+    "KEY_ArrowLeft",
+    { ctrlKey: true, shiftKey: true },
+    page.defaultView
   );
+  await waitForPaint(page.defaultView);
   regularAfter = tabController
     .snapshot()
     .state.order.filter(
@@ -293,13 +291,9 @@ add_task(async function testMaterialMailPreviewSurface() {
     0,
     "unsafe nested quantifiers are rejected before tab labels are evaluated"
   );
-  page.dispatchEvent(
-    new page.defaultView.KeyboardEvent("keydown", {
-      bubbles: true,
-      key: "Escape",
-    })
-  );
-  await new Promise(resolve => page.defaultView.requestAnimationFrame(resolve));
+  tabSearch.focus();
+  EventUtils.synthesizeKey("KEY_Escape", {}, page.defaultView);
+  await waitForPaint(page.defaultView);
   Assert.ok(
     page.getElementById("mm-tab-popover").hidden,
     "Escape dismisses all-tabs search"
@@ -481,6 +475,7 @@ add_task(async function testMaterialMailPreviewSurface() {
   const historyBeforeRestore = JSON.parse(
     Services.prefs.getStringPref("mail.material.preview.history")
   ).length;
+  await waitForPaint(page.defaultView);
   page.querySelector("[data-history-restore]").click();
   const restoredHistory = JSON.parse(
     Services.prefs.getStringPref("mail.material.preview.history")
@@ -513,6 +508,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     2,
     "Notifications filter exposes unread records"
   );
+  await waitForPaint(page.defaultView);
   page.querySelector("[data-notification-dismiss]").click();
   Assert.equal(
     page.getElementById("mm-notification-list").querySelectorAll("article")

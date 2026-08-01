@@ -88,6 +88,22 @@ signals, ready-state-safe module startup, fresh duplicate test tabs, and a corre
 mount-then-open assertion order. Exact-source hosted and installed-artifact proof
 remain required rather than borrowing b103's partial browser passes.
 
+Exact source `431ed1a295abe19452a92a724fa5978418624a46` then cleared both
+earlier failures and exercised every authored file in browser run
+[`30674327226`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30674327226).
+It finished at **279 passed / 3 failed / 15 TODO, zero crashes**. The three counted
+failures used constructed keyboard events that did not reach the focused reorder or
+Escape paths; two additional accessibility warnings clicked rebuilt History and
+Notification controls before paint. The containing source uses `EventUtils` against
+the focused controls and adds the missing two-frame paint boundaries. A fresh hosted
+run and installed-artifact proof remain required.
+
+The same `431ed1a` source independently passed Windows installer run
+[`30674321556`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30674321556)
+and published non-draft release [`tb-155.0a1-b105`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b105)
+with exactly its real installer and verified `Crispy Taro Dumplings · 蜂巢芋角`
+catalog PNG. That release remains intermediate because its paired browser gate is red.
+
 ---
 
 ## What is done
