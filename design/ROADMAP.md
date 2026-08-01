@@ -100,15 +100,23 @@ Notification controls before paint. Exact source
 [`30675469469`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675469469)
 confirmed the accessibility timing repair but repeated the three key failures at
 **279 passed / 3 failed / 13 TODO, zero crashes** because the content browser itself
-was not focused. The containing source now focuses `tab.browser` and awaits
-`BrowserTestUtils.synthesizeKey` against that browser. A fresh hosted run and
-installed-artifact proof remain required.
+was not focused. Exact source `67b142169d5c5f111bf447e8f27eaaab66c66209`
+then awaited browser focus and `BrowserTestUtils.synthesizeKey`, but run
+[`30676627493`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676627493)
+repeated the same counts because the focus promise did not explicitly activate the
+outer content `<browser>`. The containing source now calls `tab.browser.focus()` before
+each inner-control focus and synthesized key, following passing Thunderbird content-tab
+tests. A genuine b106 install also exposed a blank Help-menu launcher: the packaged
+Fluent value did not populate a XUL menu item's visible `label`. The containing source
+uses `.label`, a collision-free `P` access key, and an assertion against the rendered
+launcher. A fresh hosted run and installed-artifact proof remain required.
 
-The same `e8ad89b` source independently passed Windows installer run
-[`30675464772`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675464772)
-and published non-draft release [`tb-155.0a1-b106`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b106)
-with exactly its real installer and verified `Curry Taro Dumplings · 咖喱芋角`
-catalog PNG. That release remains intermediate because its paired browser gate is red.
+The same `67b1421` source independently passed Windows installer run
+[`30676608171`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676608171)
+and published non-draft release [`tb-155.0a1-b107`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107)
+with exactly its real installer and verified `Taro Duck Dumplings · 香芋鴨角`
+catalog PNG. That release remains intermediate because its paired browser gate is red
+and the containing source repairs the installed blank launcher label.
 
 ---
 
@@ -254,9 +262,9 @@ project-authored M3 group passed; M3 recorded **98 passed / 0 failed / 13 TODO**
 and zero unexpected results. The 3-pane gate recorded **92 unexpected** with
 `17 resolved / 14 finished`, widgets recorded **2 unexpected**, and folder
 recorded **12 unexpected**. The uploaded raw logs show the same stored-pane-width,
-folder-tree/mode, pane-splitter, and folder-header families, so the current SHA
-confirms the runtime gap without attributing it to the M3 CSS. The current release
-proof is b54 above. Browser dispatch
+folder-tree/mode, pane-splitter, and folder-header families, so that historical SHA
+confirmed the runtime gap without attributing it to the M3 CSS. Its paired release
+proof was b54; the current verified release is b107 above. Browser dispatch
 [30622859803](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30622859803)
 against exact SHA `067445d0f69` completed with static, chrome, and authored M3
 groups passing (`98 passed / 0 failed / 13 TODO`). Its independent gates recorded
@@ -268,7 +276,7 @@ failures remain runtime/harness evidence, while the M3 accessibility failures
 remain explicitly attributed to upstream `aria-hidden="hidden"` markup that this
 skin branch is not authorized to rewrite.
 
-The current b54 baseline is now separately recorded. Browser dispatch
+The historical b54 baseline is separately recorded. Browser dispatch
 [30625878368](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30625878368)
 against `e4867411c3aa81de4527d843913b966d0ef89c1c` completed **failed** after setup
 and build. The packaged-CSS static suite passed `1/1` with zero unexpected results;

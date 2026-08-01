@@ -668,15 +668,11 @@ that lints nothing is worse than no lint job.
 
 ### Runners: prefer GitHub-hosted
 
-`gh api repos/Ding-Ding-Projects/thunderbird-desktop/actions/runners`:
+Use `gh api repos/Ding-Ding-Projects/thunderbird-desktop/actions/runners` to inspect the live
+runner classes and status without copying private host identifiers into this public file.
 
-```
-fowshan-x64   Linux  offline   [self-hosted, Linux, X64,   fowshan, build]
-super-arm64   Linux  online    [self-hosted, Linux, ARM64, super,   lint]
-```
-
-**Both self-hosted runners are Linux, so neither can build a Windows installer** — regardless
-of the `build` label on `fowshan-x64`, and one of them is offline anyway. The installer job
+**The available self-hosted runner classes use Linux, so they cannot build a Windows
+installer.** The installer job
 runs on `windows-latest` (`timeout-minutes: 355`, just under GitHub's 6h job cap); the lint
 job runs on `ubuntu-latest` (`timeout-minutes: 45`) because stylelint and eslint are node
 programs reading the same rc files on any OS. Keep both on hosted runners unless someone adds

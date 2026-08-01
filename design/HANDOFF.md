@@ -23,7 +23,7 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 
 > [!IMPORTANT]
 > **Tab-core integration status — 2026-07-31.** `design/` is the complete tracked
-> authority: **162 files / 1,984,115 bytes**, with no project design ZIP.
+> authority: **162 files / 1,984,264 bytes**, with no project design ZIP.
 > `Material Mail.dc.html` remains 140,780 bytes with SHA-256
 > `a334d745c32a7ab3d1c83a36061cab1017111af1064dd3b79d6a88afa6be45c1`.
 > The local source matrix is green: both Python verifiers, **12 / 12** preview
@@ -102,19 +102,28 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > [30675469469](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675469469)
 > proved that the paint repair removed both hidden-node warnings, but it repeated the
 > three key assertions at **279 passed / 3 failed / 13 TODO, zero crashes** because the
-> owning content browser was not focused. This containing source uses
-> `SimpleTest.promiseFocus(tab.browser)` and awaited `BrowserTestUtils.synthesizeKey`
-> against that browser. A new exact-source run is required; both red runs remain
-> diagnosis only.
+> owning content browser was not focused. Exact source
+> `67b142169d5c5f111bf447e8f27eaaab66c66209` added the focus promise and awaited
+> `BrowserTestUtils.synthesizeKey`, but run
+> [30676627493](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676627493)
+> repeated the same counts and assertions because the promise did not explicitly
+> activate the outer content `<browser>`. This containing source calls
+> `tab.browser.focus()` before each inner-control focus and synthesized key, matching
+> passing content-tab tests. A genuine b106 install also found the packaged Help-menu
+> launcher rendered as a blank row: its Fluent message used a value instead of the XUL
+> menu item's `.label`. The containing source supplies `.label`, a collision-free `P`
+> access key, and a rendered-label assertion. A new exact-source run is required; all
+> red runs remain diagnosis only.
 > Installer run
-> [30675464772](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30675464772)
-> independently passed for the same `e8ad89b` source and published non-draft release
-> [`tb-155.0a1-b106`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b106)
-> with exactly the 87,766,724-byte installer
-> (`dc25753a8cfdc27a096ca0d78107d8ca8ada046b1d5392f95505f38719b45b7c`)
-> and 2,407,700-byte `Curry Taro Dumplings · 咖喱芋角` PNG
-> (`5c65ea18855ce4eb54abe159cfcd3cb2e5b6040bde95507eb7b999c23dcfba08`).
-> That is exact release-contract evidence, not browser sign-off.
+> [30676608171](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30676608171)
+> independently passed for the same `67b1421` source and published non-draft release
+> [`tb-155.0a1-b107`](https://github.com/Ding-Ding-Projects/thunderbird-desktop/releases/tag/tb-155.0a1-b107)
+> with exactly the 87,762,882-byte installer
+> (`a6fbe35728b698876002f600aae149b4540b6c1d8236fa89181c74b5b6745c82`)
+> and 2,396,451-byte `Taro Duck Dumplings · 香芋鴨角` PNG
+> (`6faf396918d1e1fe484952f165dc512e35570adddd325a70f960de238086b4b2`).
+> That is exact release-contract evidence, not browser sign-off; its visible blank
+> launcher label is repaired only by the containing source.
 > Consult rolling Discussion #1 for
 > the next immutable run, release, and capture verdict; this handoff does not predict it.
 >
@@ -124,7 +133,7 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > parity, accessibility, layout, or visual sign-off.
 
 > [!NOTE]
-> **Prior current-source browser checkpoint — 2026-07-31.** Dispatch
+> **Historical browser checkpoint — 2026-07-31.** Dispatch
 > [30617422725](https://github.com/Ding-Ding-Projects/thunderbird-desktop/actions/runs/30617422725)
 > built and launched the application from `143a01dc6c1`. The harness self-test,
 > static packaged-CSS group, chrome group, and project-authored M3 group passed;
@@ -134,8 +143,8 @@ Companion documents: `ROADMAP.md` (what is done and what is not), `REWRITE-CONTR
 > and folder failed with **12**. The artifact records the same stored-pane-width,
 > folder-tree/mode, pane-splitter, and folder-header failure families already
 > seen in earlier runs. This is historical runtime evidence, not a green parity
-> sign-off. The current release proof is b104 above; this earlier browser result
-> remains recorded with artifact `8790660197`.
+> sign-off. Its paired release proof was b104; the current verified release is b107
+> above. This earlier browser result remains recorded with artifact `8790660197`.
 
 ---
 
@@ -790,22 +799,20 @@ definition site.
    source count is **167** distinct `cmd_*` names; the contract must not revive the
    historical 137 figure. Wiring and enabled/disabled behavior still need the
    application suite before this box can be ticked.
-9. **The self-hosted runners cannot build the Windows installer.** `fowshan-x64` is
-   Linux/x86_64 and `super-arm64` is a Raspberry Pi 5 on Linux/aarch64 — wrong OS, and
-   in the second case wrong architecture too. The installer belongs on GitHub-hosted
-   `windows-latest`. No amount of extra cores or disk changes this. See `INFRA.md`.
+9. **The self-hosted runner classes cannot build the Windows installer.** They use
+   Linux/x86_64 or Linux/aarch64 — wrong OS, and in the second case wrong architecture
+   too. The installer belongs on GitHub-hosted `windows-latest`. No amount of extra
+   cores or disk changes this. See `INFRA.md`.
 10. **This repository is public, and self-hosted runners on public repos are an
     attack path.** **Never add a `pull_request` trigger to a job targeting
-    `self-hosted`.** That one line lets any fork PR run arbitrary code on the Pi,
-    alongside the unrelated `line5` workloads that own the box.
-11. **`super-arm64`'s resource limits are not in effect.** Compose sets `cpus: 3.0` /
-    `memory: 8G`, but the Pi kernel reports *"your kernel does not support memory limit
-    capabilities or the cgroup is not mounted"*. A heavy job can contend with
-    `line5-web` and `line5-tunnel`.
-12. **`fowshan-x64` pauses for Minecraft players.** A `docker pause` freezes an
-    in-flight build rather than discarding it — but GitHub will eventually time the job
-    out or drop the runner connection while paused. If players are on for hours, expect
-    that job to need re-running.
+    `self-hosted`.** That one line lets any fork PR run arbitrary code on a private host
+    alongside unrelated workloads.
+11. **Treat declared self-hosted resource limits as unverified until measured.** Re-check
+    live cgroup enforcement, CPU, memory, disk and unrelated workloads before routing a
+    job. A Compose declaration is not proof that the host kernel enforces it.
+12. **Paused jobs can still expire.** Yield mechanisms may freeze an in-flight job rather
+    than discard it, but GitHub can eventually time it out or drop the runner connection.
+    Re-run any job whose connection expires.
 
 ---
 
@@ -873,8 +880,8 @@ Recorded honestly, because a successor will otherwise treat them as checked:
 - **CI run colour.** The installer and lint workflows are reported green. That is a
   GitHub Actions fact; check the Actions tab.
 - **Release and artifact state.** The current verified release is
-  `tb-155.0a1-b106`, built from `e8ad89b2973cb3458e1ee894140594f86a0febd7`
-  by installer run `30675464772`. Check the Releases page for the live asset and
+  `tb-155.0a1-b107`, built from `67b142169d5c5f111bf447e8f27eaaab66c66209`
+  by installer run `30676608171`. Check the Releases page for the live asset and
   digest; the exact two-asset sizes and digests are recorded above.
 - **Hosted worker health and measured capacity.** These are run-time facts rather than
   repository facts. Re-check the selected GitHub-hosted worker and its reported disk

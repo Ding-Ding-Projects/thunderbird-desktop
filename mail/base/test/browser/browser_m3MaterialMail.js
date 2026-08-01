@@ -17,6 +17,18 @@ function waitForPaint(win) {
 }
 
 add_task(async function testMaterialMailPreviewSurface() {
+  const launcher = document.getElementById("menu_materialMailPreview");
+  Assert.ok(launcher, "the Help menu exposes the packaged Material launcher");
+  await document.l10n.translateElements([launcher]);
+  Assert.ok(
+    launcher.label?.trim(),
+    "the Help menu launcher receives a visible localized label"
+  );
+  Assert.ok(
+    launcher.getAttribute("accesskey")?.trim(),
+    "the Help menu launcher has a keyboard access key"
+  );
+
   const previousPrefs = new Map();
   for (const name of MATERIAL_MAIL_PREFS) {
     const hadUserValue = Services.prefs.prefHasUserValue(name);
@@ -48,6 +60,7 @@ add_task(async function testMaterialMailPreviewSurface() {
   });
   await BrowserTestUtils.browserLoaded(tab.browser, false, MATERIAL_MAIL_URL);
   await SimpleTest.promiseFocus(tab.browser);
+  tab.browser.focus();
   registerCleanupFunction(() => tabmail.closeTab(tab));
 
   const page = tab.browser.contentDocument;
@@ -215,6 +228,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     "ordinary tabs expose a reorder pair"
   );
   const movingTab = page.getElementById(`mm-tab-${regularBefore[0]}`);
+  tab.browser.focus();
   movingTab.focus();
   await BrowserTestUtils.synthesizeKey(
     "KEY_ArrowRight",
@@ -232,6 +246,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     [regularBefore[1], regularBefore[0]],
     "Ctrl+Shift+ArrowRight reorders within the ordinary region"
   );
+  tab.browser.focus();
   movingTab.focus();
   await BrowserTestUtils.synthesizeKey(
     "KEY_ArrowLeft",
@@ -292,6 +307,7 @@ add_task(async function testMaterialMailPreviewSurface() {
     0,
     "unsafe nested quantifiers are rejected before tab labels are evaluated"
   );
+  tab.browser.focus();
   tabSearch.focus();
   await BrowserTestUtils.synthesizeKey("KEY_Escape", {}, tab.browser);
   await waitForPaint(page.defaultView);
